@@ -1,23 +1,21 @@
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+// App.js
 
-export default function App() {
- 
+import React from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
+import LoginPage from './src/Loginpage/LoginPage';
 
+const App = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <Text>I ass what asdasd abig fat sd</Text>
-      <StatusBar style="auto" />
+      <LoginPage/>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
+
+export default App;
