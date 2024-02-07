@@ -17,7 +17,6 @@ const LoginPage = () => {
       Alert.alert('Error', 'Username and password are required.');
       return;
     }
-    
     console.log('Username:', username);
     console.log('Password:', password);
   };
