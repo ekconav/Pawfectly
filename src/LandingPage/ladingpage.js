@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native'; 
-import styles from '../Homepage/styles';
+import styles from './styles';
 
 const HomePage = ({ navigation }) => {
   return (
