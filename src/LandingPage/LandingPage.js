@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native'; 
 import styles from './styles';
 
-const HomePage = ({ navigation }) => {
+const LandingPage = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text >PAWFECTLY</Text>
@@ -28,4 +28,4 @@ const HomePage = ({ navigation }) => {
   );
 };
 
-export default HomePage;
+export default LandingPage;
