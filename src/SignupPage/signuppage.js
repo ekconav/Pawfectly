@@ -1,6 +1,6 @@
 // SignupPage.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import styles from './styles';
 
 const SignupPage = () => {
@@ -11,19 +11,21 @@ const SignupPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+
 
   const handleSignup = () => {
     console.log('Signing up...');
     // You can perform validation and further processing here
 
     if (!email || !password || !firstName || !lastName || !mobileNumber || !address || !confirmPassword) {
-        setError('Please fill in all fields');
+      console.log('One or more fields are empty');
+        Alert.alert('Error', 'Please fill in all fields');
         return;
       }
   
       if (password !== confirmPassword) {
-        setError('Passwords do not match');
+        console.log('password did not match');
+        Alert.alert('Error', 'Passwords do not match');
         return;
       }
 
@@ -31,7 +33,7 @@ const SignupPage = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
+      <Text style={styles.title}>Adopter Signup</Text>
       <TextInput
         style={styles.input}
         placeholder="First Name"

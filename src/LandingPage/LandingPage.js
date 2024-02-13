@@ -2,7 +2,10 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native'; 
 import styles from './styles';
 
+
+
 const LandingPage = ({ navigation }) => {
+  
   return (
     <View style={styles.container}>
       <Text >PAWFECTLY</Text>

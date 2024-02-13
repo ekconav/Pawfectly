@@ -1,8 +1,7 @@
-// LoginPage.js
-
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation hook
+import { useNavigation } from '@react-navigation/native'; 
+import style from '../Loginpage/style';
 
 
 const LoginPage = () => {
@@ -24,27 +23,27 @@ const LoginPage = () => {
     console.log('Password:', password);
   };
 
-  const handleSignup = () => {
-    // Navigate to the signup page
-    navigation.navigate('SignupPage');
-    console.log('Signup');
-  };
+
+  const handleChoosePage = () => {
+    navigation.navigate('ChoosePage');
+    console.log('user is choosing..');
+  }
 
 
   return (
 
-    <View style={styles.container}>
-      <Text style={styles.title}>LOGIN</Text>
+    <View style={style.container}>
+      <Text style={style.title}>LOGIN</Text>
 
       <TextInput
-        style={styles.input}
+        style={style.input}
         placeholder="Username"
         onChangeText={(text) => setUsername(text)}
         value={username}
       />
 
       <TextInput
-        style={styles.input}
+        style={style.input}
         placeholder="Password"
         onChangeText={(text) => setPassword(text)}
         value={password}
@@ -52,57 +51,17 @@ const LoginPage = () => {
       />  
       <Text>
       Don't have an account yet?{''}
-        <TouchableOpacity onPress={handleSignup}>
-          <Text style={styles.text}>Sign up here</Text>
+        <TouchableOpacity onPress={handleChoosePage}>
+          <Text style={style.text}>Sign up here</Text>
         </TouchableOpacity>
         </Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity style={style.button} onPress={handleLogin}>
+        <Text style={style.buttonText}>Login</Text>
       </TouchableOpacity>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 16,
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-    paddingLeft: 8,
-    width: '100%',
-  },
-  button: {
-    backgroundColor: 'blue',
-    padding: 10,
-    borderRadius: 8,
-    width: '20%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    
-  },
-  text: {
-    color: 'blue',
-    textDecorationLine: 'underline',
-  },
-  
-  
-});
 
 export default LoginPage;
 
