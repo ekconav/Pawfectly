@@ -20,6 +20,7 @@ const SignupShelter = () => {
     // You can perform validation and further processing here
 
     if (!email || !password || !name || !address || !contactInfo || !document) {
+      console.log('One or more fields are empty');
       alert('Please fill in all fields');
       return;
     }
@@ -54,7 +55,7 @@ const SignupShelter = () => {
       <Text style={styles.title}>Shelter Signup</Text>
       <TextInput
         style={styles.input}
-        placeholder="Name"
+        placeholder="Shelter Name"
         value={name}
         onChangeText={setName}
       />
@@ -93,10 +94,15 @@ const SignupShelter = () => {
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={pickDocument}>
-        <Text style={styles.buttonText}>Upload Document</Text>
+        <Text style={styles.buttonText}>Upload Business Permit</Text>
       </TouchableOpacity>
-      {document && <Text style={styles.documentName}>{document.name}</Text>}
-      <Button title="Sign Up" onPress={handleSignup} />
+      <TouchableOpacity style={styles.button} onPress={pickDocument}>
+        <Text style={styles.buttonText}>Upload Mayor's Permit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={pickDocument}>
+        <Text style={styles.buttonText}>Upload ID</Text>
+      </TouchableOpacity>
+     <Button title="Sign Up" onPress={handleSignup} />
     </View>
   );
 };

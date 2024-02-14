@@ -2,8 +2,6 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native'; 
 import styles from './styles';
 
-
-
 const LandingPage = ({ navigation }) => {
   
   return (
@@ -12,8 +10,7 @@ const LandingPage = ({ navigation }) => {
       <Text >ADAPTABLE</Text>
     
       <Image
-        source={require('../components/dog.jpg')}
-        style={styles.image}
+       source={require('../Components/dog.jpg')}
       />
     <Text style={{ textAlign: 'center' }}>
     <Text style={{ fontWeight: 'bold' }}>Find Your New Friends Today</Text> {'\n'}
