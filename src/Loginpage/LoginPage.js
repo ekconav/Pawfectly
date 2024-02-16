@@ -18,16 +18,24 @@ const LoginPage = () => {
       Alert.alert('Error', 'Username and password are required.');
       return;
     }
+
     
     console.log('Username:', username);
     console.log('Password:', password);
+
+    navigation.navigate('HomeScreen');
+    
   };
 
 
   const handleChoosePage = () => {
     navigation.navigate('ChoosePage');
     console.log('user is choosing..');
+
+
   }
+
+
 
 
   return (
@@ -64,5 +72,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-LoginPage.Js

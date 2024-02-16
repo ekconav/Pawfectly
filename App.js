@@ -10,10 +10,10 @@ import ChoosePage from './src/ChoosePage/ChoosePage';
 import SignupShelter from './src/SignupShelter/SignupShelter';
 
 //homepage screens link
-import HomePage from './HomeScreens/HomePage/HomeScreen';
-
+import HomeScreen from './src/HomeScreens/HomePage/HomeScreen';
 
 const Stack = createStackNavigator();
+
 
 const LoginScreens = () => (
   <Stack.Navigator>
@@ -21,21 +21,24 @@ const LoginScreens = () => (
     <Stack.Screen name='LoginPage' component={LoginPage} options={{ headerShown: false }} />
     <Stack.Screen name='SignupPage' component={SignupPage} options={{ headerShown: false }} />
     <Stack.Screen name="ChoosePage" component={ChoosePage} options={{ headerShown: false }} />
-    <Stack.Screen name="SignupShelter" component={SignupShelter} options={{ headerShown:false}}/>  
+    <Stack.Screen name="SignupShelter" component={SignupShelter} options={{ headerShown:false}}/>
+    <Stack.Screen name='HomeScreen' component={HomeScreen} options={{headerShown: false}}/>  
     </Stack.Navigator>
 );
 
-const HomeScreens = () => (
+const HomePage = () => (
   <Stack.Navigator>
-    <Stack.Screen name='HomePage' component={HomePage} options={{headerShown: false}}/>
+    <Stack.Screen name='HomeScreen' component={HomeScreen} options={{headerShown: false}}/>
   </Stack.Navigator>
 );
 
 const App = () => {
   return (
     <NavigationContainer>
-      <LoginScreens />
-      <HomeScreens/>
+      <Stack.Navigator initialRouteName='LoginScreens'screenOptions={{ headerShown: false }}>
+        <Stack.Screen name='LoginScreens' component={LoginScreens} />
+        <Stack.Screen name='HomePage' component={HomePage} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };

@@ -1,9 +1,11 @@
 // SignupPage.js
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; 
 import styles from './styles';
 
 const SignupPage = () => {
+  const navigation = useNavigation();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -28,6 +30,8 @@ const SignupPage = () => {
         Alert.alert('Error', 'Passwords do not match');
         return;
       }
+
+      navigation.navigate('HomeScreen');
 
   };
 
