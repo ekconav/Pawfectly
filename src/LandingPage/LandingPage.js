@@ -10,7 +10,7 @@ const LandingPage = ({ navigation }) => {
       <Text >ADAPTABLE</Text>
     
       <Image
-       source={require('../Components/dog.jpg')}
+       source={require('../components/dog.jpg')}
       />
     <Text style={{ textAlign: 'center' }}>
     <Text style={{ fontWeight: 'bold' }}>Find Your New Friends Today</Text> {'\n'}
@@ -20,7 +20,7 @@ const LandingPage = ({ navigation }) => {
           
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('LoginPage')}
+        onPress={() => navigation.navigate('ChooseLogin')}
       >
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>

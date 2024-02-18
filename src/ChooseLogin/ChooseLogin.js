@@ -2,28 +2,27 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { containerStyles, buttonStyles } from './styles';
 
-const ChoosePage = ({ navigation }) => {
+const ChooseLogin = ({ navigation }) => {
   const handleAdopterLogin = () => {
     // Navigate to adopter login screen
-    navigation.navigate('SignupPage');
+    navigation.navigate('LoginPage');
   };
 
   const handleShelterLogin = () => {
     // Navigate to shelter login screen
-    navigation.navigate('SignupShelter');
+    navigation.navigate('LoginPageShelter');
   };
 
   return (
     <View style={containerStyles.container}>
-      <Text style={containerStyles.title}>Choose User Type</Text>
       <TouchableOpacity style={buttonStyles.button} onPress={handleAdopterLogin}>
-        <Text style={buttonStyles.buttonText}>Signup as Adopter</Text>
+        <Text style={buttonStyles.buttonText}>Login as Adopter</Text>
       </TouchableOpacity>
       <TouchableOpacity style={buttonStyles.button} onPress={handleShelterLogin}>
-        <Text style={buttonStyles.buttonText}>Signup as Shelter</Text>
+        <Text style={buttonStyles.buttonText}>Login as Shelter</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-export default ChoosePage;
+export default ChooseLogin;

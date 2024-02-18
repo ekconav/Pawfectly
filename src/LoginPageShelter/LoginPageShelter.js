@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
-import style from '../Loginpage/style';
+import style from '../LoginPageShelter/style';
 
 
-const LoginPage = () => {
+const LoginPageShelter = () => {
   const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -17,10 +17,9 @@ const LoginPage = () => {
       // Display an alert if username or password is empty
       Alert.alert('Error', 'Username and password are required.');
       return;
-      
     }
 
-    console.log('Adopter Login');    
+    console.log('Shelter Login');
     console.log('Username:', username);
     console.log('Password:', password);
 
@@ -30,8 +29,8 @@ const LoginPage = () => {
 
 
   const handleChoosePage = () => {
-    navigation.navigate('SignupPage');
-    console.log('adopter signing up');
+    navigation.navigate('SignupShelter');
+    console.log('shelter signing up');
 
 
   }
@@ -72,4 +71,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default LoginPageShelter;
