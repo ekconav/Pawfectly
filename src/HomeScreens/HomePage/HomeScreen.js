@@ -1,19 +1,26 @@
 import * as React from 'react';
-import { Text, View } from 'react-native';
+import { SafeAreaView, TextInput, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import SettingsPage from '../SettingsPage/SettingsPage';
 import MessagePage from '../MessagePage/MessagePage';
 import { Ionicons } from '@expo/vector-icons';
 import CarouselCards from '../../Carousel/CarouselCards';
-
+import SearchBar from './SearchBar';
+import styles from './styles'
 
 function HomeScreen() {
+  const [search, setSearch] = React.useState('');
+
+  const updateSearch = (text) => {
+    setSearch(text);
+  };
+
   return (
-    <View style={{  backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 100 }}>
-      <CarouselCards/>
+    
+      <View style={{ backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', padding: 100 }}>
+        <SearchBar/>
+        <CarouselCards />
+
     </View>
   );
 }
@@ -23,7 +30,7 @@ const Tab = createBottomTabNavigator();
 
 function MyTabs() {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator style={styles.container}>
       <Tab.Screen 
       name="Home" 
       component={HomeScreen} 

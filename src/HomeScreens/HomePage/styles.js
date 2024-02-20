@@ -22,6 +22,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
   },
+  
+  searchBar: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5,
+    padding: 10,
+  },
+
+  create: {
+   width: 350,
+   paddingTop: 50,
+   paddingBottom: 30,
+  }
+
 });
 
 export default styles;
