@@ -3,13 +3,17 @@ import { Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import SettingsPage from '../SettingsPage/SettingsPage';
 import MessagePage from '../MessagePage/MessagePage';
-import styles from '../HomePage/styles';
 import { Ionicons } from '@expo/vector-icons';
+import CarouselCards from '../../Carousel/CarouselCards';
+
 
 function HomeScreen() {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Home!</Text>
+    <View style={{  backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 100 }}>
+      <CarouselCards/>
     </View>
   );
 }
