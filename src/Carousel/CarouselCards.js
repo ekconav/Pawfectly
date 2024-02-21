@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import Carousel, { Pagination } from 'react-native-snap-carousel'
 import CarouselCardItem, { SLIDER_WIDTH, ITEM_WIDTH } from './CarouselCardItem'
 import data from './data'
@@ -10,17 +10,9 @@ const CarouselCards = () => {
 
   return (
     <View>
-
-       {/* Header Section */}
-       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 10 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Adopt Pet</Text>
-        <TouchableOpacity onPress={() => console.log('See All pressed')}>
-          <Text style={{ color: 'blue', fontSize: 16 }}>See All</Text>
-        </TouchableOpacity>
-      </View>
+      
 
       <Carousel
-
         ref={isCarousel}
         data={data}
         renderItem={CarouselCardItem}
@@ -33,5 +25,28 @@ const CarouselCards = () => {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginBottom: 10,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    width: '100', // Ensure header spans the width of the screen
+  },
+  headerText: {
+    fontSize: 20,
+  },
+  seeAll: {
+    fontSize: 16,
+    color: 'blue',
+  },
+});
+
 
 export default CarouselCards

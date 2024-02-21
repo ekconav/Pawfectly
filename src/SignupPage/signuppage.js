@@ -1,7 +1,8 @@
-// SignupPage.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../FirebaseConfig'; // Import Firebase authentication instance
 import styles from './styles';
 
 const SignupPage = () => {
@@ -13,26 +14,31 @@ const SignupPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-
-  const handleSignup = () => {
-    console.log('Signing up...');
-    // You can perform validation and further processing here
-
-    if (!email || !password || !firstName || !lastName || !mobileNumber || !address || !confirmPassword) {
-      console.log('One or more fields are empty');
-        Alert.alert('Error', 'Please fill in all fields');
-        return;
-      }
-  
+  const handleSignup = async () => {
+    setLoading(true);
+    try {
+      // Check if passwords match
       if (password !== confirmPassword) {
-        console.log('password did not match');
         Alert.alert('Error', 'Passwords do not match');
         return;
       }
+      
+      // Create user with email and password
+      const response = await createUserWithEmailAndPassword(auth, email, password);
+      console.log(response);
 
+      // Optionally, you can add additional user information to your Firestore database here
+      
+      Alert.alert('Success', 'User signed up successfully');
       navigation.navigate('HomeScreen');
-
+    } catch (error) {
+      console.error('Signup failed:', error.message);
+      Alert.alert('Error', 'Signup failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,7 +91,11 @@ const SignupPage = () => {
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleSignup}>
-        <Text style={styles.buttonText}>Sign Up</Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Sign Up</Text>
+        )}
       </TouchableOpacity>
     </View>
   );

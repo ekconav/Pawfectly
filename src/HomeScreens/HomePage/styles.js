@@ -6,6 +6,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+
   },
   image: {
     width: 200,
@@ -24,6 +25,7 @@ const styles = StyleSheet.create({
   },
   
   searchBar: {
+    top: 20,
     borderWidth: 1,
     borderColor: 'gray',
     borderRadius: 5,
@@ -34,7 +36,25 @@ const styles = StyleSheet.create({
    width: 350,
    paddingTop: 50,
    paddingBottom: 30,
-  }
+  },
+
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    width: '100', // Ensure header spans the width of the screen
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  seeAll: {
+    fontSize: 16,
+    color: 'blue',
+    
+  },
 
 });
 

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { SafeAreaView, TextInput, View } from 'react-native';
+import { SafeAreaView, TextInput,Text, TouchableOpacity, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import SettingsPage from '../SettingsPage/SettingsPage';
 import MessagePage from '../MessagePage/MessagePage';
@@ -17,8 +17,14 @@ function HomeScreen() {
 
   return (
     
-      <View style={{ backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', padding: 100 }}>
+      <View style={{ backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', padding: 110 }}>
         <SearchBar/>
+        <View style={styles.header}>
+        <Text style={styles.headerText}>Adopt Pet</Text>
+        <TouchableOpacity onPress={() => console.log('See All pressed')}>
+          <Text style={styles.seeAll}>See All</Text>
+        </TouchableOpacity>
+      </View>
         <CarouselCards />
 
     </View>
@@ -69,4 +75,6 @@ export default function App() {
   return (
       <MyTabs />
   );
+  
 }
+
