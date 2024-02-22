@@ -17,28 +17,15 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
-    setLoading(true);
-    try {
-      // Check if passwords match
-      if (password !== confirmPassword) {
-        Alert.alert('Error', 'Passwords do not match');
-        return;
+    if(email && password ) {
+      try{
+        await createUserWithEmailAndPassword(auth, email, password);
+        Alert.alert('', 'Signup Sucessfull')
+      }catch(error){
+        console.log('got eeror', error.message)
       }
-      
-      // Create user with email and password
-      const response = await createUserWithEmailAndPassword(auth, email, password);
-      console.log(response);
-
-      // Optionally, you can add additional user information to your Firestore database here
-      
-      Alert.alert('Success', 'User signed up successfully');
-      navigation.navigate('HomeScreen');
-    } catch (error) {
-      console.error('Signup failed:', error.message);
-      Alert.alert('Error', 'Signup failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
     }
+    navigation.navigate('HomeScreen')
   };
 
   return (
@@ -72,14 +59,14 @@ const SignupPage = () => {
       <TextInput
         style={styles.input}
         placeholder="Email"
-        onChangeText={text => setEmail(text)}
+        onChangeText={value => setEmail(value)}
         value={email}
         keyboardType="email-address"
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
-        onChangeText={text => setPassword(text)}
+        onChangeText={value => setPassword(value)}
         value={password}
         secureTextEntry
       />

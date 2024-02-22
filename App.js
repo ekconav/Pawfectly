@@ -13,7 +13,8 @@ import LoginPageShelter from './src/LoginPageShelter/LoginPageShelter';
 
 //homepage screens link
 import HomeScreen from './src/HomeScreens/HomePage/HomeScreen';
-import SettingsPage from './src/HomeScreens/SettingsPage/SettingsPage';
+
+
 
 
 const Stack = createStackNavigator();
@@ -32,12 +33,25 @@ const LoginScreens = () => (
     </Stack.Navigator>
 );
 
-const HomePage = () => (
-  <Stack.Navigator>
-    <Stack.Screen name='HomeScreen' component={HomeScreen} options={{headerShown: false}}/>
-    <Stack.Screen name='SettingsPage' component={SettingsPage} options={{headerShown:false}}/>
-  </Stack.Navigator>
-);
+const HomePage = () => {
+  const { user } = useAuth(); // Get user information using useAuth hook
+  
+  
+  if (user) {
+ 
+    return (
+      <Stack.Navigator>
+        <Stack.Screen name='HomeScreen' component={HomeScreen} options={{headerShown: false}}/>
+      </Stack.Navigator>
+    );
+  } else {
+    return (
+      <Stack.Navigator>
+        <Stack.Screen name='LoginScreens' component={LoginScreens} />
+      </Stack.Navigator>
+    );
+  }
+};
 
 const App = () => {
   return (

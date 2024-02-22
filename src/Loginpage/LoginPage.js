@@ -1,36 +1,26 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
+import { Auth } from 'firebase/auth';
 import style from '../Loginpage/style';
 
 const LoginPage = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   
-  const auth = getAuth;
 
   const handleLogin = async () => {
-    setLoading(true)
-    try {
-      if (!email.trim() || !password.trim()) {
-        // Display an alert if username or password is empty
-        Alert.alert('Error', 'Username and password are required.');
-        return;
+    if(email && password ) {
+      try{
+        await signInWithEmailAndPassword(auth, email, password);
+        Alert.alert('', 'Login Sucessfull')
+      }catch(error){
+        console.log('got eeror', error.message)
       }
-      const userCredential = await signInWithEmailAndPassword(auth,email,password);
-      const user = userCredential.user;
-      console.log('User logged in:', user.uid);
-    
-      navigation.navigate('HomeScreen');
-    } catch (error) {
-      console.error('Login failed:', error.message);
-      Alert.alert('Error', 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
     }
+    navigation.navigate('HomeScreen')
   };
 
   const handleChoosePage = () => {
@@ -45,14 +35,14 @@ const LoginPage = () => {
       <TextInput
         style={style.input}
         placeholder="Email"
-        onChangeText={(text) => setEmail(text)}
+        onChangeText={(value) => setEmail(value)}
         value={email}
       />
 
       <TextInput
         style={style.input}
         placeholder="Password"
-        onChangeText={(text) => setPassword(text)}
+        onChangeText={(value) => setPassword(value)}
         autoCapitalize='none'
         value={password}
         secureTextEntry
