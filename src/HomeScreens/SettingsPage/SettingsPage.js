@@ -1,17 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
 import { signOut } from 'firebase/auth';
 import { auth } from '../../FirebaseConfig';
 
 const SettingsPage = () => {
-  const navigation = useNavigation(); // Use useNavigation hook
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
       console.log('User signed out successfully');
-      navigation.navigate('HomeScreen'); // Corrected spelling of 'HomeScreen'
     } catch (error) {
       console.error('Error signing out:', error.message);
     }

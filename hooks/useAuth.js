@@ -3,7 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../src/FirebaseConfig';
 
 export default function useAuth() {
-    const {user, setUser} = useState(null);
+    const [user , setUser] = useState(null);
 
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, user=> {
@@ -17,6 +17,6 @@ export default function useAuth() {
 
         return unsub;
         
-    } )
+    }, [] )
   return {user}
 }

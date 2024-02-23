@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
 import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
-import { Auth } from 'firebase/auth';
+import { auth } from '../FirebaseConfig'
 import style from '../Loginpage/style';
 
 const LoginPage = () => {
@@ -20,7 +20,6 @@ const LoginPage = () => {
         console.log('got eeror', error.message)
       }
     }
-    navigation.navigate('HomeScreen')
   };
 
   const handleChoosePage = () => {
@@ -43,7 +42,6 @@ const LoginPage = () => {
         style={style.input}
         placeholder="Password"
         onChangeText={(value) => setPassword(value)}
-        autoCapitalize='none'
         value={password}
         secureTextEntry
       />  

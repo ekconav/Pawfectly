@@ -13,55 +13,38 @@ import LoginPageShelter from './src/LoginPageShelter/LoginPageShelter';
 
 //homepage screens link
 import HomeScreen from './src/HomeScreens/HomePage/HomeScreen';
-
+import SettingsPage from './src/HomeScreens/SettingsPage/SettingsPage';
+import MessagePage from './src/HomeScreens/MessagePage/MessagePage';
+import useAuth from './hooks/useAuth'
 
 
 
 const Stack = createStackNavigator();
 
 
-const LoginScreens = () => (
-  <Stack.Navigator>
-    <Stack.Screen name='LandingPage' component={LandingPage} options={{ headerShown: false }} />
-    <Stack.Screen name='LoginPage' component={LoginPage} options={{ headerShown: false }} />
-    <Stack.Screen name='SignupPage' component={SignupPage} options={{ headerShown: false }} />
-    <Stack.Screen name="ChoosePage" component={ChoosePage} options={{ headerShown: false }} />
-    <Stack.Screen name='ChooseLogin' component={ChooseLogin} options={{headerShown: false}} />
-    <Stack.Screen name='LoginPageShelter' component={LoginPageShelter} options={{headerShown: false}}/>
-    <Stack.Screen name="SignupShelter" component={SignupShelter} options={{ headerShown:false}}/>
-    <Stack.Screen name='HomeScreen' component={HomeScreen} options={{headerShown: false}}/>  
-    </Stack.Navigator>
-);
-
-const HomePage = () => {
-  const { user } = useAuth(); // Get user information using useAuth hook
-  
-  
+const App = () => {
+  const { user } = useAuth(); // Get user information using useAuth hoo
   if (user) {
- 
     return (
-      <Stack.Navigator>
-        <Stack.Screen name='HomeScreen' component={HomeScreen} options={{headerShown: false}}/>
-      </Stack.Navigator>
-    );
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName='HomeScreen'screenOptions={{ headerShown: false }}>
+          <Stack.Screen name='HomeScreen' component={HomeScreen} options={{headerShown: false}}/>  
+        </Stack.Navigator>
+        </NavigationContainer>
+      )
   } else {
-    return (
-      <Stack.Navigator>
-        <Stack.Screen name='LoginScreens' component={LoginScreens} />
+    return ( 
+      <NavigationContainer>
+      <Stack.Navigator initialRouteName='LoginScreens'screenOptions={{ headerShown: false }}>
+        <Stack.Screen name='LandingPage' component={LandingPage} options={{ headerShown: false }} />
+        <Stack.Screen name='LoginPage' component={LoginPage} options={{ headerShown: false }} />
+        <Stack.Screen name='SignupPage' component={SignupPage} options={{ headerShown: false }} />
+        <Stack.Screen name="ChoosePage" component={ChoosePage} options={{ headerShown: false }} />
+        <Stack.Screen name='ChooseLogin' component={ChooseLogin} options={{headerShown: false}} />
       </Stack.Navigator>
+      </NavigationContainer>   
     );
   }
-};
-
-const App = () => {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName='LoginScreens'screenOptions={{ headerShown: false }}>
-        <Stack.Screen name='LoginScreens' component={LoginScreens} />
-        <Stack.Screen name='HomePage' component={HomePage} options={{headerShown: false}}/>
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
 };
 
 export default App;

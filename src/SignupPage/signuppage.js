@@ -25,7 +25,6 @@ const SignupPage = () => {
         console.log('got eeror', error.message)
       }
     }
-    navigation.navigate('HomeScreen')
   };
 
   return (
