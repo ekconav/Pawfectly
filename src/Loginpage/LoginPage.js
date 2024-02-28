@@ -17,7 +17,8 @@ const LoginPage = () => {
         await signInWithEmailAndPassword(auth, email, password);
         Alert.alert('', 'Login Sucessfull')
       }catch(error){
-        console.log('got eeror', error.message)
+        console.log('got error', error.message)
+        Alert.alert('', 'Incorrect')
       }
     }
   };

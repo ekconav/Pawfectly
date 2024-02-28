@@ -35,9 +35,6 @@ const LoginPageShelter = () => {
 
   }
 
-
-
-
   return (
 
     <View style={style.container}>

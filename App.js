@@ -13,9 +13,9 @@ import LoginPageShelter from './src/LoginPageShelter/LoginPageShelter';
 
 //homepage screens link
 import HomeScreen from './src/HomeScreens/HomePage/HomeScreen';
-import SettingsPage from './src/HomeScreens/SettingsPage/SettingsPage';
-import MessagePage from './src/HomeScreens/MessagePage/MessagePage';
 import useAuth from './hooks/useAuth'
+import DetailsPage from './src/HomeScreens/DetailsPage/DetailsPage';
+import FavoritesPage from './src/HomeScreens/Favorites/FavoritesPage';
 
 
 
@@ -29,6 +29,8 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator initialRouteName='HomeScreen'screenOptions={{ headerShown: false }}>
           <Stack.Screen name='HomeScreen' component={HomeScreen} options={{headerShown: false}}/>  
+          <Stack.Screen name='DetailsPage' component={DetailsPage} options={{headerShown: false}}/> 
+          <Stack.Screen name='FavoritesPaage' component={FavoritesPage} options={{headerShown: false}}/> 
         </Stack.Navigator>
         </NavigationContainer>
       )
