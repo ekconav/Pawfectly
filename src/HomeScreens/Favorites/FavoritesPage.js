@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLORS from '../../const/colors';
 
 const FavoritesPage = () => {
   const [favoritePets, setFavoritePets] = useState([]);
+  
+
+  const handleDelete = async (id) => {
+    try {
+      // Filter out the pet with the given id
+      const updatedFavorites = favoritePets.filter((pet) => pet.id !== id);
+      // Update the favorites state
+      setFavoritePets(updatedFavorites);
+      // Update AsyncStorage with the updated favorites
+      await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+    } catch (error) {
+      console.error('Error deleting favorite pet:', error);
+    }
+  };
 
   useEffect(() => {
     const getFavoritePets = async () => {
@@ -12,7 +27,7 @@ const FavoritesPage = () => {
         // Retrieve favorite pets from AsyncStorage
         const favoritesJson = await AsyncStorage.getItem('favorites');
         const favorites = favoritesJson ? JSON.parse(favoritesJson) : [];
-        setFavoritePets(favorites);
+        setFavoritePets(favorites); // Corrected
       } catch (error) {
         console.error('Error retrieving favorite pets:', error);
       }
@@ -24,17 +39,20 @@ const FavoritesPage = () => {
 
   // Render item for FlatList
   const renderFavoriteItem = ({ item }) => (
-    <View style={styles.item}>
-       <Image source={item.image} style={styles.image} resizeMode="cover" />
-
-      <Text style={styles.itemText}>Name: {item.name}</Text>
-      <Text style={styles.itemText}>Type: {item.type}</Text>
-      <Text style={styles.itemText}>Age: {item.age}</Text>
-      <Text style={styles.itemText}>Location: {item.location}</Text>
-      {/* Add more details as needed */}
-    </View>
+    <Swipeable renderRightActions={() => (
+      <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
+        <Text style={styles.deleteText}>Delete</Text>
+      </TouchableOpacity>
+    )}>
+      <View style={styles.item}>
+        <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
+        <Text style={styles.itemText}>Name: {item.name}</Text>
+        <Text style={styles.itemText}>Type: {item.type}</Text>
+        <Text style={styles.itemText}>Age: {item.age}</Text>
+        <Text style={styles.itemText}>Location: {item.location}</Text>
+      </View>
+    </Swipeable>
   );
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Favorite Pets</Text>
