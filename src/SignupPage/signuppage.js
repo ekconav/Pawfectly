@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
-import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../FirebaseConfig'; // Import Firebase authentication instance
+import { createUserWithEmailAndPassword, signInWithPhoneNumber } from 'firebase/auth'; // Import Firebase authentication methods
 import styles from './styles';
 
 const SignupPage = () => {
-  const navigation = useNavigation();
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -15,15 +15,37 @@ const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verificationId, setVerificationId] = useState(null);
+  const [verificationCode, setVerificationCode] = useState('');
+
+  const navigation = useNavigation();
 
   const handleSignup = async () => {
-    if(email && password ) {
-      try{
+    if (email && password && mobileNumber) {
+      try {
         await createUserWithEmailAndPassword(auth, email, password);
-        Alert.alert('', 'Signup Sucessfull')
-      }catch(error){
-        console.log('got eeror', error.message)
+        Alert.alert('', 'Signup Successful', [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('OTPVerification', { mobileNumber }),
+          },
+        ]);
+      } catch (error) {
+        console.error('Signup Error:', error.message);
+        Alert.alert('', 'Error signing up. Please try again.');
       }
+    } else {
+      Alert.alert('', 'Please fill in all fields.');
+    }
+  };
+  const sendOtp = async () => {
+    try {
+      const confirmationResult = await signInWithPhoneNumber(auth, mobileNumber);
+      setVerificationId(confirmationResult.verificationId);
+      navigation.navigate('OTPVerification'); // Navigate to OTP verification page
+    } catch (error) {
+      console.log('Error sending OTP:', error.message);
+      Alert.alert('Error', 'Failed to send OTP');
     }
   };
 

@@ -23,7 +23,7 @@ const Stack = createStackNavigator();
 
 
 const App = () => {
-  const { user } = useAuth(); // Get user information using useAuth hoo
+  const { user, shelter } = useAuth(); // Get user information using useAuth hoo
   if (user) {
     return (
       <NavigationContainer>
@@ -33,7 +33,8 @@ const App = () => {
           <Stack.Screen name='FavoritesPaage' component={FavoritesPage} options={{headerShown: false}}/> 
         </Stack.Navigator>
         </NavigationContainer>
-      )
+      );
+      
   } else {
     return ( 
       <NavigationContainer>
@@ -43,10 +44,13 @@ const App = () => {
         <Stack.Screen name='SignupPage' component={SignupPage} options={{ headerShown: false }} />
         <Stack.Screen name="ChoosePage" component={ChoosePage} options={{ headerShown: false }} />
         <Stack.Screen name='ChooseLogin' component={ChooseLogin} options={{headerShown: false}} />
+        <Stack.Screen name='LoginPageShelter' component={LoginPageShelter} options={{headerShown: false}} />
+        <Stack.Screen name='SignupShelter' component={SignupShelter} options={{headerShown: false}} />
       </Stack.Navigator>
       </NavigationContainer>   
     );
   }
+  
 };
 
 export default App;

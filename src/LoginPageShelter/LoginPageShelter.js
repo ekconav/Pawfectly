@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native'; 
 import style from '../LoginPageShelter/style';
 
@@ -10,35 +11,28 @@ const LoginPageShelter = () => {
   const [password, setPassword] = useState('');
   
 
-  const handleLogin = () => {
-    // Implement your login logic here
-
-    if (!username.trim() || !password.trim()) {
-      // Display an alert if username or password is empty
-      Alert.alert('Error', 'Username and password are required.');
-      return;
+  const handleLogin = async () => {
+    if(email && password ) {
+      try{
+        await signInWithEmailAndPassword(auth, email, password);
+        Alert.alert('', 'Login Sucessfull')
+      }catch(error){
+        console.log('got error', error.message)
+        Alert.alert('', 'Incorrect')
+      }
     }
-
-    console.log('Shelter Login');
-    console.log('Username:', username);
-    console.log('Password:', password);
-
-    navigation.navigate('HomeScreen');
-    
   };
-
 
   const handleChoosePage = () => {
     navigation.navigate('SignupShelter');
     console.log('shelter signing up');
-
 
   }
 
   return (
 
     <View style={style.container}>
-      <Text style={style.title}>LOGIN</Text>
+      <Text style={style.title}>Welcome Shelter</Text>
 
       <TextInput
         style={style.input}

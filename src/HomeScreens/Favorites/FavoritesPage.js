@@ -45,7 +45,12 @@ const FavoritesPage = () => {
       </TouchableOpacity>
     )}>
       <View style={styles.item}>
-        <Image source={{ uri: item.imageUrl }} style={styles.image} resizeMode="cover" />
+      <Image 
+       source={{ uri: item.imageUrl }}
+       style={styles.image}
+       resizeMode="cover"
+       onError={(error) => console.error('Error loading image:', error)}
+        />
         <Text style={styles.itemText}>Name: {item.name}</Text>
         <Text style={styles.itemText}>Type: {item.type}</Text>
         <Text style={styles.itemText}>Age: {item.age}</Text>

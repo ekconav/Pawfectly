@@ -30,7 +30,7 @@ const LoginPage = () => {
 
   return (
     <View style={style.container}>
-      <Text style={style.title}>LOGIN</Text>
+      <Text style={style.title}>Welcome Adopter</Text>
 
       <TextInput
         style={style.input}
