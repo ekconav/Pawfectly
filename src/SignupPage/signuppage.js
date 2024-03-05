@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
-import { auth } from '../FirebaseConfig'; // Import Firebase authentication instance
-import { createUserWithEmailAndPassword, signInWithPhoneNumber } from 'firebase/auth'; // Import Firebase authentication methods
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db} from '../FirebaseConfig'; // Import Firebase authentication and Firestore instances
+import { createUserWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
 import styles from './styles';
 
 const SignupPage = () => {
@@ -15,19 +16,39 @@ const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [verificationId, setVerificationId] = useState(null);
-  const [verificationCode, setVerificationCode] = useState('');
 
   const navigation = useNavigation();
+
+  const addUserToFirestore = async (userId, userData) => {
+    try {
+      await setDoc(doc(db, 'users', userId), userData);
+    } catch (error) {
+      console.error('Error adding user data to Firestore:', error.message);
+      throw error; // Propagate the error to the caller
+    }
+  };
 
   const handleSignup = async () => {
     if (email && password && mobileNumber) {
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        // Create user account
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user; // Retrieve the user object
+  
+        // Add user data to Firestore
+        await addUserToFirestore(user.uid, {
+          firstName: firstName,
+          lastName: lastName,
+          mobileNumber: mobileNumber,
+          address: address,
+          email: email,
+        });
+  
+
         Alert.alert('', 'Signup Successful', [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('OTPVerification', { mobileNumber }),
+            onPress: () => navigation.navigate('LoginPage'), // Redirect to login page after successful signup
           },
         ]);
       } catch (error) {
@@ -36,16 +57,6 @@ const SignupPage = () => {
       }
     } else {
       Alert.alert('', 'Please fill in all fields.');
-    }
-  };
-  const sendOtp = async () => {
-    try {
-      const confirmationResult = await signInWithPhoneNumber(auth, mobileNumber);
-      setVerificationId(confirmationResult.verificationId);
-      navigation.navigate('OTPVerification'); // Navigate to OTP verification page
-    } catch (error) {
-      console.log('Error sending OTP:', error.message);
-      Alert.alert('Error', 'Failed to send OTP');
     }
   };
 
