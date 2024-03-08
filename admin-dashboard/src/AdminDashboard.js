@@ -1,47 +1,100 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/FirebaseConfig'; //  // Import your Firebase configuration
-
+import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { db } from './FirebaseConfig'; // Import your Firestore instance
 
 function AdminDashboard() {
   const [userData, setUserData] = useState([]);
+  const [editUser, setEditUser] = useState(null);
 
   useEffect(() => {
-    // Function to fetch user data from Firestore
-    const fetchUserData = async () => {
-      try {
-        const userCollection = collection(firestore, 'users'); // Reference to the 'users' collection
-        const snapshot = await getDocs(userCollection); // Get all documents from the collection
-        const userDataList = snapshot.docs.map(doc => doc.data()); // Extract data from each document
-        setUserData(userDataList); // Update state with user data
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
+    fetchData();
+  }, []);
 
-    // Call the fetchUserData function
-    fetchUserData();
+  const fetchData = async () => {
+    try {
+      const userCollection = collection(db, 'users');
+      const snapshot = await getDocs(userCollection);
+      const userDataList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setUserData(userDataList);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
-    // Cleanup function (if needed)
-    return () => {
-      // Cleanup code here
-    };
-  }, []); // Empty dependency array to ensure useEffect runs only once
+  const deleteUser = async (userId) => {
+    try {
+      await deleteDoc(doc(db, 'users', userId));
+      fetchData(); // Refresh user data
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
+
+  const updateUser = async (userId) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), editUser);
+      setEditUser(null);
+      fetchData(); // Refresh user data
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
+  };
 
   return (
     <div>
-    <h1>User Data</h1>
-    <ul>
-      {userData.map((user, index) => (
-        <li key={index}>
-          {/* Update with your actual field names */}
-          {user.firstName} {user.lastName} - {user.email} - {user.mobileNumber} - {user.address}
-        </li>
-      ))}
-    </ul>
-  </div>
-);
+      <h1>User Database</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {userData.map((user) => (
+            <tr key={user.id}>
+              <td>{editUser && editUser.id === user.id ? (
+                <input
+                  type="text"
+                  value={editUser.firstName}
+                  onChange={(e) => setEditUser({ ...editUser, firstName: e.target.value })}
+                />
+              ) : user.firstName}</td>
+              <td>{editUser && editUser.id === user.id ? (
+                <input
+                  type="text"
+                  value={editUser.lastName}
+                  onChange={(e) => setEditUser({ ...editUser, lastName: e.target.value })}
+                />
+              ) : user.lastName}</td>
+              <td>{editUser && editUser.id === user.id ? (
+                <input
+                  type="text"
+                  value={editUser.email}
+                  onChange={(e) => setEditUser({ ...editUser, email: e.target.value })}
+                />
+              ) : user.email}</td>
+              <td>
+                {editUser && editUser.id === user.id ? (
+                  <>
+                    <button onClick={() => updateUser(user.id)}>Save</button>
+                    <button onClick={() => setEditUser(null)}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => setEditUser(user)}>Edit</button>
+                    <button onClick={() => deleteUser(user.id)}>Delete</button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export default AdminDashboard;
-

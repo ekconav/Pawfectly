@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import { storage } from '../FirebaseConfig'
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { collection, addDoc } from 'firebase/firestore';
+import { auth, firestore, storage } from '../FirebaseConfig';
 import styles from './styles';
 
 const SignupShelter = () => {
@@ -13,16 +15,10 @@ const SignupShelter = () => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [businessPermit, setBusinessPermit] = useState(null);
   const [mayorsPermit, setMayorsPermit] = useState(null);
-  const [idDocument, setIdDocument] = useState(null)
+  const [idDocument, setIdDocument] = useState(null);
 
   const handleSignup = async () => {
-    // You can handle signup logic here, such as sending the data to your backend
-
-    console.log('Signing up...');
-    // You can perform validation and further processing here
-
     if (!email || !password || !name || !address || !mobileNumber || !confirmPassword || !businessPermit || !mayorsPermit || !idDocument) {
-      console.log('One or more fields are empty');
       alert('Please fill in all fields');
       return;
     }
@@ -32,22 +28,34 @@ const SignupShelter = () => {
       return;
     }
 
-    const businessPermitUrl = await uploadToFirebaseStorage(businessPermit);
-    const mayorsPermitUrl = await uploadToFirebaseStorage(mayorsPermit);
-    const idDocumentUrl = await uploadToFirebaseStorage(idDocument);
+    try {
+      const shelterCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const shelters = shelterCredential.shelter;
 
-    console.log('Name:', name);
-    console.log('Email:', email);
-    console.log('Password:', password);
-    console.log('Confirm Password:', confirmPassword);
-    console.log('Address:', address);
-    console.log('Mobile Number:', mobileNumber);
-    console.log('Business Permit URL:', businessPermitUrl);
-    console.log("Mayor's Permit URL:", mayorsPermitUrl);
-    console.log('ID Document URL:', idDocumentUrl);
+      const shelterData = {
+        name,
+        email,
+        address,
+        mobileNumber,
+        // Add other data as needed
+      };
+
+      // Upload documents to Firebase Storage and get their URLs
+      const businessPermitUrl = await uploadToFirebaseStorage(businessPermit, 'businessPermit');
+      const mayorsPermitUrl = await uploadToFirebaseStorage(mayorsPermit, 'mayorsPermit');
+      const idDocumentUrl = await uploadToFirebaseStorage(idDocument, 'idDocument');
+
+      // Add shelter data to Firestore
+      await addShelterToFirestore(shelterData, businessPermitUrl, mayorsPermitUrl, idDocumentUrl);
+
+      console.log('Signup successful:', shelters.uid);
+    } catch (error) {
+      console.error('Signup error:', error.message);
+      alert('Error signing up. Please try again.');
+    }
   };
 
-  const pickDocument = async () => {
+  const pickDocument = async (documentType) => {
     try {
       const result = await DocumentPicker.getDocumentAsync();
       if (result.type === 'success') {
@@ -69,29 +77,46 @@ const SignupShelter = () => {
         } else {
           console.log('No document URI found');
         }
-      } else {
+      } else if (result.type === 'cancel') {
         console.log('Document picking cancelled');
       }
     } catch (err) {
       console.log('Document picker error:', err);
     }
-  };
+  }; 
 
   const uploadToFirebaseStorage = async (document, documentType) => {
     try {
       if (document) {
         const response = await fetch(document.uri);
         const blob = await response.blob();
-        const ref = storage.ref().child(`shelter_documents/${documentType}/${document.name}`);
+        const fileName = document.name || `file_${Date.now()}`; // Use a timestamp if the document name is not available
+        const ref = storage.ref().child(`shelter_documents/${documentType}/${fileName}`);
         await ref.put(blob);
-        return ref.getDownloadURL();
+        const downloadURL = await ref.getDownloadURL();
+        return downloadURL;
       } else {
         console.log('No document selected');
         return null;
       }
     } catch (error) {
-      console.error('Error uploading document:', error.message);
+      console.error('Error uploading document:', error);
       return null;
+    }
+  };
+
+  const addShelterToFirestore = async (shelterData, businessPermitUrl, mayorsPermitUrl, idDocumentUrl) => {
+    try {
+      const shelterRef = await addDoc(collection(firestore, 'shelters'), {
+        ...shelterData,
+        businessPermitUrl,
+        mayorsPermitUrl,
+        idDocumentUrl,
+      });
+      console.log('Shelter added with ID:', shelterRef.id);
+    } catch (error) {
+      console.error('Error adding shelter to Firestore:', error.message);
+      throw error;
     }
   };
 
@@ -124,7 +149,7 @@ const SignupShelter = () => {
         onChangeText={setMobileNumber}
         keyboardType="phone-pad"
       />
-       <TextInput
+      <TextInput
         style={styles.input}
         placeholder="Password"
         value={password}
@@ -147,7 +172,7 @@ const SignupShelter = () => {
       <TouchableOpacity style={styles.button} onPress={() => pickDocument('idDocument')}>
         <Text style={styles.buttonText}>Upload ID</Text>
       </TouchableOpacity>
-     <Button title="Sign Up" onPress={handleSignup} />
+      <Button title="Sign Up" onPress={handleSignup} />
     </View>
   );
 };

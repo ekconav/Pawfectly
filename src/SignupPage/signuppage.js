@@ -48,7 +48,6 @@ const SignupPage = () => {
         Alert.alert('', 'Signup Successful', [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('LoginPage'), // Redirect to login page after successful signup
           },
         ]);
       } catch (error) {
