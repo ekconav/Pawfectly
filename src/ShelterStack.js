@@ -8,6 +8,7 @@ import MessagePageShelter from './HomeScreensShelter/MessagePage/MessagePageShel
 import SettingsPageShelter from './HomeScreensShelter/SettingsPage/SettingsPageShelter';
 import SignupShelter from './SignupShelter/SignupShelter';
 import LoginPageShelter from './LoginPageShelter/LoginPageShelter';
+import DetailsPageShelter from './HomeScreensShelter/DetailsPage/DetailsPageShelter';
 
 const Stack = createStackNavigator();
 
@@ -17,6 +18,7 @@ const ShelterStack = () => {
       <Stack.Screen name="HomePageScreenShelter" component={HomePageScreenShelter} options={{headerShown: false}}/>
       <Stack.Screen name="MessagePageShelter" component={MessagePageShelter} options={{headerShown: false}}/>
       <Stack.Screen name="SettingsPageShelter" component={SettingsPageShelter} options={{headerShown: false}} />
+      <Stack.Screen name="DetailsPageShelter" component={DetailsPageShelter} options={{headerShown: false}} />
     </Stack.Navigator>
   );
 };

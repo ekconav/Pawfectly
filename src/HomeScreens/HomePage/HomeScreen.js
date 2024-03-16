@@ -246,8 +246,9 @@ const HomeScreen = () => (
               <Ionicons name="chatbubble-outline" color={color} size={size} />
             ),
           headerShown: false, 
-          tabBarLabel: 'Message'}} />
-        
+          tabBarLabel: 'Message'}} 
+          />
+          
       <Tab.Screen 
       name="Settings" 
       component={SettingsPage} 

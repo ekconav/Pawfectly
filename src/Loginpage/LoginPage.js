@@ -42,7 +42,7 @@ const LoginPage = () => {
     } catch (error) {
       setLoading(false);
       console.error('Sign-in Error:', error.message);
-      Alert.alert('Error', 'Failed to sign in. Please check your email and password.');
+      Alert.alert('Error', 'Wrong Credentials, Please Check Your Email and Password');
     }
   } else {
     Alert.alert('Error', 'Please fill in all fields.');
@@ -56,7 +56,7 @@ const LoginPage = () => {
 
   return (
     <View style={style.container}>
-      <Text style={style.title}>Welcome Adopter</Text>
+      <Text style={style.title}>Welcome Pawfectly User</Text>
 
       <TextInput
         style={style.input}

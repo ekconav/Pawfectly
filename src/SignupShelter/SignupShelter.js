@@ -21,8 +21,6 @@ const SignupShelter = () => {
   const addShelterToFirestore = async (userId, userData) => {
     try {
       console.log('Firestore DB:', db);
-      // const userDocRef = doc(db, 'shelters', userId);
-      console.log('User Document Reference:', userDocRef);
       await setDoc(doc(db, 'shelters', userId), userData);
       console.log('User data added successfully to Firestore');
     } catch (error) {
