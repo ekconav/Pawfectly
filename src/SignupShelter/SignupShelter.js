@@ -1,178 +1,128 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { collection, addDoc } from 'firebase/firestore';
-import { auth, firestore, storage } from '../FirebaseConfig';
-import styles from './styles';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; 
+import { doc, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
+import styles from './styles'
+import { auth, db } from '../FirebaseConfig';
 
 const SignupShelter = () => {
-  const [name, setName] = useState('');
+
+  const [shelterName, setShelterName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [address, setAddress] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [address, setAddress] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [businessPermit, setBusinessPermit] = useState(null);
-  const [mayorsPermit, setMayorsPermit] = useState(null);
-  const [idDocument, setIdDocument] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const navigation = useNavigation();
+
+  const addShelterToFirestore = async (userId, userData) => {
+    try {
+      console.log('Firestore DB:', db);
+      // const userDocRef = doc(db, 'shelters', userId);
+      console.log('User Document Reference:', userDocRef);
+      await setDoc(doc(db, 'shelters', userId), userData);
+      console.log('User data added successfully to Firestore');
+    } catch (error) {
+      console.error('Error adding user data to Firestore:', error.message);
+      throw error; // Propagate the error to the caller
+    }
+  };
 
   const handleSignup = async () => {
-    if (!email || !password || !name || !address || !mobileNumber || !confirmPassword || !businessPermit || !mayorsPermit || !idDocument) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    try {
-      const shelterCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const shelters = shelterCredential.shelter;
-
-      const shelterData = {
-        name,
-        email,
-        address,
-        mobileNumber,
-        // Add other data as needed
-      };
-
-      // Upload documents to Firebase Storage and get their URLs
-      const businessPermitUrl = await uploadToFirebaseStorage(businessPermit, 'businessPermit');
-      const mayorsPermitUrl = await uploadToFirebaseStorage(mayorsPermit, 'mayorsPermit');
-      const idDocumentUrl = await uploadToFirebaseStorage(idDocument, 'idDocument');
-
-      // Add shelter data to Firestore
-      await addShelterToFirestore(shelterData, businessPermitUrl, mayorsPermitUrl, idDocumentUrl);
-
-      console.log('Signup successful:', shelters.uid);
-    } catch (error) {
-      console.error('Signup error:', error.message);
-      alert('Error signing up. Please try again.');
-    }
-  };
-
-  const pickDocument = async (documentType) => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync();
-      if (result.type === 'success') {
-        if (result.uri) {
-          // Set the document state based on the document type
-          switch (documentType) {
-            case 'businessPermit':
-              setBusinessPermit(result);
-              break;
-            case 'mayorsPermit':
-              setMayorsPermit(result);
-              break;
-            case 'idDocument':
-              setIdDocument(result);
-              break;
-            default:
-              console.log('Invalid document type');
-          }
-        } else {
-          console.log('No document URI found');
-        }
-      } else if (result.type === 'cancel') {
-        console.log('Document picking cancelled');
+    if (email && password && mobileNumber && confirmPassword) {
+      if (password !== confirmPassword) {
+        Alert.alert('', 'Passwords do not match. Please try again.');
+        return;
       }
-    } catch (err) {
-      console.log('Document picker error:', err);
-    }
-  }; 
-
-  const uploadToFirebaseStorage = async (document, documentType) => {
-    try {
-      if (document) {
-        const response = await fetch(document.uri);
-        const blob = await response.blob();
-        const fileName = document.name || `file_${Date.now()}`; // Use a timestamp if the document name is not available
-        const ref = storage.ref().child(`shelter_documents/${documentType}/${fileName}`);
-        await ref.put(blob);
-        const downloadURL = await ref.getDownloadURL();
-        return downloadURL;
-      } else {
-        console.log('No document selected');
-        return null;
+      try {
+        // Concatenate the email with the shelter domain
+        const shelterEmail = email.trim() + '@shelter.com';
+  
+        // Create user account
+        const userCredential = await createUserWithEmailAndPassword(auth, shelterEmail, password);
+        const user = userCredential.user; // Retrieve the user object
+  
+        // Add user data to Firestore
+        await addShelterToFirestore(user.uid, {
+          shelterName: shelterName,
+          mobileNumber: mobileNumber,
+          address: address,
+          email: shelterEmail, // Use the concatenated email
+        });
+  
+        navigation.navigate('LoginPage')
+        Alert.alert('', 'Signup Successful', [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('LoginPage')
+          },
+        ]);
+      } catch (error) {
+        console.error('Signup Error:', error.message);
+        Alert.alert('', 'Error signing up. Please try again.');
       }
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      return null;
-    }
-  };
-
-  const addShelterToFirestore = async (shelterData, businessPermitUrl, mayorsPermitUrl, idDocumentUrl) => {
-    try {
-      const shelterRef = await addDoc(collection(firestore, 'shelters'), {
-        ...shelterData,
-        businessPermitUrl,
-        mayorsPermitUrl,
-        idDocumentUrl,
-      });
-      console.log('Shelter added with ID:', shelterRef.id);
-    } catch (error) {
-      console.error('Error adding shelter to Firestore:', error.message);
-      throw error;
+    } else {
+      Alert.alert('', 'Please fill in all fields.');
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Shelter Signup</Text>
+      <Text style={styles.title}>Shelter Signuup</Text>
       <TextInput
         style={styles.input}
         placeholder="Shelter Name"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Address"
-        value={address}
-        onChangeText={setAddress}
+        onChangeText={text => setShelterName(text)}
+        value={shelterName}
       />
       <TextInput
         style={styles.input}
         placeholder="Mobile Number"
+        onChangeText={text => setMobileNumber(text)}
         value={mobileNumber}
-        onChangeText={setMobileNumber}
         keyboardType="phone-pad"
       />
       <TextInput
         style={styles.input}
+        placeholder="Address"
+        onChangeText={text => setAddress(text)}
+        value={address}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        onChangeText={value => setEmail(value)}
+        value={email}
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
         placeholder="Password"
+        onChangeText={value => setPassword(value)}
         value={password}
-        onChangeText={setPassword}
         secureTextEntry
       />
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
+        onChangeText={text => setConfirmPassword(text)}
         value={confirmPassword}
-        onChangeText={setConfirmPassword}
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={() => pickDocument('businessPermit')}>
-        <Text style={styles.buttonText}>Upload Business Permit</Text>
+      <TouchableOpacity style={styles.button} onPress={handleSignup}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Sign Up</Text>
+        )}
       </TouchableOpacity>
-      <TouchableOpacity  style={styles.button} onPress={() => pickDocument('mayorsPermit')}>
-        <Text style={styles.buttonText}>Upload Mayor's Permit</Text>
+      
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('LoginPage')}>
+        <Text style={styles.backButtonText}>Back to Login</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => pickDocument('idDocument')}>
-        <Text style={styles.buttonText}>Upload ID</Text>
-      </TouchableOpacity>
-      <Button title="Sign Up" onPress={handleSignup} />
     </View>
   );
 };

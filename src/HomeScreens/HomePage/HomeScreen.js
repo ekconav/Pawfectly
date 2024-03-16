@@ -69,7 +69,7 @@ const Card = ({pet, navigation}) => {
 
 const Tab = createBottomTabNavigator();
 
-const HomeScreen = ({navigation}) => {
+const HomeScreenPet = ({navigation}) => {
   const [selectedCategoryIndex, setSeletedCategoryIndex] = React.useState(0);
   const [filteredPets, setFilteredPets] = React.useState([]);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -215,11 +215,11 @@ const style = StyleSheet.create({
   },
 });
 
-export default () => (
+const HomeScreen = () => (
   <Tab.Navigator>
     <Tab.Screen 
       name="Home" 
-      component={HomeScreen} 
+      component={HomeScreenPet} 
       options={{ 
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="paw-outline" color={color} size={size} />
@@ -259,3 +259,5 @@ export default () => (
         tabBarLabel: 'Settings'}} />
   </Tab.Navigator>
 );
+
+export default HomeScreen;

@@ -35,6 +35,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
   },
+  uriButton: {
+    padding: 10,
+    backgroundColor: 'lightgrey',
+    borderRadius: 5,
+    textAlign: 'center',
+  }
 });
 
 export default styles;

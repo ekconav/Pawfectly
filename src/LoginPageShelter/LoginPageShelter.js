@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
-import style from '../LoginPageShelter/style';
-
+import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
+import styles from './style'; // Assuming you have separate styles for your login page
+import { auth } from '../FirebaseConfig';
 
 const LoginPageShelter = () => {
   const navigation = useNavigation();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+  const [loading, setLoading] = useState(false);
+  const [shelterAuthenticated, setShelterAuthenticated] = useState(false);
 
   const handleLogin = async () => {
     if(email && password ) {
       try{
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const uid = user.uid; // Get the UID of the authenticated user
         Alert.alert('', 'Login Sucessfull')
+        setShelterAuthenticated(true);
+        navigation.navigate('HomePageScreenShelter');
       }catch(error){
         console.log('got error', error.message)
         Alert.alert('', 'Incorrect')
@@ -23,41 +28,45 @@ const LoginPageShelter = () => {
     }
   };
 
-  const handleChoosePage = () => {
+  const handleSignupNavigation = () => {
     navigation.navigate('SignupShelter');
-    console.log('shelter signing up');
-
-  }
+    console.log('Shelter signing up');
+  };
 
   return (
-
-    <View style={style.container}>
-      <Text style={style.title}>Welcome Shelter</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Shelter Login</Text>
 
       <TextInput
-        style={style.input}
-        placeholder="Username"
-        onChangeText={(text) => setUsername(text)}
-        value={username}
+        style={styles.input}
+        placeholder="Email"
+        onChangeText={(value) => setEmail(value)}
+        value={email}
+        keyboardType="email-address"
       />
 
       <TextInput
-        style={style.input}
+        style={styles.input}
         placeholder="Password"
-        onChangeText={(text) => setPassword(text)}
+        onChangeText={(value) => setPassword(value)}
         value={password}
         secureTextEntry
-      />  
-      <Text>
-      Don't have an account yet?{''}
-        <TouchableOpacity onPress={handleChoosePage}>
-          <Text style={style.text}>Sign up here</Text>
-        </TouchableOpacity>
-        </Text>
+      />
 
-      <TouchableOpacity style={style.button} onPress={handleLogin}>
-        <Text style={style.buttonText}>Login</Text>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Login</Text>
+        )}
       </TouchableOpacity>
+
+      <Text>
+        Don't have an account yet?{' '}
+        <TouchableOpacity onPress={handleSignupNavigation}>
+          <Text style={styles.text}>Sign up here</Text>
+        </TouchableOpacity>
+      </Text>
     </View>
   );
 };

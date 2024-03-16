@@ -20,8 +20,13 @@ const SignupPage = () => {
   const navigation = useNavigation();
 
   const addUserToFirestore = async (userId, userData) => {
+    
     try {
-      await setDoc(doc(db, 'users', userId), userData);
+      console.log('Firestore DB:', db);
+      const userDocRef = doc(db, 'users', userId);
+      console.log('User Document Reference:', userDocRef);
+      await setDoc(userDocRef, userData)
+      console.log('User data added successfully to Firestore');
     } catch (error) {
       console.error('Error adding user data to Firestore:', error.message);
       throw error; // Propagate the error to the caller
@@ -29,10 +34,17 @@ const SignupPage = () => {
   };
 
   const handleSignup = async () => {
-    if (email && password && mobileNumber) {
+    if (email && password && mobileNumber && confirmPassword) {
+      if (password !== confirmPassword) {
+        Alert.alert('', 'Passwords do not match. Please try again.');
+        return;
+      }
       try {
+        // Concatenate the email with the user domain
+        const userEmail = email.trim() + '@user.com';
+  
         // Create user account
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, userEmail, password);
         const user = userCredential.user; // Retrieve the user object
   
         // Add user data to Firestore
@@ -41,10 +53,10 @@ const SignupPage = () => {
           lastName: lastName,
           mobileNumber: mobileNumber,
           address: address,
-          email: email,
+          email: userEmail, // Use the concatenated email
         });
   
-
+        navigation.navigate('LoginPage');
         Alert.alert('', 'Signup Successful', [
           {
             text: 'OK',
@@ -114,6 +126,9 @@ const SignupPage = () => {
         ) : (
           <Text style={styles.buttonText}>Sign Up</Text>
         )}
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('LoginPage')}>
+        <Text style={styles.backButtonText}>Back to Login</Text>
       </TouchableOpacity>
     </View>
   );
