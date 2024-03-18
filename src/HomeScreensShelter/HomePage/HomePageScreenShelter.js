@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import data from '../../const/pets';
 import MessagePageShelter from '../MessagePage/MessagePageShelter';
 import SettingsPageShelter from '../SettingsPage/SettingsPageShelter';
+import Addpet from '../AddPet/AddPet';
 
 
 const {height} = Dimensions.get('window');
@@ -181,7 +182,17 @@ const HomePageScreenShelter = () => (
         tabBarLabel: 'Home'
       }}
     />
-
+    <Tab.Screen
+      name='Add'
+      component={Addpet}
+      options={{
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons name="add-circle-outline" color={color} size={size} />
+        ),
+        headerShown: false,
+        tabBarLabel: 'Add Pet'
+        }}
+    />
 
       <Tab.Screen
         name='Message'
