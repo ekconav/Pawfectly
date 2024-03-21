@@ -1,102 +1,81 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dimensions, SafeAreaView, View, Image, TextInput, Text, TouchableOpacity, FlatList, ScrollView, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; // or import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLORS from '../../const/colors';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import data from '../../const/pets';
 import MessagePageShelter from '../MessagePage/MessagePageShelter';
 import SettingsPageShelter from '../SettingsPage/SettingsPageShelter';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Addpet from '../AddPet/AddPet';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../FirebaseConfig';
+import { RefreshControl } from 'react-native';
 
 
 const {height} = Dimensions.get('window');
 
-const Card = ({pet, navigation}) => {
-  return (
-    <TouchableOpacity
-    activeOpacity={0.8}
-    onPress={() => navigation.navigate('DetailsPageShelter', pet)}>
-    <View style={style.cardContainer}>
-      {/* Render the card image */}
-      <View style={style.cardImageContainer}>
-        <Image
-          source={pet.image}
-          style={{
-            width: '100%',
-            height: '100%',
-            resizeMode: 'contain',
-          }}
-        />
-      </View>
-
-      {/* Render all the card details here */}
-      <View style={style.cardDetailsContainer}>
-        {/* Name and gender icon */}
-        <View style={{flexDirection: 'row', justifyContent: 'space-evenly'}}>
-          <Text
-            style={{fontWeight: 'bold', color: COLORS.dark, fontSize: 20}}>
-            {pet?.name}
-          </Text>
-          <Icon name="gender-male" size={22} color={COLORS.grey} />
-        </View>
-
-        {/* Render the age and type */}
-        <Text style={{fontSize: 12, marginTop: 5, color: COLORS.dark}}>
-          {pet?.type}
-        </Text>
-        <Text style={{fontSize: 10, marginTop: 5, color: COLORS.grey}}>
-          {pet?.age}
-        </Text>
-
-        {/* Render distance and the icon */}
-        <View style={{marginTop: 5, flexDirection: 'row'}}>
-          <Icon name="map-marker" color={COLORS.primary} size={18} />
-          <Text style={{fontSize: 12, color: COLORS.grey, marginLeft: 5}}>
-            Distance:7.8km
-          </Text>
-        </View>
-      </View>
-    </View>
-  </TouchableOpacity>
-);
-};
-
 const Tab = createBottomTabNavigator();
 
-const HomeScreenPet = ({navigation}) => {
-  
-  const [filteredPets, setFilteredPets] = React.useState([]);
+const HomeScreenPet = ({ navigation }) => {
+  const [pets, setPets] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  React.useEffect(() => {
-    const allPets = data.reduce((acc, category) => {
-      acc.push(...category.pets);
-      return acc;
-    }, []);
-    setFilteredPets(allPets);
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        const petsCollection = collection(db, 'pets');
+        const petsSnapshot = await getDocs(petsCollection);
+        const petsData = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setPets(petsData);
+      } catch (error) {
+        console.error('Error fetching pets:', error);
+      }
+    };
+
+    fetchPets();
   }, []);
 
-  return (
-    <SafeAreaView style={{flex: 1, color: COLORS.white}}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={style.mainContainer}>
-          <Text style={{textAlign: 'center', fontSize: 20}}>LIST OF PETS </Text>
-          <View style={style.searchInputContainer}>
-            <Icon name="magnify" size={24} color={COLORS.grey} />
-            <TextInput
-              placeholderTextColor={COLORS.grey}
-              placeholder="Search pet to adopt"
-              style={{flex: 1}}
-            />
-            <Icon name="sort-ascending" size={24} color={COLORS.grey} />
-          </View>
+  const onRefresh = () => {
+    setRefreshing(true); // Set refreshing state to true
+    fetchPets(); // Fetch pets data again
+    setRefreshing(false); // Set refreshing state back to false when done
+  };
 
-          <View style={{marginTop: 20}}>
+ 
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+       <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View style={styles.mainContainer}>
+          <Text style={{ textAlign: 'center', fontSize: 20 }}>LIST OF PETS</Text>
+          {/* Your existing code */}
+          <View style={{ marginTop: 20 }}>
             <FlatList
               showsVerticalScrollIndicator={false}
-              data={filteredPets}
-              renderItem={({item}) => (
-                <Card pet={item} navigation={navigation} />
+              data={pets}
+              renderItem={({ item }) => (
+                <View style={styles.petContainer}>
+                  {/* Render pet details directly here */}
+                  <Image
+                      source={{ uri: item.images }} // Assuming 'images' is the key for the image URL
+                      style={styles.petImage}
+                   />
+                  <Text style={styles.petName}>{item.name}</Text>
+                  <View style={styles.genderContainer}>
+                   <Icon name={item.gender === 'Male' ? 'gender-male' : 'gender-female'} size={22} color={COLORS.grey} style={styles.genderIcon} />
+                   <Text style={styles.genderText}>{item.gender}</Text>
+                  </View>
+                  <Text style={styles.petType}>{item.type}</Text>
+                    <Text style={styles.petAge}>{item.age}</Text>
+                    <View style={styles.distanceContainer}>
+                   <Icon name="map-marker" color={COLORS.primary} size={18} style={styles.distanceIcon} />
+                    <Text style={styles.distanceText}>Distance: 7.8km</Text>
+                  </View>
+                </View>
               )}
               keyExtractor={item => item.id}
             />
@@ -107,64 +86,68 @@ const HomeScreenPet = ({navigation}) => {
   );
 };
 
-const style = StyleSheet.create({
-  header: {
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: COLORS.light,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
-    marginTop: 20,
     paddingHorizontal: 20,
     paddingVertical: 40,
     minHeight: height,
   },
-  searchInputContainer: {
-    height: 50,
-    backgroundColor: COLORS.white,
-    borderRadius: 7,
-    paddingHorizontal: 20,
+  petContainer: {
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.grey,
+    borderRadius: 20,
+    padding: 10,
+  },
+  petImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+    borderRadius: 20,
+    marginBottom: 10,
+  },
+  petName: {
+    fontWeight: 'bold',
+    color: COLORS.dark,
+    fontSize: 20,
+  },
+  genderContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    marginTop: 5,
   },
-  categoryBtn: {
-    height: 50,
-    width: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 10,
+  genderIcon: {
+    marginRight: 5,
   },
-  categoryBtnName: {
+  genderText: {
+    fontSize: 12,
     color: COLORS.dark,
+  },
+  petType: {
+    fontSize: 12,
+    marginTop: 5,
+    color: COLORS.dark,
+  },
+  petAge: {
     fontSize: 10,
     marginTop: 5,
-    fontWeight: 'bold',
+    color: COLORS.grey,
   },
-  cardContainer: {
+  distanceContainer: {
+    marginTop: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  cardDetailsContainer: {
-    height: 120,
-    backgroundColor: COLORS.white,
-    flex: 1,
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
-    padding: 20,
-    justifyContent: 'center',
+  distanceIcon: {
+    marginRight: 5,
   },
-  cardImageContainer: {
-    height: 150,
-    width: 140,
-    backgroundColor: COLORS.background,
-    borderRadius: 20,
+  distanceText: {
+    fontSize: 12,
+    color: COLORS.grey,
   },
 });
 

@@ -6,6 +6,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth'; // Import Fireba
 import styles from './styles'
 import { auth, db } from '../FirebaseConfig';
 
+
 const SignupShelter = () => {
 
   const [shelterName, setShelterName] = useState('');
