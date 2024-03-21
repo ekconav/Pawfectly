@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState }  from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput, ScrollView, Alert, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Checkbox from 'expo-checkbox';
@@ -7,6 +7,7 @@ import { storage, db } from '../../FirebaseConfig'; // Import db from FirebaseCo
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'; // Import storage functions
 import * as FileSystem from 'expo-file-system';
 import { collection, addDoc } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
 
 
 const AddPet = () => {
@@ -19,6 +20,7 @@ const AddPet = () => {
     const [details, setDetails] = useState('');
     const [age, setAge] = useState('');
     const [uploading, setUploading ] = useState(false);
+    const navigation = useNavigation();
 
     const handleChooseImage = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -44,7 +46,7 @@ const AddPet = () => {
             alert('Please select an image.');
             return;
         }
-
+            
         try {
             // Upload images to Firebase Storage and store their download URLs
             const { uri } = await FileSystem.getInfoAsync(image);
@@ -92,6 +94,7 @@ const AddPet = () => {
 
             alert('Pet details uploaded successfully!');
             console.log('pet details uploaded')
+            navigation.navigate('HomePageScreenShelter');
         } catch (error) {
             console.error('Error uploading pet details:', error);
             alert('Failed to upload pet details. Please try again.');

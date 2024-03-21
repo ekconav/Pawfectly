@@ -7,7 +7,7 @@ import MessagePageShelter from '../MessagePage/MessagePageShelter';
 import SettingsPageShelter from '../SettingsPage/SettingsPageShelter';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Addpet from '../AddPet/AddPet';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { db } from '../../FirebaseConfig';
 import { RefreshControl } from 'react-native';
 
@@ -20,20 +20,31 @@ const HomeScreenPet = ({ navigation }) => {
   const [pets, setPets] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchPets = async () => {
-      try {
-        const petsCollection = collection(db, 'pets');
-        const petsSnapshot = await getDocs(petsCollection);
-        const petsData = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setPets(petsData);
-      } catch (error) {
-        console.error('Error fetching pets:', error);
-      }
-    };
+  const fetchPets = async () => {
+    try {
+      const petsCollection = collection(db, 'pets');
+      const petsSnapshot = await getDocs(petsCollection);
+      const petsData = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPets(petsData);
+    } catch (error) {
+      console.error('Error fetching pets:', error);
+    }
+  };
 
+  useEffect(() => {
     fetchPets();
   }, []);
+  
+  const updatePetsList = async () => {
+    try {
+      const petsCollection = collection(db, 'pets');
+      const petsSnapshot = await getDocs(petsCollection);
+      const petsData = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPets(petsData);
+    } catch (error) {
+      console.error('Error updating pet list:', error);
+    }
+  };
 
   const onRefresh = () => {
     setRefreshing(true); // Set refreshing state to true
@@ -41,6 +52,15 @@ const HomeScreenPet = ({ navigation }) => {
     setRefreshing(false); // Set refreshing state back to false when done
   };
 
+  const handleDelete = async (petId) => {
+    try {
+      // Filter out the deleted pet from the pets list
+      const updatedPets = pets.filter(pet => pet.id !== petId);
+      setPets(updatedPets);
+    } catch (error) {
+      console.error('Error handling delete:', error);
+    }
+  };
  
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
@@ -52,30 +72,30 @@ const HomeScreenPet = ({ navigation }) => {
       >
         <View style={styles.mainContainer}>
           <Text style={{ textAlign: 'center', fontSize: 20 }}>LIST OF PETS</Text>
-          {/* Your existing code */}
           <View style={{ marginTop: 20 }}>
             <FlatList
               showsVerticalScrollIndicator={false}
               data={pets}
               renderItem={({ item }) => (
-                <View style={styles.petContainer}>
-                  {/* Render pet details directly here */}
-                  <Image
-                      source={{ uri: item.images }} // Assuming 'images' is the key for the image URL
+            <TouchableOpacity onPress={() => navigation.navigate('PetDetails', { pet: item, handleDelete })}>
+                  <View style={styles.petContainer}>
+                    <Image
+                      source={{ uri: item.images }}
                       style={styles.petImage}
-                   />
-                  <Text style={styles.petName}>{item.name}</Text>
-                  <View style={styles.genderContainer}>
-                   <Icon name={item.gender === 'Male' ? 'gender-male' : 'gender-female'} size={22} color={COLORS.grey} style={styles.genderIcon} />
-                   <Text style={styles.genderText}>{item.gender}</Text>
-                  </View>
-                  <Text style={styles.petType}>{item.type}</Text>
+                    />
+                    <Text style={styles.petName}>{item.name}</Text>
+                    <View style={styles.genderContainer}>
+                      <Icon name={item.gender === 'Male' ? 'gender-male' : 'gender-female'} size={22} color={COLORS.grey} style={styles.genderIcon} />
+                      <Text style={styles.genderText}>{item.gender}</Text>
+                    </View>
+                    <Text style={styles.petType}>{item.type}</Text>
                     <Text style={styles.petAge}>{item.age}</Text>
                     <View style={styles.distanceContainer}>
-                   <Icon name="map-marker" color={COLORS.primary} size={18} style={styles.distanceIcon} />
-                    <Text style={styles.distanceText}>Distance: 7.8km</Text>
+                      <Icon name="map-marker" color={COLORS.primary} size={18} style={styles.distanceIcon} />
+                      <Text style={styles.distanceText}>Distance: 7.8km</Text>
+                    </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               )}
               keyExtractor={item => item.id}
             />
