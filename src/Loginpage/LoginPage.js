@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
 import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
 import { auth } from '../FirebaseConfig'
 import style from '../Loginpage/style';
+import styles from '../LandingPage/styles';
 
 
 const LoginPage = () => {
@@ -58,21 +59,22 @@ const LoginPage = () => {
     <View style={style.container}>
       <Text style={style.title}>Welcome Pawfectly User</Text>
 
+      <Image style={style.image} source={require('../components/pawlogin.png')}/>
+
+      <Text style={style.inputLabel}>Email</Text>
       <TextInput
         style={style.input}
-        placeholder="Email"
         onChangeText={(value) => setEmail(value)}
         value={email}
       />
-
+      <Text style={style.inputLabel}>Password</Text>
       <TextInput
         style={style.input}
-        placeholder="Password"
         onChangeText={(value) => setPassword(value)}
         value={password}
         secureTextEntry
       />  
-      <Text>
+      <Text style={style.subtitle}>
         Don't have an account yet?{''}
         <TouchableOpacity onPress={handleChoosePage}>
           <Text style={style.text}>Sign up here</Text>

@@ -64,7 +64,7 @@ const FavoritesPage = () => {
       <FlatList
         data={favoritePets}
         renderItem={renderFavoriteItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => index.toString()} // Use index as key if id is undefined
         contentContainerStyle={styles.list}
       />
     </View>

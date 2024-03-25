@@ -1,200 +1,167 @@
-import React from 'react';
-import {
-  Text,
-  ImageBackground,
-  SafeAreaView,
-  TouchableOpacity,
-  StatusBar,
-  View,
-  Image,
-  StyleSheet,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, SafeAreaView, StatusBar, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import COLORS from '../../const/colors';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import COLORS from '../../const/colors';
 
-const DetailsPage = ({navigation, route}) => {
-  const pet = route.params;
-  const { navigate } = useNavigation();
+const DetailsPage = ({ route }) => {
+  const [petDetails, setPetDetails] = useState(null);
+  const navigation = useNavigation(); // Initialize useNavigation hook
 
-  const addToFavorites = async () => {
+  useEffect(() => {
+    const fetchPetDetails = async () => {
+      try {
+        const { pet } = route.params;
+        setPetDetails(pet);
+      } catch (error) {
+        console.error('Error fetching pet details:', error);
+      }
+    };
+  
+    fetchPetDetails();
+  }, [route.params]);
+
+  const handleAdoption = () => {
+    // Implement adoption logic here
+    console.log('Adoption button pressed');
+  };
+
+  const handleFavorite = async () => {
     try {
-      // Get the current favorites from AsyncStorage
+      // Retrieve favorite pets from AsyncStorage
       const favoritesJson = await AsyncStorage.getItem('favorites');
       const favorites = favoritesJson ? JSON.parse(favoritesJson) : [];
-      
-      // Add the pet to the favorites
-      const updatedFavorites = [...favorites, pet];
-  
-      // Update the favorites in AsyncStorage
+      // Add the current pet to favorites
+      const updatedFavorites = [...favorites, petDetails];
+      // Update AsyncStorage with the updated favorites
+      Alert.alert("Pets Added to Favorites")
+      navigation.navigate('FavoritesPage')
       await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-  
-      // Optionally, you can show a success message or perform any other action upon successful addition
-      alert('Added to favorites!');
+      console.log('Favorite button pressed');
     } catch (error) {
-      // Handle error if adding to favorites fails
-      console.error('Error adding to favorites:', error);
-      // Optionally, you can show an error message or perform any other action upon failure
-      alert('Failed to add to favorites. Please try again.');
+      console.error('Error adding pet to favorites:', error);
     }
   };
 
-  return (
-    <SafeAreaView style={{flex: 1, backgroundColor: COLORS.white}}>
-      <StatusBar backgroundColor={COLORS.background} />
-      <View style={{height: 400, backgroundColor: COLORS.background}}>
-        <ImageBackground
-          resizeMode="contain"
-          source={pet?.image}
-          style={{
-            height: 280,
-            top: 20,
-          }}>
-          {/* Render  Header */}
-          <View style={style.header}>
-            <Icon
-              name="arrow-left"
-              size={28}
-              color={COLORS.dark}
-              onPress={navigation.goBack}
-            />
-            <Icon name="dots-vertical" size={28} color={COLORS.dark} />
-          </View>
-        </ImageBackground>
+  if (!petDetails) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
-        <View style={style.detailsContainer}>
-          {/* Pet name and gender icon */}
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-            <Text
-              style={{fontSize: 20, color: COLORS.dark, fontWeight: 'bold'}}>
-              {pet.name}
-            </Text>
-            <Icon name="gender-male" size={25} color={COLORS.grey} />
-          </View>
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+      <StatusBar backgroundColor={COLORS.background} />
+      <SafeAreaView style={{ flex: 1 }}>
+        <Image source={{ uri: petDetails.imageUrl }} style={styles.petImage} />
+        {/* Render Header */}
+        <View style={styles.header}>
+          <Icon name="arrow-left" size={28} color={COLORS.dark} onPress={() => navigation.goBack()} />
+          <Icon name="dots-vertical" size={28} color={COLORS.dark} />
+        </View>
+        <View style={styles.detailsContainer}>
+
+          {/* Render Pet name, description, and breed */}
+          <Text style={styles.petName}>Name:{petDetails.name}</Text>
+          <Text style={styles.petDescription}>Description:{petDetails.description}</Text>
+          <Text style={styles.petBreed}>Breed:{petDetails.breed}</Text>
 
           {/* Render Pet type and age */}
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: 5,
-            }}>
-            <Text style={{fontSize: 12, color: COLORS.dark}}>{pet.type}</Text>
-            <Text style={{fontSize: 13, color: COLORS.dark}}>{pet.age}</Text>
-          </View>
+          <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 5 }}>{`Gender: ${petDetails.gender}`}</Text>
+          <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 5 }}>{`Age: ${petDetails.age}`}</Text>
 
           {/* Render location and icon */}
-          <View style={{marginTop: 5, flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Icon name="map-marker" color={COLORS.primary} size={20} />
-            <Text style={{fontSize: 14, color: COLORS.grey, marginLeft: 5}}>
-              5 Bulvarna-Kudriavska Street, Kyiv
-            </Text>
+            <Text style={{ fontSize: 16, color: COLORS.grey, marginLeft: 5 }}>{petDetails.location}</Text>
           </View>
-        </View>
-      </View>
-
-      {/* Comment container */}
-      <View style={{marginTop: 80, justifyContent: 'space-between', flex: 1}}>
-        <View>
-          {/* Render user image , name and date */}
-          <View style={{flexDirection: 'row', paddingHorizontal: 20}}>
-            <Image
-              source={require('../../components/person.jpg')}
-              style={{height: 40, width: 40, borderRadius: 20}}
-            />
-            <View style={{flex: 1, paddingLeft: 10}}>
-              <Text
-                style={{color: COLORS.dark, fontSize: 12, fontWeight: 'bold'}}>
-                Ban
-              </Text>
-              <Text
-                style={{
-                  color: COLORS.grey,
-                  fontSize: 11,
-                  fontWeight: 'bold',
-                  marginTop: 2,
-                }}>
-                Owner
-              </Text>
-            </View>
-            <Text style={{color: COLORS.grey, fontSize: 12}}>May 25, 2020</Text>
-          </View>
-          <Text style={style.comment}>
-            My job requires moving to another country. I don't have the
-            opputurnity to take the cat with me. I am looking for good people
-            who will shelter my Lily.
-          </Text>
-        </View>
-
-        {/* Render footer */}
-        <View style={style.footer}>
-        <TouchableOpacity onPress={addToFavorites}>
-          <View style={style.iconCon}>
-            <Icon name="heart-outline" size={22} color={COLORS.white} />
-          </View>
+        {/* Adoption button */}
+        <TouchableOpacity style={styles.button} onPress={handleAdoption}>
+            <Text style={styles.buttonText}>Adoption</Text>
           </TouchableOpacity>
-          <View style={style.btn}>
-            <Text style={{color: COLORS.white, fontWeight: 'bold'}}>
-              ADOPTION
-            </Text>
-          </View>
+
+          {/* Favorite button */}
+          <TouchableOpacity style={[styles.button, { backgroundColor: COLORS.primary }]} onPress={handleFavorite}>
+            <Icon name="heart-outline" size={20} color={COLORS.white} />
+          </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </SafeAreaView>
-    
   );
 };
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
+  petImage: {
+    height: 300,
+    width: '100%',
+    resizeMode: 'cover',
+  },
   detailsContainer: {
-    height: 120,
     backgroundColor: COLORS.white,
-    marginHorizontal: 20,
-    flex: 1,
-    bottom: -60,
-    borderRadius: 18,
-    elevation: 10,
     padding: 20,
-    justifyContent: 'center',
-  },
-  comment: {
-    marginTop: 10,
-    fontSize: 12.5,
-    color: COLORS.dark,
-    lineHeight: 20,
-    marginHorizontal: 20,
-  },
-  footer: {
-    height: 100,
-    backgroundColor: COLORS.light,
-    borderTopRightRadius: 20,
     borderTopLeftRadius: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  iconCon: {
-    backgroundColor: COLORS.primary,
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  btn: {
-    backgroundColor: COLORS.primary,
+    borderTopRightRadius: 30,
+    marginTop: -30,
     flex: 1,
-    height: 50,
-    borderRadius: 12,
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
-    padding: 20,
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  petName: {
+    fontSize: 24,
+    color: COLORS.dark,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  petDescription: {
+    fontSize: 16,
+    color: COLORS.dark,
+    marginBottom: 10,
+  },
+  petBreed: {
+    fontSize: 16,
+    color: COLORS.dark,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  petDetail: {
+    fontSize: 16,
+    color: COLORS.dark,
+    marginBottom: 5,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  locationText: {
+    fontSize: 16,
+    color: COLORS.grey,
+    marginLeft: 5,
+  },
+  button: {
+    backgroundColor: COLORS.secondary,
+    borderRadius: 5,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
+
 export default DetailsPage;

@@ -14,8 +14,11 @@ const AddPet = () => {
     const [image, setImage] = useState('');
     const [description, setDescription] = useState('');
     const [location, setLocation] = useState('');
+    const [name, setName] = useState('');
     const [maleChecked, setMaleChecked] = useState(false);
     const [femaleChecked, setFemaleChecked] = useState(false);
+    const [dogChecked, setDogChecked] = useState(false);
+    const [catChecked, setCatChecked] = useState(false);
     const [breed, setBreed] = useState('');
     const [details, setDetails] = useState('');
     const [age, setAge] = useState('');
@@ -73,10 +76,12 @@ const AddPet = () => {
 
             // Store pet details in Firestore
             await addDoc(collection(db, 'pets'), {
+                name,
                 images: downloadURL,
                 description,
                 location,
                 gender: maleChecked ? 'Male' : 'Female',
+                type: dogChecked ? 'Dog' : 'Cat',
                 breed,
                 details,
                 age: parseInt(age),
@@ -85,9 +90,12 @@ const AddPet = () => {
             // Reset form fields
             setImage('');
             setDescription('');
+            setName('');
             setLocation('');
             setMaleChecked(false);
             setFemaleChecked(false);
+            setDogChecked(false);
+            setCatChecked(false);
             setBreed('');
             setDetails('');
             setAge('');
@@ -114,6 +122,21 @@ const AddPet = () => {
                 )}
             </TouchableOpacity>
             <View style={styles.form}>
+
+            <TextInput
+                    placeholder="Name"
+                    value={name}
+                    onChangeText={(text) => setName(text)}
+                    style={styles.inputField}
+                />
+
+
+            <View style={styles.checkboxContainer}>
+                    <Checkbox value={dogChecked} onValueChange={setDogChecked} />
+                    <Text style={styles.checkboxLabel}>Dog</Text>
+                    <Checkbox value={catChecked} onValueChange={setCatChecked} />
+                    <Text style={styles.checkboxLabel}>Cat</Text>
+                </View>
                 <TextInput
                     placeholder="Description"
                     value={description}
