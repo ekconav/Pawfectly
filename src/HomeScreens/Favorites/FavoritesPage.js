@@ -16,6 +16,7 @@ const FavoritesPage = () => {
       setFavoritePets(updatedFavorites);
       // Update AsyncStorage with the updated favorites
       await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+      console.timeLog('Favorite Pet Deleted', error);
     } catch (error) {
       console.error('Error deleting favorite pet:', error);
     }

@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import COLORS from '../../const/colors';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import styles from '../DetailsPage/styles'
 
 const DetailsPage = ({ route }) => {
   const [petDetails, setPetDetails] = useState(null);
@@ -65,11 +66,12 @@ const DetailsPage = ({ route }) => {
         <View style={styles.detailsContainer}>
 
           {/* Render Pet name, description, and breed */}
-          <Text style={styles.petName}>Name:{petDetails.name}</Text>
-          <Text style={styles.petDescription}>Description:{petDetails.description}</Text>
-          <Text style={styles.petBreed}>Breed:{petDetails.breed}</Text>
+          <Text style={styles.petName}>Name: {petDetails.name}</Text>
+          <Text style={styles.petDescription}>Description: {petDetails.description}</Text>
+          <Text style={styles.petBreed}>Breed: {petDetails.breed}</Text>
 
           {/* Render Pet type and age */}
+          <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 5 }}>{`Type: ${petDetails.type}`}</Text>
           <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 5 }}>{`Gender: ${petDetails.gender}`}</Text>
           <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 5 }}>{`Age: ${petDetails.age}`}</Text>
 
@@ -92,76 +94,5 @@ const DetailsPage = ({ route }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  petImage: {
-    height: 300,
-    width: '100%',
-    resizeMode: 'cover',
-  },
-  detailsContainer: {
-    backgroundColor: COLORS.white,
-    padding: 20,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -30,
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  petName: {
-    fontSize: 24,
-    color: COLORS.dark,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  petDescription: {
-    fontSize: 16,
-    color: COLORS.dark,
-    marginBottom: 10,
-  },
-  petBreed: {
-    fontSize: 16,
-    color: COLORS.dark,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  petDetail: {
-    fontSize: 16,
-    color: COLORS.dark,
-    marginBottom: 5,
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  locationText: {
-    fontSize: 16,
-    color: COLORS.grey,
-    marginLeft: 5,
-  },
-  button: {
-    backgroundColor: COLORS.secondary,
-    borderRadius: 5,
-    paddingVertical: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: COLORS.white,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
 
 export default DetailsPage;

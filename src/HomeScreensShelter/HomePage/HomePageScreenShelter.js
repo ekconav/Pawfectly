@@ -34,74 +34,70 @@ const HomeScreenPet = ({ navigation }) => {
   useEffect(() => {
     fetchPets();
   }, []);
-  
-  const updatePetsList = async () => {
-    try {
-      const petsCollection = collection(db, 'pets');
-      const petsSnapshot = await getDocs(petsCollection);
-      const petsData = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setPets(petsData);
-    } catch (error) {
-      console.error('Error updating pet list:', error);
+
+  const getAgeCategory = (rawAge) => {
+    if (rawAge >= 0 && rawAge <= 3) {
+      return '0 - 3 Months';
+    } else if (rawAge >= 4 && rawAge <= 6) {
+      return '4 - 6 Months';
+    } else if (rawAge >= 7 && rawAge <= 9) {
+      return '7 - 9 Months';
+    } else if (rawAge >= 10 && rawAge <= 12) {
+      return '10 - 12 Months';
+    } else if (rawAge >= 12 && rawAge <= 36) {
+      return '1 - 3 Years Old';
+    } else if (rawAge >= 36 && rawAge <= 72) {
+      return '4 - 6 Years Old';
+    } else {
+      return '7 Years Old and Above';
     }
   };
 
   const onRefresh = () => {
-    setRefreshing(true); // Set refreshing state to true
-    fetchPets(); // Fetch pets data again
-    setRefreshing(false); // Set refreshing state back to false when done
+    setRefreshing(true);
+    fetchPets();
+    setRefreshing(false);
   };
 
   const handleDelete = async (petId) => {
     try {
-      // Filter out the deleted pet from the pets list
       const updatedPets = pets.filter(pet => pet.id !== petId);
       setPets(updatedPets);
     } catch (error) {
       console.error('Error handling delete:', error);
     }
   };
- 
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
-       <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        <View style={styles.mainContainer}>
-          <Text style={{ textAlign: 'center', fontSize: 20 }}>LIST OF PETS</Text>
-          <View style={{ marginTop: 20 }}>
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={pets}
-              renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('PetDetails', { pet: item, handleDelete })}>
-                  <View style={styles.petContainer}>
-                    <Image
-                      source={{ uri: item.images }}
-                      style={styles.petImage}
-                    />
-                    <Text style={styles.petName}>{item.name}</Text>
-                    <View style={styles.genderContainer}>
-                      <Icon name={item.gender === 'Male' ? 'gender-male' : 'gender-female'} size={22} color={COLORS.grey} style={styles.genderIcon} />
-                      <Text style={styles.genderText}>{item.gender}</Text>
-                    </View>
-                    <Text style={styles.petType}>{item.type}</Text>
-                    <Text style={styles.petAge}>{item.age}</Text>
-                    <View style={styles.distanceContainer}>
-                      <Icon name="map-marker" color={COLORS.primary} size={18} style={styles.distanceIcon} />
-                      <Text style={styles.distanceText}>Distance: 7.8km</Text>
-                    </View>
+      <View style={styles.mainContainer}>
+        <Text style={{ textAlign: 'center', fontSize: 20 }}>LIST OF PETS</Text>
+        <View style={{ marginTop: 20 }}>
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            data={pets}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => navigation.navigate('PetDetails', { pet: item, handleDelete })}>
+                <View style={styles.petContainer}>
+                  <Image
+                    source={{ uri: item.images }}
+                    style={styles.petImage}
+                  />
+                  <Text style={styles.petName}>Name: {item.name}</Text>
+                  <Text style={styles.petType}>Type: {item.type}</Text>
+                  <Text style={styles.petAge}>Age: {getAgeCategory(item.age)}</Text>
+                  <View style={styles.genderContainer}>
+                    <Icon name={item.gender === 'Male' ? 'gender-male' : 'gender-female'} size={22} color={COLORS.grey} style={styles.genderIcon} />
+                    <Text style={styles.genderText}>{item.gender}</Text>
                   </View>
-                </TouchableOpacity>
-              )}
-              keyExtractor={item => item.id}
-            />
-          </View>
+                </View>
+              </TouchableOpacity>
+            )}
+            keyExtractor={item => item.id}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          />
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
