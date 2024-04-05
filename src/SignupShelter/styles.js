@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import COLORS from '../const/colors';
 
 const styles = StyleSheet.create({
   container: {
@@ -40,6 +41,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'lightgrey',
     borderRadius: 5,
     textAlign: 'center',
+  },
+  uploadButton: {
+    backgroundColor: COLORS.red
   }
 });
 

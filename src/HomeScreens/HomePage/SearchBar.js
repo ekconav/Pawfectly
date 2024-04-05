@@ -33,6 +33,7 @@ const SearchBar = ({ onSearch }) => {
   );
 };
 
+
 const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',

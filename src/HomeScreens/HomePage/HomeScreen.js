@@ -80,10 +80,7 @@ const HomeScreen = ({ refresh }) => {
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    >
+    <View style={styles.container}>
       <SearchBar
         searchType={searchType}
         setSearchType={setSearchType}
@@ -110,8 +107,9 @@ const HomeScreen = ({ refresh }) => {
             </View>
           </TouchableOpacity>
         )}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
-    </ScrollView>
+    </View>
   );
 };
 

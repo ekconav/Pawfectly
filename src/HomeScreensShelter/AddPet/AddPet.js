@@ -7,6 +7,7 @@ import { storage, db } from '../../FirebaseConfig'; // Import db from FirebaseCo
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'; // Import storage functions
 import * as FileSystem from 'expo-file-system';
 import { collection, addDoc } from 'firebase/firestore';
+import { auth } from '../../FirebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import styles from '../AddPet/styles';
 

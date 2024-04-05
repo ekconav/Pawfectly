@@ -12,8 +12,9 @@ const PetDetails = ({ navigation, route }) => {
   };
 
   const handleDeletePress = async () => {
+    const { id } = pet; // Assuming the identifier for the pet document is stored in the 'id' field
     try {
-      await deleteDoc(doc(db, 'pets', pet.id));
+      await deleteDoc(doc(db, 'pets', id));
       navigation.goBack();
       console.log('Pet deleted successfully!');
     } catch (error) {

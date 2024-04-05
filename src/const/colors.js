@@ -9,6 +9,7 @@ const COLORS = {
     babyblue: '#89CFF0',
     celeste: '#B2FFFF',
     columbia: '#B9D9EB	',
+    red: '#FF0000'
   };
   
   export default COLORS;

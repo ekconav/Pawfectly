@@ -25,6 +25,7 @@ const DetailsPage = ({ route }) => {
 
   const handleAdoption = () => {
     // Implement adoption logic here
+    navigation.navigate('MessagePage', { shelterEmail: petDetails.shelterEmail });
     console.log('Adoption button pressed');
   };
 
@@ -36,13 +37,14 @@ const DetailsPage = ({ route }) => {
       // Add the current pet to favorites
       const updatedFavorites = [...favorites, petDetails];
       // Update AsyncStorage with the updated favorites
-      Alert.alert("Pets Added to Favorites")
-      navigation.navigate('FavoritesPage')
       await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
       console.log('Favorite button pressed');
     } catch (error) {
       console.error('Error adding pet to favorites:', error);
     }
+    
+    // Navigate to the Favorites tab
+    navigation.navigate('Favorites');
   };
 
   if (!petDetails) {

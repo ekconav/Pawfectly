@@ -8,7 +8,7 @@ import SettingsPageShelter from '../SettingsPage/SettingsPageShelter';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Addpet from '../AddPet/AddPet';
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
-import { db } from '../../FirebaseConfig';
+import { db, auth } from '../../FirebaseConfig';
 import { RefreshControl } from 'react-native';
 
 
@@ -22,9 +22,17 @@ const HomeScreenPet = ({ navigation }) => {
 
   const fetchPets = async () => {
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        // User not logged in, do nothing
+        return;
+      }
+      
       const petsCollection = collection(db, 'pets');
       const petsSnapshot = await getDocs(petsCollection);
-      const petsData = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const petsData = petsSnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(pet => pet.userId === currentUser.uid); // Filter pets based on userId
       setPets(petsData);
     } catch (error) {
       console.error('Error fetching pets:', error);

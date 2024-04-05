@@ -12,16 +12,15 @@ const EditPet = ({ navigation, route }) => {
   const [editedPet, setEditedPet] = useState(pet);
   const [image, setImage] = useState(editedPet.images);
   const [name, setName] = useState(editedPet.name);
+  const [gender, setGender] = useState(editedPet.gender);
+  const [type, setType] = useState(editedPet.type);
   const [description, setDescription] = useState(editedPet.description);
   const [location, setLocation] = useState(editedPet.location);
-  const [maleChecked, setMaleChecked] = useState(editedPet.gender === 'Male');
-  const [femaleChecked, setFemaleChecked] = useState(editedPet.gender === 'Female');
-  const [dogChecked, setDogChecked] = useState(editedPet.type === 'Dog');
-  const [catChecked, setCatChecked] = useState(editedPet.type === 'Cat');
   const [age, setAge] = useState(editedPet.age);
   const [breed, setBreed] = useState(editedPet.breed); // Add state for breed
   const [ageModalVisible, setAgeModalVisible] = useState(false);
   const [breedModalVisible, setBreedModalVisible] = useState(false); // Add state for breed modal visibility
+  const [customBreed, setCustomBreed] = useState(''); // State for custom breed input
 
   const petAges = ['0 - 3 Months', '4 - 6 Months', '7 - 9 Months', '10 - 12 Months', '1 - 3 Years Old', '4 - 6 Years Old', '7 Years Old and Above'];
   const dogBreeds = ['Labrador Retriever', 'German Shepherd', 'Golden Retriever']; // Add some sample dog breeds
@@ -68,16 +67,16 @@ const EditPet = ({ navigation, route }) => {
           />
           <Text style={styles.text}>Type</Text>
           <View style={styles.checkboxContainer}>
-            <Checkbox value={dogChecked} onValueChange={setDogChecked} />
+            <Checkbox value={type === 'Dog'} onValueChange={(newValue) => setType(newValue ? 'Dog' : 'Cat')} />
             <Text style={styles.checkboxLabel}>Dog</Text>
-            <Checkbox value={catChecked} onValueChange={setCatChecked} />
+            <Checkbox value={type === 'Cat'} onValueChange={(newValue) => setType(newValue ? 'Cat' : 'Dog')} />
             <Text style={styles.checkboxLabel}>Cat</Text>
           </View>
           <Text style={styles.text}>Gender</Text>
           <View style={styles.checkboxContainer}>
-            <Checkbox value={maleChecked} onValueChange={setMaleChecked} />
+            <Checkbox value={gender === 'Male'} onValueChange={(newValue) => setGender(newValue ? 'Male' : 'Female')} />
             <Text style={styles.checkboxLabel}>Male</Text>
-            <Checkbox value={femaleChecked} onValueChange={setFemaleChecked} />
+            <Checkbox value={gender === 'Female'} onValueChange={(newValue) => setGender(newValue ? 'Female' : 'Male')} />
             <Text style={styles.checkboxLabel}>Female</Text>
           </View>
           <Text style={styles.text}>Age</Text>
@@ -105,23 +104,23 @@ const EditPet = ({ navigation, route }) => {
               </View>
             </View>
           </Modal>
-          {dogChecked || catChecked ? (
+          {(type === 'Dog' || type === 'Cat') && (
             <>
               <Text style={styles.text}>Breed</Text>
               <TouchableOpacity style={styles.dropdownButton} onPress={() => setBreedModalVisible(true)}>
                 <Text style={styles.dropdownButtonText}>{breed || 'Select Breed'}</Text>
                 <Ionicons name="chevron-down-outline" size={24} color="black" />
               </TouchableOpacity>
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={breedModalVisible}
-                onRequestClose={() => setBreedModalVisible(false)}
-              >
-                <View style={styles.modalContainer}>
-                  <View style={styles.modalContent}>
-                    {dogChecked ? (
-                      dogBreeds.map((breed, index) => (
+              {type === 'Dog' && (
+                <Modal
+                  animationType="slide"
+                  transparent={true}
+                  visible={breedModalVisible}
+                  onRequestClose={() => setBreedModalVisible(false)}
+                >
+                  <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                      {dogBreeds.map((breed, index) => (
                         <TouchableOpacity
                           key={index}
                           style={styles.breedOption}
@@ -129,23 +128,67 @@ const EditPet = ({ navigation, route }) => {
                         >
                           <Text>{breed}</Text>
                         </TouchableOpacity>
-                      ))
-                    ) : (
-                      catBreeds.map((breed, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          style={styles.breedOption}
-                          onPress={() => handleBreedSelection(breed)}
-                        >
-                          <Text>{breed}</Text>
-                        </TouchableOpacity>
-                      ))
-                    )}
+                      ))}
+                      <TextInput
+                        placeholder="Specify"
+                        value={customBreed}
+                        onChangeText={(text) => setCustomBreed(text)}
+                        style={styles.inputField}
+                      />
+                      <TouchableOpacity
+                        style={styles.okButton}
+                        onPress={() => {
+                        handleBreedSelection(customBreed); // Set custom breed value
+                        setCustomBreed(''); // Clear the custom breed input
+                        setBreedModalVisible(false); // Close the modal
+                         }}
+                       >
+          <Text style={styles.okButtonText}>OK</Text>
+        </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              </Modal>
+                </Modal>
+              )}
+              {type === 'Cat' && (
+                <Modal
+                  animationType="slide"
+                  transparent={true}
+                  visible={breedModalVisible}
+                  onRequestClose={() => setBreedModalVisible(false)}
+                >
+                  <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                      {catBreeds.map((breed, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={styles.breedOption}
+                          onPress={() => handleBreedSelection(breed)}
+                        >
+                          <Text>{breed}</Text>
+                        </TouchableOpacity>
+                      ))}
+                      <TextInput
+                        placeholder="Specify"
+                        value={customBreed}
+                        onChangeText={(text) => setCustomBreed(text)}
+                        style={styles.inputField}
+                      />
+                      <TouchableOpacity
+                            style={styles.okButton}
+                            onPress={() => {
+                            handleBreedSelection(customBreed); // Set custom breed value
+                            setCustomBreed(''); // Clear the custom breed input
+                            setBreedModalVisible(false); // Close the modal
+                            }}
+                        >
+          <Text style={styles.okButtonText}>OK</Text>
+        </TouchableOpacity>
+                    </View>
+                  </View>
+                </Modal>
+              )}
             </>
-          ) : null}
+          )}
           <Text style={styles.text}>Location</Text>
           <TextInput
             value={location}

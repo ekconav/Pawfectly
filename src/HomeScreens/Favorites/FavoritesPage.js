@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, RefreshControl } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLORS from '../../const/colors';
+import { Ionicons } from '@expo/vector-icons';
 
 const FavoritesPage = () => {
   const [favoritePets, setFavoritePets] = useState([]);
-  
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleDelete = async (id) => {
     try {
@@ -16,7 +17,7 @@ const FavoritesPage = () => {
       setFavoritePets(updatedFavorites);
       // Update AsyncStorage with the updated favorites
       await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-      console.timeLog('Favorite Pet Deleted', error);
+      console.log('Favorite Pet Deleted');
     } catch (error) {
       console.error('Error deleting favorite pet:', error);
     }
@@ -28,7 +29,7 @@ const FavoritesPage = () => {
         // Retrieve favorite pets from AsyncStorage
         const favoritesJson = await AsyncStorage.getItem('favorites');
         const favorites = favoritesJson ? JSON.parse(favoritesJson) : [];
-        setFavoritePets(favorites); // Corrected
+        setFavoritePets(favorites);
       } catch (error) {
         console.error('Error retrieving favorite pets:', error);
       }
@@ -38,19 +39,38 @@ const FavoritesPage = () => {
     getFavoritePets();
   }, []); // Empty dependency array ensures this effect runs only once on mount
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Call the function to fetch favorite pets again
+    fetchFavoritePets();
+    setRefreshing(false);
+  }, []);
+
+  // Function to fetch favorite pets again
+  const fetchFavoritePets = async () => {
+    try {
+      // Retrieve favorite pets from AsyncStorage
+      const favoritesJson = await AsyncStorage.getItem('favorites');
+      const favorites = favoritesJson ? JSON.parse(favoritesJson) : [];
+      setFavoritePets(favorites);
+    } catch (error) {
+      console.error('Error retrieving favorite pets:', error);
+    }
+  };
+
   // Render item for FlatList
   const renderFavoriteItem = ({ item }) => (
     <Swipeable renderRightActions={() => (
       <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
-        <Text style={styles.deleteText}>Delete</Text>
+        <Ionicons name="trash-bin" size={24} color={COLORS.white} />
       </TouchableOpacity>
     )}>
       <View style={styles.item}>
-      <Image 
-       source={{ uri: item.imageUrl }}
-       style={styles.image}
-       resizeMode="cover"
-       onError={(error) => console.error('Error loading image:', error)}
+        <Image 
+          source={{ uri: item.imageUrl }}
+          style={styles.image}
+          resizeMode="cover"
+          onError={(error) => console.error('Error loading image:', error)}
         />
         <Text style={styles.itemText}>Name: {item.name}</Text>
         <Text style={styles.itemText}>Type: {item.type}</Text>
@@ -59,6 +79,7 @@ const FavoritesPage = () => {
       </View>
     </Swipeable>
   );
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Favorite Pets</Text>
@@ -67,6 +88,7 @@ const FavoritesPage = () => {
         renderItem={renderFavoriteItem}
         keyExtractor={(item, index) => index.toString()} // Use index as key if id is undefined
         contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} // Add RefreshControl
       />
     </View>
   );
@@ -104,6 +126,14 @@ const styles = StyleSheet.create({
     height: 200, // Adjust the height as needed
     borderRadius: 10,
     marginBottom: 10,
+  },
+  deleteButton: {
+    backgroundColor: COLORS.red,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+    borderRadius: 10,
   },
 });
 
