@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
-import { auth } from '../FirebaseConfig'
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import style from '../Loginpage/style';
-import styles from '../LandingPage/styles';
+import { auth } from '../FirebaseConfig'
 
 
 const LoginPage = () => {
@@ -43,7 +44,7 @@ const LoginPage = () => {
     } catch (error) {
       setLoading(false);
       console.error('Sign-in Error:', error.message);
-      Alert.alert('Error', 'Wrong Credentials, Please Check Your Email and Password');
+      Alert.alert('Oopss!', 'Please Check Your Email and Password');
     }
   } else {
     Alert.alert('Error', 'Please fill in all fields.');
@@ -74,16 +75,14 @@ const LoginPage = () => {
         value={password}
         secureTextEntry
       />  
-      <Text style={style.subtitle}>
-        Don't have an account yet?{''}
-        <TouchableOpacity onPress={handleChoosePage}>
-          <Text style={style.text}>Sign up here</Text>
-        </TouchableOpacity>
-      </Text>
-
       <TouchableOpacity style={style.button} onPress={handleLogin}>
         <Text style={style.buttonText}>Login</Text>
       </TouchableOpacity>
+      
+      <Text style={style.subtitle}>Don't have an account yet?{' '}</Text>
+  <TouchableOpacity onPress={handleChoosePage}>
+    <Text style={style.text}>Sign up here</Text>
+  </TouchableOpacity>
     </View>
   );
 };

@@ -1,15 +1,12 @@
-
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from 'firebase/auth'; // Import Firebase authentication method
-import styles from './styles'
-import { auth, db } from '../FirebaseConfig';
-
+import styles from './styles';
+import { db, auth } from '../FirebaseConfig';
 
 const SignupShelter = () => {
-
   const [shelterName, setShelterName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [address, setAddress] = useState('');
@@ -17,17 +14,15 @@ const SignupShelter = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
   const navigation = useNavigation();
 
   const addShelterToFirestore = async (userId, userData) => {
     try {
-      console.log('Firestore DB:', db);
       await setDoc(doc(db, 'shelters', userId), userData);
       console.log('User data added successfully to Firestore');
     } catch (error) {
       console.error('Error adding user data to Firestore:', error.message);
-      throw error; // Propagate the error to the caller
+      throw error;
     }
   };
 
@@ -38,28 +33,19 @@ const SignupShelter = () => {
         return;
       }
       try {
-        // Concatenate the email with the shelter domain
         const shelterEmail = email.trim() + '@shelter.com';
-  
-        // Create user account
         const userCredential = await createUserWithEmailAndPassword(auth, shelterEmail, password);
-        const user = userCredential.user; // Retrieve the user object
-  
-        // Add user data to Firestore
+        const user = userCredential.user;
+
         await addShelterToFirestore(user.uid, {
           shelterName: shelterName,
           mobileNumber: mobileNumber,
           address: address,
-          email: shelterEmail, // Use the concatenated email
+          email: shelterEmail,
         });
-  
-        navigation.navigate('LoginPage')
-        Alert.alert('', 'Signup Successful', [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('LoginPage')
-          },
-        ]);
+
+        navigation.navigate('LoginPage');
+        Alert.alert('', 'SignUp Succesful');
       } catch (error) {
         console.error('Signup Error:', error.message);
         Alert.alert('', 'Error signing up. Please try again.');
@@ -71,47 +57,72 @@ const SignupShelter = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Shelter Signuup</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Shelter Name"
-        onChangeText={text => setShelterName(text)}
-        value={shelterName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Mobile Number"
-        onChangeText={text => setMobileNumber(text)}
-        value={mobileNumber}
-        keyboardType="phone-pad"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Address"
-        onChangeText={text => setAddress(text)}
-        value={address}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        onChangeText={value => setEmail(value)}
-        value={email}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        onChangeText={value => setPassword(value)}
-        value={password}
-        secureTextEntry
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        onChangeText={text => setConfirmPassword(text)}
-        value={confirmPassword}
-        secureTextEntry
-      />
+      <Text style={styles.title}>Welcome Shelter</Text>
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Shelter Name</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={text => setShelterName(text)}
+          value={shelterName}
+          placeholder="Enter shelter name"
+        />
+      </View>
+      <View style={styles.inputGroupnumber}>
+        <Text style={styles.label}>Mobile Number</Text>
+        <View style={styles.inputContainer}>
+          <Text style={styles.countryCode}>+63</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter mobile number"
+            onChangeText={text => setMobileNumber(text)}
+            value={mobileNumber}
+            keyboardType="phone-pad"
+            maxLength={10}
+          />
+        </View>
+      </View>
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Address</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={text => setAddress(text)}
+          value={address}
+          placeholder="Enter address"
+        />
+      </View>
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Email Address</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            placeholder="Enter email address"
+            onChangeText={value => setEmail(value)}
+            value={email}
+            keyboardType="email-address"
+          />
+          <Text style={styles.emailSuffix}>@shelter.com</Text>
+        </View>
+      </View>
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter password"
+          onChangeText={value => setPassword(value)}
+          value={password}
+          secureTextEntry
+        />
+      </View>
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Confirm Password</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={text => setConfirmPassword(text)}
+          value={confirmPassword}
+          placeholder="Confirm password"
+          secureTextEntry
+        />
+      </View>
       <TouchableOpacity style={styles.button} onPress={handleSignup}>
         {loading ? (
           <ActivityIndicator color="#fff" />
@@ -119,7 +130,6 @@ const SignupShelter = () => {
           <Text style={styles.buttonText}>Sign Up</Text>
         )}
       </TouchableOpacity>
-      
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('LoginPage')}>
         <Text style={styles.backButtonText}>Back to Login</Text>
       </TouchableOpacity>

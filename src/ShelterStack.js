@@ -10,6 +10,7 @@ import DetailsPageShelter from './HomeScreensShelter/DetailsPage/DetailsPageShel
 import PetDetails from './HomeScreensShelter/PetDetails/PetDetails';
 import EditPet from './HomeScreensShelter/EditPet/EditPet';
 import AddPet from './HomeScreensShelter/AddPet/AddPet';
+import OTPPage from './OTP/OTPPage';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,7 @@ const ShelterStack = () => {
       <Stack.Screen name="DetailsPageShelter" component={DetailsPageShelter} options={{headerShown: false}} />
       <Stack.Screen name="PetDetails" component={PetDetails} options={{headerShown: false}} />
       <Stack.Screen name="EditPet" component={EditPet} options={{headerShown: false}} />
+      <Stack.Screen name="OTP" component={OTPPage} options={{headerShown: false}} />
     </Stack.Navigator>
   );
 };

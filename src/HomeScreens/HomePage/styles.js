@@ -8,6 +8,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
 
   },
+  safeContainer: {
+    flex: 1
+  },
+
   image: {
     width: 200,
     height: 200,
