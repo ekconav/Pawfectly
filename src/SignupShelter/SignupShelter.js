@@ -57,7 +57,7 @@ const SignupShelter = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome Shelter</Text>
+      <Text style={styles.title}>Sign Up</Text>
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Shelter Name</Text>
         <TextInput
@@ -67,12 +67,12 @@ const SignupShelter = () => {
           placeholder="Enter shelter name"
         />
       </View>
-      <View style={styles.inputGroupnumber}>
+      <View style={styles.inputGroup}>
         <Text style={styles.label}>Mobile Number</Text>
         <View style={styles.inputContainer}>
           <Text style={styles.countryCode}>+63</Text>
           <TextInput
-            style={styles.input}
+            style={styles.mobileNumberInput}
             placeholder="Enter mobile number"
             onChangeText={text => setMobileNumber(text)}
             value={mobileNumber}

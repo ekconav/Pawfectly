@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, ScrollView, ActivityIndicator, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db, storage } from '../../FirebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import SettingsPage from '../SettingsPage/SettingsPage';
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from './SearchBar';
 import { RefreshControl } from 'react-native';
+import COLORS from '../../const/colors';
 
 const Tab = createBottomTabNavigator();
 
@@ -25,7 +26,7 @@ const HomeScreen = ({ refresh }) => {
 
   useEffect(() => {
     fetchPets();
-  }, [refresh]);
+  }, [refresh, searchType, searchAge, searchLocation]);
 
   const fetchPets = async () => {
     try {
@@ -65,22 +66,21 @@ const HomeScreen = ({ refresh }) => {
     setRefreshing(true);
     fetchPets();
     setRefreshing(false);
-  }, []);
-
-  const handleSearch = () => {
-    onRefresh(); // Trigger search
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="blue" />
-      </View>
-    );
-  }
+  }, [searchType, searchAge, searchLocation]);
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        {/* Profile Image */}
+        <TouchableOpacity onPress={() => navigation.navigate('SettingsPage')}>
+          <Image
+            source={require('../../components/cat1.png')} // Change the source to your profile image
+            style={styles.profileImage}
+          />
+        </TouchableOpacity>
+      </View>
+        {/* Title */}
+        <Text style={styles.title}>Find Awesome Pets</Text>
       <SearchBar
         searchType={searchType}
         setSearchType={setSearchType}
@@ -88,37 +88,60 @@ const HomeScreen = ({ refresh }) => {
         setSearchAge={setSearchAge}
         searchLocation={searchLocation}
         setSearchLocation={setSearchLocation}
-        onSearch={handleSearch} // Pass the handleSearch function
+        onSearch={onRefresh} // Pass the onRefresh function to trigger search
       />
 
-      <FlatList
-        data={pets}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
-            <View style={styles.petContainer}>
-              <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
-              <Text style={styles.petName}>{item.name}</Text>
-              <Text style={styles.petDetails}>{`Type:: ${item.type}`}</Text>
-              <Text style={styles.petDetails}>{`Gender: ${item.gender}`}</Text>
-              <Text style={styles.petDetails}>{`Age: ${item.age}`}</Text>
-              <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
-              <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="blue" />
+        </View>
+      ) : (
+        <FlatList
+          data={pets}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
+              <View style={styles.petContainer}>
+                <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
+                <Text style={styles.petName}>{item.name}</Text>
+                <Text style={styles.petDetails}>{`Type: ${item.type}`}</Text>
+                <Text style={styles.petDetails}>{`Gender: ${item.gender}`}</Text>
+                <Text style={styles.petDetails}>{`Age: ${item.age}`}</Text>
+                <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
+                <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: '#fff',
     paddingVertical: 20,
     paddingHorizontal: 10,
+    paddingTop: Platform.OS == "android"? 50 : 0,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end', 
+    marginBottom: 20,
+    padding: 10,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  title: {
+    fontSize: 46,
+    fontWeight: '400',
+    marginBottom: 30,
   },
   loadingContainer: {
     flex: 1,
@@ -126,15 +149,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   petContainer: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
+    backgroundColor: COLORS.background,
+    borderRadius: 20,
     padding: 10,
-    marginBottom: 10,
+    marginBottom: 20,
+    flexDirection: 'column', // Change flexDirection to 'column' to stack pet details vertically
+    justifyContent: 'flex-start', // Align pet details to the start (top) of the container
+    alignItems: 'flex-start', // Align pet details to the start (left) of the container
   },
   petName: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
+    alignSelf: 'center', // Center the pet name horizontally
   },
   petDetails: {
     fontSize: 14,
@@ -145,8 +172,10 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 10,
     marginBottom: 10,
+    alignSelf: 'center',
   },
 });
+
 
 const App = () => {
   const [refresh, setRefresh] = useState(false);

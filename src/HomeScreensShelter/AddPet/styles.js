@@ -5,6 +5,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         padding: 20,
         backgroundColor: '#fff',
+        paddingTop: Platform.OS == "android"? 50 : 0,
     },
     imageContainer: {
         alignItems: 'center',
@@ -84,8 +85,11 @@ const styles = StyleSheet.create({
     uploadButton: {
         backgroundColor: 'blue',
         paddingVertical: 12,
-        borderRadius: 5,
+        borderRadius: 20,
         alignItems: 'center',
+        width: '50%',
+        alignSelf: 'center',
+        
     },
     uploadButtonText: {
         color: 'white',

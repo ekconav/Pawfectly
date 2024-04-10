@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontSize: 16,
+    fontSize: 12,
     marginBottom: 5,
     marginLeft: 5,
   },
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 1,
     borderColor: 'black',
-    borderRadius: 5,
+    borderRadius: 10,
     paddingHorizontal: 10,
   },
   inputContainer: {
@@ -37,6 +37,14 @@ const styles = StyleSheet.create({
   countryCode: {
     marginRight: 10,
   },
+  mobileNumberInput: {
+    flex: 1,
+    height: 40,
+    borderColor: 'black',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingLeft: 8,
+  },
   emailSuffix: {
     marginLeft: 10,
   },
@@ -44,7 +52,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#007bff',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
   },
   buttonText: {
     color: '#fff',
@@ -54,16 +62,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.red,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
     marginTop: 10,
   },
   backButtonText: {
     color: '#fff',
     fontSize: 16,
-  },
-  inputGroupnumber: {
-    width: '100%',
-  },
+  }
 });
 
 export default styles;

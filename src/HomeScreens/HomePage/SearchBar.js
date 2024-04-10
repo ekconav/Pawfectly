@@ -1,44 +1,37 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
+
 const SearchBar = ({ onSearch }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('');
-  const [searchAge, setSearchAge] = useState('');
-  const [searchLocation, setSearchLocation] = useState('');
 
-  const handleSearch = () => {
-    // Construct the search query based on the filled inputs
-    const query = {
+  const handleSearch = async () => {
+    // Construct the search query based on the selected type
+    const searchQuery = {
       type: searchType.trim().toLowerCase(),
-      age: searchAge.trim(),
-      location: searchLocation.trim(),
     };
-
-    onSearch(query);
+  
+    // Call the onSearch function with the constructed searchQuery
+    onSearch(searchQuery);
   };
 
   return (
     <View style={styles.searchContainer}>
       <TextInput
         style={styles.searchInput}
-        placeholder="Search (Type, Age, Location)"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
+        placeholder="Search Pet To Adopt"
+        value={searchType}
+        onChangeText={setSearchType}
       />
-      <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-        <Text style={styles.searchButtonText}>Search</Text>
-      </TouchableOpacity>
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 30,
   },
   searchInput: {
     flex: 1,
@@ -47,12 +40,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 10,
     marginRight: 10,
+    borderRadius: 20,
   },
   searchButton: {
     backgroundColor: 'blue',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
+    
   },
   searchButtonText: {
     color: 'white',

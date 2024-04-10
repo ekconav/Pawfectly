@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
   mobileInput: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingBottom: 5,
   },
   countryCode: {
     marginRight: 10,
@@ -53,23 +54,21 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   button: {
-    backgroundColor: 'blue',
-    padding: 10,
-    borderRadius: 8,
-    width: '50%',
-    alignItems: 'center',
+    backgroundColor: '#007bff',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
   },
   buttonText: {
-    color: 'white',
+    color: '#fff',
     fontSize: 16,
   },
   backButton: {
-    backgroundColor: 'red',
-    padding: 10,
-    borderRadius: 8,
+    backgroundColor: COLORS.red,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
     marginTop: 10,
-    width: '50%',
-    alignItems: 'center',
   },
   backButtonText: {
     color: 'white',

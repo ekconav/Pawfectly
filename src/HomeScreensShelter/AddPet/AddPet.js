@@ -114,15 +114,15 @@ const AddPet = () => {
                 xhr.open('GET', uri, true);
                 xhr.send(null);
             });
-
+    
             const filename = image.substring(image.lastIndexOf('/') + 1);
             const storageRef = ref(storage, filename); // Use storage from FirebaseConfig
-
+    
             await uploadBytes(storageRef, blob);
             console.log('Pet photo uploaded');
-
+    
             const downloadURL = await getDownloadURL(storageRef);
-
+    
             let ageRange = '';
                 if (age) {
             const ageIndex = petAges.findIndex((ageRange) => ageRange === age);
@@ -130,9 +130,16 @@ const AddPet = () => {
                 ageRange = petAges[ageIndex];
             }
         }
-
-            // Store pet details in Firestore
+    
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                alert('User not logged in.');
+                return;
+            }
+    
+            // Store pet details in Firestore along with the user ID
             await addDoc(collection(db, 'pets'), {
+                userId: currentUser.uid, // Associate the user ID with the pet details
                 name,
                 images: downloadURL,
                 description,
@@ -142,7 +149,7 @@ const AddPet = () => {
                 age: ageRange,
                 breed,
             });
-
+    
             // Reset form fields
             setImage('');
             setDescription('');
@@ -154,7 +161,7 @@ const AddPet = () => {
             setCatChecked(false);
             setAge('');
             setBreed('');
-
+    
             alert('Pet details uploaded successfully!');
             console.log('pet details uploaded')
             navigation.navigate('HomePageScreenShelter');
@@ -163,6 +170,7 @@ const AddPet = () => {
             alert('Failed to upload pet details. Please try again.');
         }
     };
+    
 
     return (
         <ScrollView contentContainerStyle={styles.container}>

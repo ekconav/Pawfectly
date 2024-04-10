@@ -7,6 +7,7 @@ import HomeScreen from './HomeScreens/HomePage/HomeScreen';
 import DetailsPage from './HomeScreens/DetailsPage/DetailsPage';
 import FavoritesPage from './HomeScreens/Favorites/FavoritesPage';
 import MessagePage from './HomeScreens/MessagePage/MessagePage';
+import SettingsPage from './HomeScreens/SettingsPage/SettingsPage';
 
 
 
@@ -20,6 +21,7 @@ const UserStack = () => {
         <Stack.Screen name="MessagePage" component={MessagePage} options={{headerShown: false}}/>
         <Stack.Screen name="DetailsPage" component={DetailsPage}options={{headerShown: false}} />
         <Stack.Screen name="FavoritesPage" component={FavoritesPage} options={{headerShown: false}} />
+        <Stack.Screen name="SettingsPage" component={SettingsPage} options={{headerShown: false}} />
     </Stack.Navigator>
   );
 };
