@@ -1,51 +1,42 @@
 import { StyleSheet } from 'react-native';
+import COLORS from '../../const/colors';
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+  optionContainer: {
+    marginVertical: 10,
+    marginTop: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
-  },
-  backButton: {
-    marginRight: 20,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  settingsDrawer: {
-    padding: 20,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  settingTitle: {
-    marginLeft: 10,
-    fontSize: 16,
+  optionText: {
+    fontSize: 18,
+    // color: COLORS.primary, // Use your desired color
+    textDecorationLine: 'underline',
+    textAlign: 'center',
   },
   logoutButton: {
     backgroundColor: 'red',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
+    marginTop: 20,
   },
   buttonText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: 18,
   },
+  profileImage: {
+    width: 200,
+    height: 200, // Adjust the height to match the width for a perfect circle
+    borderRadius: 100, // Half of the width or height for a circle
+    borderColor: 'black',
+    marginTop: -10, // Adjust this value to move the image up or down
+    marginBottom: 40,
+  },
 });
+
+export default styles;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Platform, RefreshControl } from 'react-native';
+import { collection, getDocs, query, where, orderBy, startAt, endAt } from 'firebase/firestore';
 import { db, storage } from '../../FirebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { useNavigation } from '@react-navigation/native';
@@ -9,9 +9,9 @@ import FavoritesPage from '../Favorites/FavoritesPage';
 import MessagePage from '../MessagePage/MessagePage';
 import SettingsPage from '../SettingsPage/SettingsPage';
 import { Ionicons } from '@expo/vector-icons';
-import SearchBar from './SearchBar';
-import { RefreshControl } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import COLORS from '../../const/colors';
+import SearchBar from './SearchBar'; // Import the SearchBar component
 
 const Tab = createBottomTabNavigator();
 
@@ -19,41 +19,38 @@ const HomeScreen = ({ refresh }) => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchType, setSearchType] = useState('');
-  const [searchAge, setSearchAge] = useState('');
-  const [searchLocation, setSearchLocation] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
     fetchPets();
-  }, [refresh, searchType, searchAge, searchLocation]);
+  }, [refresh, searchQuery]);
 
   const fetchPets = async () => {
     try {
       const petsCollectionRef = collection(db, 'pets');
       let queryRef = petsCollectionRef;
-
-      if (searchType) {
-        queryRef = query(queryRef, where('type', '==', searchType.toLowerCase()));
+  
+      // Apply search filter based on the search query
+      if (searchQuery) {
+        const searchQueryLowerCase = searchQuery.toLowerCase();
+        // Construct a query to search across multiple fields
+        queryRef = query(
+          queryRef,
+          where('age', '>=', searchQueryLowerCase),
+          orderBy('breed'),
+        );
       }
-
-      if (searchAge) {
-        queryRef = query(queryRef, where('age', '<=', parseInt(searchAge)));
-      }
-
-      if (searchLocation) {
-        queryRef = query(queryRef, where('location', '==', searchLocation));
-      }
-
+  
       const querySnapshot = await getDocs(queryRef);
       const petsData = [];
-
-      await Promise.all(querySnapshot.docs.map(async (doc) => {
+  
+      querySnapshot.forEach(async doc => {
         const petData = doc.data();
         const imageUrl = await getDownloadURL(ref(storage, petData.images));
         petsData.push({ id: doc.id, ...petData, imageUrl });
-      }));
-
+      });
+  
       setPets(petsData);
       setLoading(false);
     } catch (error) {
@@ -61,12 +58,19 @@ const HomeScreen = ({ refresh }) => {
       setLoading(false);
     }
   };
+  
+  
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchPets();
     setRefreshing(false);
-  }, [searchType, searchAge, searchLocation]);
+  }, [searchQuery]);
+
+  // Function to handle search query change
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+  };
 
   return (
     <View style={styles.container}>
@@ -79,18 +83,11 @@ const HomeScreen = ({ refresh }) => {
           />
         </TouchableOpacity>
       </View>
-        {/* Title */}
-        <Text style={styles.title}>Find Awesome Pets</Text>
-      <SearchBar
-        searchType={searchType}
-        setSearchType={setSearchType}
-        searchAge={searchAge}
-        setSearchAge={setSearchAge}
-        searchLocation={searchLocation}
-        setSearchLocation={setSearchLocation}
-        onSearch={onRefresh} // Pass the onRefresh function to trigger search
-      />
-
+      {/* Title */}
+      <Text style={styles.title}>Find Awesome Pets</Text>
+      {/* SearchBar component */}
+      <SearchBar onSearch={handleSearch} />
+      
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="blue" />
@@ -104,9 +101,6 @@ const HomeScreen = ({ refresh }) => {
               <View style={styles.petContainer}>
                 <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
                 <Text style={styles.petName}>{item.name}</Text>
-                <Text style={styles.petDetails}>{`Type: ${item.type}`}</Text>
-                <Text style={styles.petDetails}>{`Gender: ${item.gender}`}</Text>
-                <Text style={styles.petDetails}>{`Age: ${item.age}`}</Text>
                 <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
                 <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
               </View>
@@ -122,16 +116,16 @@ const HomeScreen = ({ refresh }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     paddingVertical: 20,
     paddingHorizontal: 10,
-    paddingTop: Platform.OS == "android"? 50 : 0,
+    paddingTop: Platform.OS == "android" ? 40 : 0,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'flex-end', 
-    marginBottom: 20,
-    padding: 10,
+    justifyContent: 'flex-end',
+    marginBottom: 5,
+    paddingEnd: 10,
   },
   profileImage: {
     width: 40,
@@ -141,27 +135,41 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 46,
     fontWeight: '400',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.black,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    marginRight: 10,
+    paddingBottom: 20,
+  },
   petContainer: {
     backgroundColor: COLORS.background,
     borderRadius: 20,
     padding: 10,
-    marginBottom: 20,
-    flexDirection: 'column', // Change flexDirection to 'column' to stack pet details vertically
-    justifyContent: 'flex-start', // Align pet details to the start (top) of the container
-    alignItems: 'flex-start', // Align pet details to the start (left) of the container
+    marginBottom: 30,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
   },
   petName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 5,
-    alignSelf: 'center', // Center the pet name horizontally
+    alignSelf: 'center',
   },
   petDetails: {
     fontSize: 14,
@@ -176,7 +184,6 @@ const styles = StyleSheet.create({
   },
 });
 
-
 const App = () => {
   const [refresh, setRefresh] = useState(false);
 
@@ -184,16 +191,15 @@ const App = () => {
     <Tab.Navigator>
       <Tab.Screen
         name="Home"
+        component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="paw-outline" color={color} size={size} />
           ),
           headerShown: false,
-          tabBarLabel: 'Home'
+          tabBarLabel: 'Home',
         }}
-      >
-        {() => <HomeScreen refresh={refresh} />}
-      </Tab.Screen>
+      />
       <Tab.Screen
         name="Favorites"
         component={FavoritesPage}
@@ -202,7 +208,7 @@ const App = () => {
             <Ionicons name="heart-outline" color={color} size={size} />
           ),
           headerShown: false,
-          tabBarLabel: 'Favorites'
+          tabBarLabel: 'Favorites',
         }}
       />
       <Tab.Screen
@@ -213,7 +219,7 @@ const App = () => {
             <Ionicons name="chatbubble-outline" color={color} size={size} />
           ),
           headerShown: false,
-          tabBarLabel: 'Message'
+          tabBarLabel: 'Message',
         }}
       />
       <Tab.Screen
@@ -224,11 +230,11 @@ const App = () => {
             <Ionicons name="settings-outline" color={color} size={size} />
           ),
           headerShown: false,
-          tabBarLabel: 'Settings'
+          tabBarLabel: 'Settings',
         }}
       />
     </Tab.Navigator>
   );
-}
+};
 
 export default App;

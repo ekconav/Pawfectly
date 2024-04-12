@@ -1,18 +1,15 @@
+// SearchBar.js
+
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
-
 
 const SearchBar = ({ onSearch }) => {
   const [searchType, setSearchType] = useState('');
 
+  // Function to handle search button press
   const handleSearch = async () => {
-    // Construct the search query based on the selected type
-    const searchQuery = {
-      type: searchType.trim().toLowerCase(),
-    };
-  
-    // Call the onSearch function with the constructed searchQuery
-    onSearch(searchQuery);
+    // Call the onSearch function with the current search query
+    onSearch(searchType);
   };
 
   return (
@@ -23,6 +20,9 @@ const SearchBar = ({ onSearch }) => {
         value={searchType}
         onChangeText={setSearchType}
       />
+      <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+        <Text style={styles.searchButtonText}>Search</Text>
+      </TouchableOpacity>
     </View>
   );
 };
