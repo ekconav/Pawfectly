@@ -25,9 +25,9 @@ const SettingsPage = ({ onProfileImageChange }) => {
         quality: 1,
       });
 
-      if (!result.cancelled) {
+      if (!result.canceled) {
         setProfileImage({ uri: result.uri });
-        onProfileImageChange(result.uri);
+        onProfileImageChange(result.uri); // Call the onProfileImageChange function
         navigation.navigate('Home', { profileImageURI: result.uri });
       }
     } catch (error) {

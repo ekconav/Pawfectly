@@ -4,10 +4,12 @@ import { Swipeable } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import COLORS from '../../const/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const FavoritesPage = () => {
   const [favoritePets, setFavoritePets] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation();
 
   const handleDelete = async (id) => {
     try {
@@ -65,18 +67,21 @@ const FavoritesPage = () => {
         <Ionicons name="trash-bin" size={24} color={COLORS.white} />
       </TouchableOpacity>
     )}>
-      <View style={styles.item}>
-        <Image 
-          source={{ uri: item.imageUrl }}
-          style={styles.image}
-          resizeMode="cover"
-          onError={(error) => console.error('Error loading image:', error)}
-        />
-        <Text style={styles.itemText}>Name: {item.name}</Text>
-        <Text style={styles.itemText}>Type: {item.type}</Text>
-        <Text style={styles.itemText}>Age: {item.age}</Text>
-        <Text style={styles.itemText}>Location: {item.location}</Text>
-      </View>
+      <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
+        <View style={styles.item}>
+          <Image 
+            source={{ uri: item.imageUrl }}
+            style={styles.image}
+            resizeMode="cover"
+            onError={(error) => console.error('Error loading image:', error)}
+          />
+          <Text style={styles.itemText}>Name: {item.name}</Text>
+          <Text style={styles.itemText}>Type: {item.type}</Text>
+          <Text style={styles.itemText}>Breed: {item.breed}</Text>
+          <Text style={styles.itemText}>Age: {item.age}</Text>
+          <Text style={styles.itemText}>Location: {item.location}</Text>
+        </View>
+      </TouchableOpacity>
     </Swipeable>
   );
 
@@ -122,8 +127,8 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   image: {
-    width: '50%', // Adjust the width as needed
-    height: 200, // Adjust the height as needed
+    width: '100%',
+    height: 200,
     borderRadius: 10,
     marginBottom: 10,
   },

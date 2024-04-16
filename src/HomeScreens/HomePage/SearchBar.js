@@ -1,15 +1,12 @@
-// SearchBar.js
-
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
 const SearchBar = ({ onSearch }) => {
-  const [searchType, setSearchType] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Function to handle search button press
-  const handleSearch = async () => {
-    // Call the onSearch function with the current search query
-    onSearch(searchType);
+  const handleSearch = () => {
+    // Call the onSearch function passed as a prop
+    onSearch(searchQuery.trim());
   };
 
   return (
@@ -17,8 +14,8 @@ const SearchBar = ({ onSearch }) => {
       <TextInput
         style={styles.searchInput}
         placeholder="Search Pet To Adopt"
-        value={searchType}
-        onChangeText={setSearchType}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
       />
       <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
         <Text style={styles.searchButtonText}>Search</Text>
@@ -27,10 +24,11 @@ const SearchBar = ({ onSearch }) => {
   );
 };
 
+
 const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 30,
   },
   searchInput: {
@@ -39,15 +37,14 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: 1,
     paddingHorizontal: 10,
-    marginRight: 10,
     borderRadius: 20,
+    marginRight: 10,
   },
   searchButton: {
     backgroundColor: 'blue',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
-    
   },
   searchButtonText: {
     color: 'white',
