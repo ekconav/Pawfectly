@@ -1,7 +1,6 @@
-
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore } from "@firebase/firestore"; // Update the import statement
 import { getStorage } from 'firebase/storage';
 import 'firebase/compat/storage'
 

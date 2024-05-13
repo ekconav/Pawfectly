@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../../FirebaseConfig";
 import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { deleteDoc, doc } from "firebase/firestore";
-import { styles } from "../styles";
+import styles from "../styles";
 
 const DeleteAccPage = () => {
   const navigation = useNavigation();

@@ -1,243 +1,215 @@
-import React from 'react';
-import { Dimensions, SafeAreaView, View, Image, TextInput, Text, TouchableOpacity, FlatList, ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Platform, RefreshControl } from 'react-native';
+import { collection, getDocs, query, where, orderBy, startAt, endAt } from 'firebase/firestore';
+import { db, storage } from '../../FirebaseConfig';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons'; // or import Ionicons from 'react-native-vector-icons/Ionicons';
-import COLORS from '../../const/colors';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import pets from '../../const/pets';
-
+import { Ionicons } from '@expo/vector-icons';
 import FavoritesPage from '../Favorites/FavoritesPage';
 import MessagePage from '../MessagePage/MessagePage';
 import { SettingOptions } from '../SettingsPage/SettingStack';
-
-
-const {height} = Dimensions.get('window');
-const petCategories = [
-  {name: 'CATS', icon: 'cat'},
-  {name: 'DOGS', icon: 'dog'},
-];
-
-const Card = ({pet, navigation}) => {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={() => navigation.navigate('DetailsPage', pet)}>
-      <View style={style.cardContainer}>
-        {/* Render the card image */}
-        <View style={style.cardImageContainer}>
-          <Image
-            source={pet.image}
-            style={{
-              width: '100%',
-              height: '100%',
-              resizeMode: 'contain',
-            }}
-          />
-        </View>
-
-        {/* Render all the card details here */}
-        <View style={style.cardDetailsContainer}>
-          {/* Name and gender icon */}
-          <View style={{flexDirection: 'row', justifyContent: 'space-evenly'}}>
-            <Text
-              style={{fontWeight: 'bold', color: COLORS.dark, fontSize: 20}}>
-              {pet?.name}
-            </Text>
-            <Icon name="gender-male" size={22} color={COLORS.grey} />
-          </View>
-
-          {/* Render the age and type */}
-          <Text style={{fontSize: 12, marginTop: 5, color: COLORS.dark}}>
-            {pet?.type}
-          </Text>
-          <Text style={{fontSize: 10, marginTop: 5, color: COLORS.grey}}>
-            {pet?.age}
-          </Text>
-
-          {/* Render distance and the icon */}
-          <View style={{marginTop: 5, flexDirection: 'row'}}>
-            <Icon name="map-marker" color={COLORS.primary} size={18} />
-            <Text style={{fontSize: 12, color: COLORS.grey, marginLeft: 5}}>
-              Distance:7.8km
-            </Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
+import COLORS from '../../const/colors';
+import SearchBar from './SearchBar'; // Import the SearchBar component
 
 const Tab = createBottomTabNavigator();
 
-const HomeScreenPet = ({navigation}) => {
-  const [selectedCategoryIndex, setSeletedCategoryIndex] = React.useState(0);
-  const [filteredPets, setFilteredPets] = React.useState([]);
-  const [searchQuery, setSearchQuery] = React.useState('');
+const HomeScreen = ({ refresh }) => {
+  const [pets, setPets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigation = useNavigation();
 
-  const filterPet = index => {
-    const currentPets = pets.filter(
-      item => item?.pet?.toUpperCase() == petCategories[index].name,
-    )[0]?.pets;
-    setFilteredPets(currentPets);
+  useEffect(() => {
+    fetchPets();
+  }, [refresh, searchQuery]);
+
+  const fetchPets = async () => {
+    try {
+      const petsCollectionRef = collection(db, 'pets');
+      let queryRef = petsCollectionRef;
+  
+      // Apply search filter based on the search query
+      if (searchQuery) {
+        const searchQueryLowerCase = searchQuery.toLowerCase();
+        // Construct a query to search across multiple fields
+        queryRef = query(
+          queryRef,
+          where('age', '>=', searchQueryLowerCase),
+          orderBy('breed'),
+        );
+      }
+  
+      const querySnapshot = await getDocs(queryRef);
+      const petsData = [];
+  
+      querySnapshot.forEach(async doc => {
+        const petData = doc.data();
+        const imageUrl = await getDownloadURL(ref(storage, petData.images));
+        petsData.push({ id: doc.id, ...petData, imageUrl });
+      });
+  
+      setPets(petsData);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching pet data:', error);
+      setLoading(false);
+    }
+  };
+  
+  
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchPets();
+    setRefreshing(false);
+  }, [searchQuery]);
+
+  // Function to handle search query change
+  const handleSearch = (query) => {
+    setSearchQuery(query);
   };
 
-  React.useEffect(() => {
-    filterPet(0);
-  }, []);
-
   return (
-    <SafeAreaView style={{flex: 1, color: COLORS.white}}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={style.mainContainer}>
-          {/* Render the search inputs and icons */}
-          <View style={style.searchInputContainer}>
-            <Icon name="magnify" size={24} color={COLORS.grey} />
-            <TextInput
-              placeholderTextColor={COLORS.grey}
-              placeholder="Search pet to adopt"
-              style={{flex: 1}}
-            />
-            <Icon name="sort-ascending" size={24} color={COLORS.grey} />
-          </View>
-
-          {/* Render all the categories */}
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: 20,
-            }}>
-            {petCategories.map((item, index) => (
-              <View key={'pet' + index} style={{alignItems: 'center'}}>
-                <TouchableOpacity
-                  onPress={() => {
-                    setSeletedCategoryIndex(index);
-                    filterPet(index);
-                  }}
-                  style={[
-                    style.categoryBtn,
-                    {
-                      backgroundColor:
-                        selectedCategoryIndex == index
-                          ? COLORS.primary
-                          : COLORS.white,
-                    },
-                  ]}>
-                  <Icon
-                    name={item.icon}
-                    size={30}
-                    color={
-                      selectedCategoryIndex == index
-                        ? COLORS.white
-                        : COLORS.primary
-                    }
-                  />
-                </TouchableOpacity>
-                <Text style={style.categoryBtnName}>{item.name}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Render the cards with flatlist */}
-          <View style={{marginTop: 20}}>
-            <FlatList
-              showsVerticalScrollIndicator={false}
-              data={filteredPets}
-              renderItem={({item}) => (
-                <Card pet={item} navigation={navigation} />
-              )}
-            />
-          </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        {/* Profile Image */}
+        <TouchableOpacity onPress={() => navigation.navigate('SettingsPage')}>
+          <Image
+            source={require('../../components/cat1.png')} // Change the source to your profile image
+            style={styles.profileImage}
+          />
+        </TouchableOpacity>
+      </View>
+      {/* Title */}
+      <Text style={styles.title}>Find Awesome Pets</Text>
+      {/* SearchBar component */}
+      <SearchBar onSearch={handleSearch} />
+      
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="blue" />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      ) : (
+        <FlatList
+          data={pets}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
+              <View style={styles.petContainer}>
+                <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
+                <Text style={styles.petName}>{item.name}</Text>
+                <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
+                <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        />
+      )}
+    </View>
   );
 };
 
-const style = StyleSheet.create({
-  header: {
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  mainContainer: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
-    backgroundColor: COLORS.light,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    marginTop: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-    minHeight: height,
-  },
-  searchInputContainer: {
-    height: 50,
     backgroundColor: COLORS.white,
-    borderRadius: 7,
-    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 10,
+    paddingTop: Platform.OS == "android" ? 40 : 0,
+  },
+  header: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
+    marginBottom: 5,
+    paddingEnd: 10,
   },
-  categoryBtn: {
-    height: 50,
-    width: 50,
-    alignItems: 'center',
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  title: {
+    fontSize: 46,
+    fontWeight: '400',
+    marginBottom: 20,
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-    borderRadius: 10,
+    alignItems: 'center',
   },
-  categoryBtnName: {
-    color: COLORS.dark,
-    fontSize: 10,
-    marginTop: 5,
-    fontWeight: 'bold',
-  },
-  cardContainer: {
+  searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
   },
-  cardDetailsContainer: {
-    height: 120,
-    backgroundColor: COLORS.white,
+  searchInput: {
     flex: 1,
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
-    padding: 20,
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.black,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    marginRight: 10,
+    paddingBottom: 20,
   },
-  cardImageContainer: {
-    height: 150,
-    width: 140,
+  petContainer: {
     backgroundColor: COLORS.background,
     borderRadius: 20,
+    padding: 10,
+    marginBottom: 30,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  petName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    alignSelf: 'center',
+  },
+  petDetails: {
+    fontSize: 14,
+    marginBottom: 3,
+  },
+  petImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 10,
+    alignSelf: 'center',
   },
 });
 
-const HomeScreen = () => (
-  <Tab.Navigator>
-    <Tab.Screen 
-      name="Home" 
-      component={HomeScreenPet} 
-      options={{ 
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="paw-outline" color={color} size={size} />
-        ),
-        headerShown: false, 
-        tabBarLabel: 'Home'
-      }}
-    />
-      <Tab.Screen 
-      name="Favorites" 
-      component={FavoritesPage} 
+const App = () => {
+  const [refresh, setRefresh] = useState(false);
+
+  return (
+    <Tab.Navigator>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="paw-outline" color={color} size={size} />
+          ),
+          headerShown: false,
+          tabBarLabel: 'Home',
+        }}
+      />
+      <Tab.Screen
+        name="Favorites"
+        component={FavoritesPage}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart-outline" color={color} size={size} />
           ),
-        headerShown: false, 
-        tabBarLabel: 'Favorites'}} />
-
+          headerShown: false,
+          tabBarLabel: 'Favorites',
+        }}
+      />
       <Tab.Screen
         name='Message'
         component={MessagePage}
@@ -256,9 +228,12 @@ const HomeScreen = () => (
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" color={color} size={size} />
           ),
-        headerShown: false, 
-        tabBarLabel: 'Settings'}} />
-  </Tab.Navigator>
-);
+          headerShown: false,
+          tabBarLabel: 'Settings',
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
-export default HomeScreen;
+export default App;

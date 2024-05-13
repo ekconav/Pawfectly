@@ -7,7 +7,7 @@ import {
   reauthenticateWithCredential,
   updatePassword,
 } from "firebase/auth";
-import { styles } from "../styles";
+import styles from "../styles";
 
 const ChangePassPage = () => {
   const navigation = useNavigation();

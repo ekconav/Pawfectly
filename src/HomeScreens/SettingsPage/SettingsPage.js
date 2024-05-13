@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../FirebaseConfig";
-import { styles } from "./styles";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import styles from "./styles";
 
-const SettingsPage = ({ navigation }) => {
+const SettingsPage = ({ navigation, onProfileImageChange }) => {
   const [userDetails, setUserDetails] = useState({});
+  const [profileImage, setProfileImage] = useState(
+    require("../../components/cat1.png")
+  );
 
   useEffect(() => {
     const unsubsrcibe = onAuthStateChanged(auth, async (user) => {
@@ -40,6 +44,32 @@ const SettingsPage = ({ navigation }) => {
     updateUserDetails();
   }, [userDetails]);
 
+  const handlePickImage = async () => {
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        alert("Sorry, we need camera roll permissions to make this work!");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.cancelled) {
+        setProfileImage({ uri: result.uri });
+        onProfileImageChange(result.uri);
+        navigation.navigate("Home", { profileImageURI: result.uri });
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -54,11 +84,9 @@ const SettingsPage = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Ionicons
-          name="person-circle-outline"
-          size={80}
-          style={{ paddingRight: 10 }}
-        />
+        <TouchableOpacity onPress={handlePickImage}>
+          <Image source={profileImage} style={styles.profileImage} />
+        </TouchableOpacity>
         <View>
           <Text>
             {userDetails.firstName} {userDetails.lastName}

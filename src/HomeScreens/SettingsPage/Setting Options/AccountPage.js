@@ -3,9 +3,9 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../../FirebaseConfig";
-import { styles } from "../styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import styles from "../styles";
 
 const AccountPage = () => {
   const [userDetails, setUserDetails] = useState({});

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { styles } from "../styles";
+import styles from "../styles";
 import { db, auth } from "../../../FirebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";

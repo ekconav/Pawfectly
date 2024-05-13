@@ -94,39 +94,6 @@ const DetailsPageShelter = ({navigation, route}) => {
         </View>
       </View>
 
-      {/* Comment container */}
-      <View style={{marginTop: 80, justifyContent: 'space-between', flex: 1}}>
-        <View>
-          {/* Render user image , name and date */}
-          <View style={{flexDirection: 'row', paddingHorizontal: 20}}>
-            <Image
-              source={require('../../components/person.jpg')}
-              style={{height: 40, width: 40, borderRadius: 20}}
-            />
-            <View style={{flex: 1, paddingLeft: 10}}>
-              <Text
-                style={{color: COLORS.dark, fontSize: 12, fontWeight: 'bold'}}>
-                Ban
-              </Text>
-              <Text
-                style={{
-                  color: COLORS.grey,
-                  fontSize: 11,
-                  fontWeight: 'bold',
-                  marginTop: 2,
-                }}>
-                Owner
-              </Text>
-            </View>
-            <Text style={{color: COLORS.grey, fontSize: 12}}>May 25, 2020</Text>
-          </View>
-          <Text style={style.comment}>
-            My job requires moving to another country. I don't have the
-            opputurnity to take the cat with me. I am looking for good people
-            who will shelter my Lily.
-          </Text>
-        </View>
-
         {/* Render footer */}
         <View style={style.footer}>
         <TouchableOpacity onPress={addToFavorites}>
@@ -140,7 +107,7 @@ const DetailsPageShelter = ({navigation, route}) => {
             </Text>
           </View>
         </View>
-      </View>
+   
     </SafeAreaView>
     
   );

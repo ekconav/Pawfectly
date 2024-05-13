@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, TextInput, ScrollView, Alert, StyleSheet } from 'react-native';
+import React, { useState }  from 'react';
+import { View, Text, TouchableOpacity, Image, TextInput, ScrollView, Alert, StyleSheet, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Checkbox from 'expo-checkbox';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,18 +7,72 @@ import { storage, db } from '../../FirebaseConfig'; // Import db from FirebaseCo
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'; // Import storage functions
 import * as FileSystem from 'expo-file-system';
 import { collection, addDoc } from 'firebase/firestore';
+import { auth } from '../../FirebaseConfig';
+import { useNavigation } from '@react-navigation/native';
+import styles from '../AddPet/styles';
 
 
 const AddPet = () => {
     const [image, setImage] = useState('');
     const [description, setDescription] = useState('');
     const [location, setLocation] = useState('');
+    const [name, setName] = useState('');
     const [maleChecked, setMaleChecked] = useState(false);
     const [femaleChecked, setFemaleChecked] = useState(false);
+    const [dogChecked, setDogChecked] = useState(false);
+    const [catChecked, setCatChecked] = useState(false);
     const [breed, setBreed] = useState('');
     const [details, setDetails] = useState('');
     const [age, setAge] = useState('');
     const [uploading, setUploading ] = useState(false);
+    const navigation = useNavigation();
+    const [breedModalVisible, setBreedModalVisible] = useState(false);
+    const [ageModalVisible, setAgeModalVisible] = useState(false);
+    const [specifyBreedModalVisible, setSpecifyBreedModalVisible] = useState(false);
+
+    const petAges = ['0 - 3 Months', '4 - 6 Months', '7 - 9 Months', '10 - 12 Months', '1 - 3 Years Old', '4 - 6 Yeard Ols','7 Years Old and Above'];
+    const dogBreeds = ['Labrador Retriever', 'German Shepherd', 'Golden Retriever'];
+    const catBreeds = ['Persian', 'Maine Coon', 'Siamese'];
+
+    const handleAgeSelection = (selectedAge) => {
+        setAge(selectedAge);
+        setAgeModalVisible(false); // Close the age modal after selection
+    };
+
+    const handleBreedSelection = (selectedBreed) => {
+        setBreed(selectedBreed);
+        setBreedModalVisible(false); // Close the breed modal after selection
+    };
+
+    const handleSpecifyBreed = () => {
+        setBreed('');
+        setBreedModalVisible(false);
+        setSpecifyBreedModalVisible(true);
+    };
+
+    const handleSpecifyBreedOK = () => {
+        setSpecifyBreedModalVisible(false);
+    };
+
+    const handleMaleCheck = () => {
+        setMaleChecked(true);
+        setFemaleChecked(false);
+    };
+
+    const handleFemaleCheck = () => {
+        setFemaleChecked(true);
+        setMaleChecked(false);
+    };
+
+    const handleDogCheck = () => {
+        setDogChecked(true);
+        setCatChecked(false);
+    };
+
+    const handleCatCheck = () => {
+        setCatChecked(true);
+        setDogChecked(false);
+    };
 
     const handleChooseImage = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -42,9 +96,9 @@ const AddPet = () => {
     const handleUpload = async () => {
         if (!image) {
             alert('Please select an image.');
-            return;
+            return; 
         }
-
+            
         try {
             // Upload images to Firebase Storage and store their download URLs
             const { uri } = await FileSystem.getInfoAsync(image);
@@ -60,43 +114,63 @@ const AddPet = () => {
                 xhr.open('GET', uri, true);
                 xhr.send(null);
             });
-
+    
             const filename = image.substring(image.lastIndexOf('/') + 1);
             const storageRef = ref(storage, filename); // Use storage from FirebaseConfig
-
+    
             await uploadBytes(storageRef, blob);
             console.log('Pet photo uploaded');
-
+    
             const downloadURL = await getDownloadURL(storageRef);
-
-            // Store pet details in Firestore
+    
+            let ageRange = '';
+                if (age) {
+            const ageIndex = petAges.findIndex((ageRange) => ageRange === age);
+            if (ageIndex !== -1) {
+                ageRange = petAges[ageIndex];
+            }
+        }
+    
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                alert('User not logged in.');
+                return;
+            }
+    
+            // Store pet details in Firestore along with the user ID
             await addDoc(collection(db, 'pets'), {
+                userId: currentUser.uid, // Associate the user ID with the pet details
+                name,
                 images: downloadURL,
                 description,
                 location,
                 gender: maleChecked ? 'Male' : 'Female',
+                type: dogChecked ? 'Dog' : 'Cat',
+                age: ageRange,
                 breed,
-                details,
-                age: parseInt(age),
             });
-
+    
             // Reset form fields
             setImage('');
             setDescription('');
+            setName('');
             setLocation('');
             setMaleChecked(false);
             setFemaleChecked(false);
-            setBreed('');
-            setDetails('');
+            setDogChecked(false);
+            setCatChecked(false);
             setAge('');
-
+            setBreed('');
+    
             alert('Pet details uploaded successfully!');
             console.log('pet details uploaded')
+            navigation.navigate('HomePageScreenShelter');
         } catch (error) {
             console.error('Error uploading pet details:', error);
             alert('Failed to upload pet details. Please try again.');
         }
     };
+    
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -111,114 +185,138 @@ const AddPet = () => {
                 )}
             </TouchableOpacity>
             <View style={styles.form}>
-                <TextInput
-                    placeholder="Description"
-                    value={description}
-                    onChangeText={(text) => setDescription(text)}
+                <Text>Name</Text>
+            <TextInput
+                    value={name}
+                    onChangeText={(text) => setName(text)}
                     style={styles.inputField}
                 />
+
+            <Text>Type of Pet:</Text>           
+            <View style={styles.checkboxContainer}>
+                    <Checkbox value={dogChecked} onValueChange={handleDogCheck} />
+                    <Text style={styles.checkboxLabel}>Dog</Text>
+                    <Checkbox value={catChecked} onValueChange={handleCatCheck} />
+                    <Text style={styles.checkboxLabel}>Cat</Text>
+                </View>
+                <Text>Gender</Text>
+                <View style={styles.checkboxContainer}>
+                    <Checkbox value={maleChecked} onValueChange={handleMaleCheck} />
+                    <Text style={styles.checkboxLabel}>Male</Text>
+                    <Checkbox value={femaleChecked} onValueChange={handleFemaleCheck} />
+                    <Text style={styles.checkboxLabel}>Female</Text>
+                </View>
+                <Text>Age:</Text>
+                <TouchableOpacity style={styles.dropdownButton} onPress={() => setAgeModalVisible(true)}>
+                    <Text style={styles.dropdownButtonText}>{age || 'Select Age'}</Text>
+                    <Ionicons name="chevron-down-outline" size={24} color="black" />
+                </TouchableOpacity>
+
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={ageModalVisible}
+                    onRequestClose={() => setAgeModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            {petAges.map((age, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.breedOption}
+                                    onPress={() => handleAgeSelection(age)}
+                                >
+                                    <Text>{age}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+                </Modal>
+                <Text>Breed:</Text>
+                <TouchableOpacity style={styles.dropdownButton} onPress={() => setBreedModalVisible(true)}>
+                    <Text style={styles.dropdownButtonText}>{breed || 'Select Breed'}</Text>
+                    <Ionicons name="chevron-down-outline" size={24} color="black" />
+                </TouchableOpacity>
+
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={breedModalVisible}
+                    onRequestClose={() => setBreedModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            {dogChecked && dogBreeds.map((breed, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.breedOption}
+                                    onPress={() => handleBreedSelection(breed)}
+                                >
+                                    <Text>{breed}</Text>
+                                </TouchableOpacity>
+                            ))}
+                            {catChecked && catBreeds.map((breed, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.breedOption}
+                                    onPress={() => handleBreedSelection(breed)}
+                                >
+                                    <Text>{breed}</Text>
+                                </TouchableOpacity>
+                            ))}
+                            <TouchableOpacity
+                                style={styles.breedOption}
+                                onPress={() => handleSpecifyBreed()}
+                            >
+                                <Text>Specify</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={specifyBreedModalVisible}
+                    onRequestClose={() => setSpecifyBreedModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <TextInput
+                                placeholder="Specify Breed"
+                                value={breed}
+                                onChangeText={(text) => setBreed(text)}
+                                style={styles.inputField}
+                            />
+                            <TouchableOpacity
+                                style={styles.okButton}
+                                onPress={() => handleSpecifyBreedOK()}
+                            >
+                                <Text style={styles.okButtonText}>OK</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+                <Text>Location</Text>
                 <TextInput
-                    placeholder="Location"
                     value={location}
                     onChangeText={(text) => setLocation(text)}
                     style={styles.inputField}
                 />
-                <View style={styles.checkboxContainer}>
-                    <Checkbox value={maleChecked} onValueChange={setMaleChecked} />
-                    <Text style={styles.checkboxLabel}>Male</Text>
-                    <Checkbox value={femaleChecked} onValueChange={setFemaleChecked} />
-                    <Text style={styles.checkboxLabel}>Female</Text>
-                </View>
+                <Text>Description</Text>
                 <TextInput
-                    placeholder="Breed"
-                    value={breed}
-                    onChangeText={(text) => setBreed(text)}
+                    value={description}
+                    onChangeText={(text) => setDescription(text)}
                     style={styles.inputField}
                 />
-                <TextInput
-                    placeholder="Details"
-                    value={details}
-                    onChangeText={(text) => setDetails(text)}
-                    style={[styles.inputField, styles.detailsField]}
-                    multiline
-                />
-                <TextInput
-                    placeholder="Age"
-                    value={age}
-                    onChangeText={(text) => setAge(text)}
-                    style={styles.inputField}
-                    keyboardType="numeric"
-                />
+
             </View>
+            
             <TouchableOpacity onPress={handleUpload} style={styles.uploadButton}>
                 <Text style={styles.uploadButtonText}>Upload</Text>
             </TouchableOpacity>
         </ScrollView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flexGrow: 1,
-        padding: 20,
-        backgroundColor: '#fff',
-    },
-    imageContainer: {
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    addPhoto: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 120,
-        height: 120,
-        borderWidth: 1,
-        borderColor: 'black',
-        borderRadius: 10,
-        marginBottom: 10,
-    },
-    addPhotoText: {
-        marginTop: 5,
-    },
-    image: {
-        width: 120,
-        height: 120,
-        resizeMode: 'cover',
-        borderRadius: 10,
-        marginBottom: 10,
-    },
-    form: {
-        marginBottom: 20,
-    },
-    inputField: {
-        borderWidth: 1,
-        borderColor: 'gray',
-        borderRadius: 5,
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        marginBottom: 15,
-    },
-    detailsField: {
-        height: 100,
-    },
-    checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    checkboxLabel: {
-        marginLeft: 8,
-    },
-    uploadButton: {
-        backgroundColor: 'blue',
-        paddingVertical: 12,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    uploadButtonText: {
-        color: 'white',
-        fontSize: 16,
-    },
-});
 
 export default AddPet;

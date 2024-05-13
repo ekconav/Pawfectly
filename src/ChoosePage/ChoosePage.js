@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { containerStyles, buttonStyles } from './styles';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
+import styles from '../ChoosePage/styles';
 
 const ChoosePage = ({ navigation }) => {
   const handleAdopterLogin = () => {
@@ -14,14 +14,20 @@ const ChoosePage = ({ navigation }) => {
   };
 
   return (
-    <View style={containerStyles.container}>
-      <Text style={containerStyles.title}>Choose User Type</Text>
-      <TouchableOpacity style={buttonStyles.button} onPress={handleAdopterLogin}>
-        <Text style={buttonStyles.buttonText}>Signup as Adopter</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={buttonStyles.button} onPress={handleShelterLogin}>
-        <Text style={buttonStyles.buttonText}>Signup as Shelter</Text>
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <Image
+        source={require('../components/meow.png')} // Corrected image path
+        style={styles.image}
+        resizeMode="contain"
+      />
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={handleAdopterLogin}>
+          <Text style={styles.buttonText}>Signup as Adopter</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleShelterLogin}>
+          <Text style={styles.buttonText}>Signup as Shelter</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
