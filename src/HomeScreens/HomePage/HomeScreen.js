@@ -8,7 +8,7 @@ import pets from '../../const/pets';
 
 import FavoritesPage from '../Favorites/FavoritesPage';
 import MessagePage from '../MessagePage/MessagePage';
-import SettingsPage from '../SettingsPage/SettingsPage';
+import { SettingOptions } from '../SettingsPage/SettingStack';
 
 
 const {height} = Dimensions.get('window');
@@ -250,8 +250,8 @@ const HomeScreen = () => (
           />
           
       <Tab.Screen 
-      name="Settings" 
-      component={SettingsPage} 
+      name="Set" 
+      component={SettingOptions} 
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" color={color} size={size} />
