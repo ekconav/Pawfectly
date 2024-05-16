@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons'; // or import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLORS from '../../const/colors';
 import MessagePageShelter from '../MessagePage/MessagePageShelter';
-import SettingsPageShelter from '../SettingsPage/SettingsPageShelter';
+import {SettingOptionsShelter} from '../SettingsPage/SettingStackShelter';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Addpet from '../AddPet/AddPet';
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
@@ -213,8 +213,8 @@ const HomePageScreenShelter = () => (
           />
           
       <Tab.Screen 
-      name="Settings" 
-      component={SettingsPageShelter} 
+      name="Set" 
+      component={SettingOptionsShelter} 
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" color={color} size={size} />
