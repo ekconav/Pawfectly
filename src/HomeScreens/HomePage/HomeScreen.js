@@ -75,7 +75,7 @@ const HomeScreen = ({ refresh }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         {/* Profile Image */}
-        <TouchableOpacity onPress={() => navigation.navigate('SettingsPage')}>
+        <TouchableOpacity onPress={() => navigation.navigate('Set')}>
           <Image
             source={require('../../components/cat1.png')} // Change the source to your profile image
             style={styles.profileImage}

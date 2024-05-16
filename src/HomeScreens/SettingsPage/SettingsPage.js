@@ -4,14 +4,16 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../FirebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
 
-const SettingsPage = ({ navigation, onProfileImageChange }) => {
+const SettingsPage = ({ onProfileImageChange }) => {
   const [userDetails, setUserDetails] = useState({});
   const [profileImage, setProfileImage] = useState(
     require("../../components/cat1.png")
   );
+  const navigation = useNavigation();
 
   useEffect(() => {
     const unsubsrcibe = onAuthStateChanged(auth, async (user) => {
