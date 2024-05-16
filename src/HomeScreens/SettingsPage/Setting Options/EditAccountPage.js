@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import styles from "../styles";
 import { db, auth } from "../../../FirebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -32,6 +32,11 @@ const EditAccountScreenPage = () => {
   }, []);
 
   const updateDetails = () => {
+    if (!firstName || !lastName || !address || !mobileNumber) {
+      Alert.alert("Error", "Please fill in all required fields.");
+      return;
+    }
+
     const user = auth.currentUser;
     if (user) {
       const userDocRef = doc(db, "users", user.uid);
@@ -53,25 +58,29 @@ const EditAccountScreenPage = () => {
 
   return (
     <View style={styles.container}>
-      <Text>Edit Account Here!</Text>
+      <Text style={styles.headerTitle}>Edit Account Here!</Text>
+      <Text>First Name</Text>
       <TextInput
         style={styles.input}
         value={firstName}
         onChangeText={setFirstName}
         placeholder="First Name"
       />
+      <Text>Last Name</Text>
       <TextInput
         style={styles.input}
         value={lastName}
         onChangeText={setLastName}
         placeholder="Last Name"
       />
+      <Text>Address</Text>
       <TextInput
         style={styles.input}
         value={address}
         onChangeText={setAddress}
         placeholder="Address"
       />
+      <Text>Mobile Number</Text>
       <TextInput
         style={styles.input}
         value={mobileNumber}
