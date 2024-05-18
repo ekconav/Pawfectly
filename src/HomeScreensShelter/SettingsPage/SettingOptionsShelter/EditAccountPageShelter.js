@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { db, auth } from "../../../FirebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
@@ -30,6 +30,11 @@ const EditAccountPage = () => {
   }, []);
 
   const updateDetails = () => {
+    if (!shelterName || !address || !mobileNumber) {
+      Alert.alert("Error", "Please fill in all required fields.");
+      return;
+    }
+
     const shelter = auth.currentUser;
     if (shelter) {
       const shelterDocRef = doc(db, "shelters", shelter.uid);
@@ -50,19 +55,21 @@ const EditAccountPage = () => {
 
   return (
     <View style={styles.container}>
-      <Text>Edit Account Here!</Text>
+      <Text>Shelter Name:</Text>
       <TextInput
         style={styles.input}
         value={shelterName}
         onChangeText={setShelterName}
         placeholder="Shelter Name"
       />
+      <Text>Address</Text>
       <TextInput
         style={styles.input}
         value={address}
         onChangeText={setAddress}
         placeholder="Address"
       />
+      <Text>Mobile Number</Text>
       <View style={styles.inputContainer}>
         <Text style={styles.countryCode}>+63</Text>
         <TextInput

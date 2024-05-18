@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import { auth, db } from "../../../FirebaseConfig";
 import { useNavigation } from "@react-navigation/native";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { styles } from "../styles";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,35 +13,25 @@ const AccountPage = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (shelter) => {
+    const unsubscribe = onAuthStateChanged(auth, (shelter) => {
       if (shelter) {
         const docRef = doc(db, "shelters", shelter.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setShelterDetails(docSnap.data());
-        } else {
-          console.log("No such document");
-        }
+        const unsubscribeDoc = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setShelterDetails(docSnap.data());
+          } else {
+            console.log("No such document");
+          }
+        });
+
+        return () => unsubscribeDoc();
       } else {
         console.log("No shelter is signed in.");
+        setShelterDetails({});
       }
     });
     return unsubscribe;
   }, []);
-
-  useEffect(() => {
-    const updateDetails = async () => {
-      const shelter = auth.currentUser;
-      if (shelter) {
-        const docRef = doc(db, "shelters", shelter.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setShelterDetails(docSnap.data());
-        }
-      }
-    };
-    updateDetails();
-  }, [shelterDetails]);
 
   return (
     <View style={styles.container}>

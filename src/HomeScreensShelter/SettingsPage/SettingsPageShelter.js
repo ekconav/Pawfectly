@@ -5,7 +5,7 @@ import { auth, db } from "../../FirebaseConfig";
 import { styles } from "./styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 
 const SettingsPageShelter = () => {
@@ -16,33 +16,25 @@ const SettingsPageShelter = () => {
   );
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (shelter) => {
+    const unsubscribe = onAuthStateChanged(auth, (shelter) => {
       if (shelter) {
         const docRef = doc(db, "shelters", shelter.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setShelterDetails(docSnap.data());
-        } else {
-          console.log("No shelter is signed in.");
-        }
+        const unsubscribeDoc = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setShelterDetails(docSnap.data());
+          } else {
+            console.log("No such document");
+          }
+        });
+
+        return () => unsubscribeDoc();
+      } else {
+        console.log("No shelter is signed in.");
+        setShelterDetails({});
       }
     });
     return unsubscribe;
   }, []);
-
-  useEffect(() => {
-    const updateShelterDetails = async () => {
-      const shelter = auth.currentUser;
-      if (shelter) {
-        const docRef = doc(db, "shelters", shelter.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setShelterDetails(docSnap.data());
-        }
-      }
-    };
-    updateShelterDetails();
-  }, [shelterDetails]);
 
   const handlePickImage = async () => {
     try {
