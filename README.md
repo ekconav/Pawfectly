@@ -1,2 +1,2 @@
-# Pawfectly
-mobile pet adoption app
+# Pawfectly Mobile Pet Adoptio App
+"Our mobile pet adoption app, developed as part of our capstone project at the University of San Carlos, aims to revolutionize the way people find and adopt pets. With a user-friendly interface and advanced search features, our app connects prospective pet owners with shelters and rescue organizations, making it easier than ever to find the perfect furry companion. Users can browse through a wide variety of animals available for adoption, view detailed profiles, and even schedule visits to meet their potential new family members. Additionally, our app prioritizes the welfare of animals by including resources for responsible pet ownership and providing information on adoption procedures. Through this project, we strive to promote animal welfare and encourage the adoption of shelter pets, ultimately creating happier homes for both animals and humans alike."
