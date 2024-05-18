@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
-const SearchBar = ({ onSearch }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
+const SearchBar = ({ searchQuery, setSearchQuery, onSearch }) => {
   const handleSearch = () => {
     // Call the onSearch function passed as a prop
     onSearch(searchQuery.trim());
@@ -12,11 +10,11 @@ const SearchBar = ({ onSearch }) => {
   return (
     <View style={styles.searchContainer}>
       <TextInput
-        style={styles.searchInput}
-        placeholder="Search Pet To Adopt"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
+  style={styles.searchInput}
+  placeholder="Search Pet To Adopt"
+  value={searchQuery}
+  onChangeText={(text) => setSearchQuery(text)}
+/>
       <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
         <Text style={styles.searchButtonText}>Search</Text>
       </TouchableOpacity>

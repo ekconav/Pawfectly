@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList,  ActivityIndicator, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { collection, getDocs} from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db, storage } from '../../FirebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import SettingsPage from '../SettingsPage/SettingsPage';
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from './SearchBar';
 import { RefreshControl } from 'react-native';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -32,32 +33,29 @@ const HomeScreen = ({ refresh }) => {
   const fetchPets = async () => {
     try {
       const petsCollectionRef = collection(db, 'pets');
-      let queryRef = petsCollectionRef;
+      let queryRef = query(petsCollectionRef); // Create a query using the collection reference
     
-      // Apply search criteria
+      // Constructing a query to filter pets based on the search query
       if (searchQuery) {
-        // Chain multiple where conditions using logical OR (||)
+        // Filter based on the search query for name, type, gender, age, breed, or description
         queryRef = queryRef.where('name', '==', searchQuery.toLowerCase())
-                           .orWhere('type', '==', searchQuery.toLowerCase())
-                           .orWhere('gender', '==', searchQuery.toLowerCase())
-                           .orWhere('age', '==', searchQuery.toLowerCase())
-                           .orWhere('breed', '==', searchQuery.toLowerCase())
-                           .orWhere('description', '==', searchQuery.toLowerCase());
+          .orWhere('type', '==', searchQuery.toLowerCase())
+          .orWhere('gender', '==', searchQuery.toLowerCase())
+          .orWhere('age', '==', searchQuery.toLowerCase())
+          .orWhere('breed', '==', searchQuery.toLowerCase())
+          .orWhere('description', '==', searchQuery.toLowerCase());
       }
     
       const querySnapshot = await getDocs(queryRef);
       const petsData = [];
     
-      querySnapshot.forEach((doc) => {
-        const petData = doc.data();
-        const imageUrl = getDownloadURL(ref(storage, petData.images)).then(url => {
-          return url;
-        }).catch(error => {
-          console.error('Error getting download URL:', error);
-          return null;
-        });
-        petsData.push({ id: doc.id, ...petData, imageUrl });
-      });
+      await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const petData = doc.data();
+          const imageUrl = await getDownloadURL(ref(storage, petData.images));
+          petsData.push({ id: doc.id, ...petData, imageUrl });
+        })
+      );
     
       setPets(petsData);
       setLoading(false);
@@ -66,7 +64,6 @@ const HomeScreen = ({ refresh }) => {
       setLoading(false);
     }
   };
-  
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -74,10 +71,10 @@ const HomeScreen = ({ refresh }) => {
     setRefreshing(false);
   }, []);
 
-  const handleSearch = (searchQuery) => {
-    setSearchQuery(searchQuery);
-    fetchPets(); // Trigger search by fetching pets with updated search criteria
+  const handleSearch = () => {
+    onRefresh(); // Trigger search
   };
+
   const handleProfileImageChange = (uri) => {
     setProfileImageURI(uri); // Update profile image URI in the state
   };
@@ -94,36 +91,47 @@ const HomeScreen = ({ refresh }) => {
     <View style={styles.container}>
 
       <Text style={styles.title}>Find Awesome Pets</Text>
-      <SearchBar onSearch={handleSearch} />
 
-<FlatList
-  data={pets.filter(pet => 
-    pet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pet.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pet.gender.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pet.age.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pet.breed.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    pet.description.toLowerCase().includes(searchQuery.toLowerCase())
-  )}
-  keyExtractor={(item) => item.id}
-  renderItem={({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
-      <View style={styles.petContainer}>
-        <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
-        <Text style={styles.petName}>{item.name}</Text>
-        <Text style={styles.petDetails}>{`Type: ${item.type}`}</Text>
-        <Text style={styles.petDetails}>{`Gender: ${item.gender}`}</Text>
-        <Text style={styles.petDetails}>{`Age: ${item.age}`}</Text>
-        <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
-        <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
-      </View>
-    </TouchableOpacity>
-  )}
-  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-/>
+      <SearchBar
+    searchQuery={searchQuery}
+    setSearchQuery={setSearchQuery}
+    onSearch={handleSearch} // Pass the handleSearch function
+  />
 
-      {/* Pass the handleProfileImageChange function to SettingsPage */}
-      <SettingsPage onProfileImageChange={handleProfileImageChange} />
+  {pets.length === 0 ? (
+    <Text style={styles.noResultsText}>No such result found.</Text>
+  ) : (
+    <FlatList
+      data={pets.filter((pet) => {
+        const { name, type, gender, age, breed, description } = pet;
+        const lowerCaseSearchQuery = searchQuery.toLowerCase();
+        return (
+          name.toLowerCase().includes(lowerCaseSearchQuery) ||
+          type.toLowerCase().includes(lowerCaseSearchQuery) ||
+          gender.toLowerCase().includes(lowerCaseSearchQuery) ||
+          age.toLowerCase().includes(lowerCaseSearchQuery) ||
+          breed.toLowerCase().includes(lowerCaseSearchQuery) ||
+          description.toLowerCase().includes(lowerCaseSearchQuery)
+        );
+      })}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
+          <View style={styles.petContainer}>
+            <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
+            <Text style={styles.petName}>{item.name}</Text>
+            <Text style={styles.petDetails}>{`Type: ${item.type}`}</Text>
+            <Text style={styles.petDetails}>{`Gender: ${item.gender}`}</Text>
+            <Text style={styles.petDetails}>{`Age: ${item.age}`}</Text>
+            <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
+            <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    />
+  )}
+
     </View>
   );
 };
@@ -135,7 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingVertical: 20,
     paddingHorizontal: 10,
-    paddingTop: Platform.OS == "android" ? 40 : 0,
+  
   },
   header: {
     flexDirection: 'row',
@@ -180,6 +188,9 @@ profileImage: {
     borderRadius: 10,
     marginBottom: 10,
   },
+  noResultsText:{
+    color: 'black',
+  }
 });
 
 const App = () => {

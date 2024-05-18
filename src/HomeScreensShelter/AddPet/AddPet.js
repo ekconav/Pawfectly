@@ -116,7 +116,7 @@ const AddPet = () => {
             });
     
             const filename = image.substring(image.lastIndexOf('/') + 1);
-            const storageRef = ref(storage, `profileImages/${filename}`);
+            const storageRef = ref(storage, `pets/${filename}`);
     
             await uploadBytes(storageRef, blob);
             console.log('Pet photo uploaded');
