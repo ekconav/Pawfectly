@@ -1,88 +1,111 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList,  ActivityIndicator, StyleSheet, Image, TouchableOpacity, RefreshControl } from 'react-native';
-import { collection, query, where, getDocs, orderBy, doc, onSnapshot } from 'firebase/firestore';
-import { auth, db, storage } from '../../FirebaseConfig';
-import { ref, getDownloadURL } from 'firebase/storage';
-import { useNavigation } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import FavoritesPage from '../Favorites/FavoritesPage';
-import MessagePage from '../MessagePage/MessagePage';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
+import { collection, getDocs, doc, onSnapshot } from "firebase/firestore";
+import { auth, db, storage } from "../../FirebaseConfig";
+import { ref, getDownloadURL } from "firebase/storage";
+import { useNavigation } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import FavoritesPage from "../Favorites/FavoritesPage";
+import MessagePage from "../MessagePage/MessagePage";
 import { SettingOptions } from "../SettingsPage/SettingStack";
-import { Ionicons } from '@expo/vector-icons';
-import SearchBar from './SearchBar';
-
+import { Ionicons } from "@expo/vector-icons";
+import SearchBar from "./SearchBar";
 
 const Tab = createBottomTabNavigator();
 
 const HomeScreen = ({ refresh }) => {
   const [pets, setPets] = useState([]);
+  const [allPets, setAllPets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileImage, setProfileImage] = useState("");
-  const [searchType, setSearchType] = useState('');
-  const [searchAge, setSearchAge] = useState('');
-  const [searchLocation, setSearchLocation] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
     fetchPets();
     const unsubscribe = onSnapshot(
-      doc(db, "users", auth.currentUser.uid), 
+      doc(db, "users", auth.currentUser.uid),
       (doc) => {
-        if(doc.exists()) {
+        if (doc.exists()) {
           const userData = doc.data();
-          if(userData.accountPicture) {
-            setProfileImage({uri: userData.accountPicture})
+          if (userData.accountPicture) {
+            setProfileImage({ uri: userData.accountPicture });
           } else {
-            setProfileImage(require("../../components/user.png"))
+            setProfileImage(require("../../components/user.png"));
           }
         }
       }
-    )
+    );
     return () => unsubscribe();
-  }, [refresh, searchQuery])
+  }, [refresh]);
+
+  useEffect(() => {
+    handleSearch();
+  }, [searchQuery]);
 
   const fetchPets = async () => {
     try {
       const petsCollectionRef = collection(db, "pets");
-      let queryRef = query(petsCollectionRef);
-
-      if(searchQuery) {
-        queryRef = queryRef.where("name", "==", searchQuery.toLowerCase())
-          .orWhere("type", "==", searchQuery.toLowerCase())
-          .orWhere("gender", "==", searchQuery.toLowerCase())
-          .orWhere("age", "==", searchQuery.toLowerCase())
-          .orWhere("breed", "==", searchQuery.toLowerCase())
-          .orWhere("description", "==", searchQuery.toLowerCase());
-      }
-      const querySnapshot = await getDocs(queryRef);
+      const querySnapshot = await getDocs(petsCollectionRef);
       const petsData = [];
 
       await Promise.all(
         querySnapshot.docs.map(async (doc) => {
           const petData = doc.data();
           const imageUrl = await getDownloadURL(ref(storage, petData.images));
-          petsData.push({id:doc.id, ...petData, imageUrl})
-        })  
-      )
+          petsData.push({ id: doc.id, ...petData, imageUrl });
+        })
+      );
       setPets(petsData);
+      setAllPets(petsData);
       setLoading(false);
-    } catch(error) {
-      console.error("Error fetching pet data:", error);
+    } catch (error) {
+      console.error("Error fetching pet data: ", error);
       setLoading(false);
     }
-  }
+  };
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      // Reset to all pets if search query is empty
+      setPets(allPets);
+      return;
+    }
+
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+
+    const filteredPets = allPets.filter((pet) => {
+      const { name, type, gender, age, breed, description } = pet;
+
+      const matchesGender = gender.toLowerCase() === lowerCaseSearchQuery;
+      const matchesOtherFields =
+        name.toLowerCase().includes(lowerCaseSearchQuery) ||
+        type.toLowerCase().includes(lowerCaseSearchQuery) ||
+        age.toLowerCase().includes(lowerCaseSearchQuery) ||
+        breed.toLowerCase().includes(lowerCaseSearchQuery) ||
+        description.toLowerCase().includes(lowerCaseSearchQuery);
+
+      return matchesGender || matchesOtherFields;
+    });
+
+    setPets(filteredPets);
+  };
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchPets();
     setRefreshing(false);
   }, []);
-
-  const handleSearch = () => {
-    onRefresh(); // Trigger search
-  };
 
   if (loading) {
     return (
@@ -105,60 +128,58 @@ const HomeScreen = ({ refresh }) => {
       </View>
       {/* Title */}
       <Text style={styles.title}>Find Awesome Pets</Text>
-  
 
       <SearchBar
-    searchQuery={searchQuery}
-    setSearchQuery={setSearchQuery}
-    onSearch={handleSearch} // Pass the handleSearch function
-  />
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onSearch={handleSearch} // Pass the handleSearch function
+      />
 
-  {pets.length === 0 ? (
-    <Text style={styles.noResultsText}>No such result found.</Text>
-  ) : (
-    <FlatList
-      data={pets.filter((pet) => {
-        const { name, type, gender, age, breed, description } = pet;
-        const lowerCaseSearchQuery = searchQuery.toLowerCase();
-        return (
-          name.toLowerCase().includes(lowerCaseSearchQuery) ||
-          type.toLowerCase().includes(lowerCaseSearchQuery) ||
-          gender.toLowerCase().includes(lowerCaseSearchQuery) ||
-          age.toLowerCase().includes(lowerCaseSearchQuery) ||
-          breed.toLowerCase().includes(lowerCaseSearchQuery) ||
-          description.toLowerCase().includes(lowerCaseSearchQuery)
-        );
-      })}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
-          <View style={styles.petContainer}>
-            <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
-            <Text style={styles.petName}>{item.name}</Text>
-            <Text style={styles.petDetails}>{`Type: ${item.type}`}</Text>
-            <Text style={styles.petDetails}>{`Gender: ${item.gender}`}</Text>
-            <Text style={styles.petDetails}>{`Age: ${item.age}`}</Text>
-            <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
-            <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
-          </View>
-        </TouchableOpacity>
+      {pets.length === 0 ? (
+        <Text style={styles.noResultsText}>No such result found.</Text>
+      ) : (
+        <FlatList
+          data={pets}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("DetailsPage", { pet: item })}
+            >
+              <View style={styles.petContainer}>
+                <Image
+                  source={{
+                    uri: `${item.imageUrl}?time=${new Date().getTime()}`,
+                  }}
+                  style={styles.petImage}
+                />
+                <Text style={styles.petName}>{item.name}</Text>
+                <Text style={styles.petDetails}>{`Type: ${item.type}`}</Text>
+                <Text
+                  style={styles.petDetails}
+                >{`Gender: ${item.gender}`}</Text>
+                <Text style={styles.petDetails}>{`Age: ${item.age}`}</Text>
+                <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
+                <Text
+                  style={styles.petDetails}
+                >{`Description: ${item.description}`}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        />
       )}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-    />
-  )}
-
     </View>
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingVertical: 20,
     paddingHorizontal: 10,
-  
   },
   header: {
     flexDirection: "row",
@@ -167,7 +188,7 @@ const styles = StyleSheet.create({
     paddingEnd: 10,
   },
 
-profileImage: {
+  profileImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -190,7 +211,7 @@ profileImage: {
   searchInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.black,
+    borderColor: "#000000",
     borderRadius: 20,
     paddingHorizontal: 10,
     marginRight: 10,
@@ -198,14 +219,14 @@ profileImage: {
   },
 
   petContainer: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     borderRadius: 30,
     padding: 20,
     marginBottom: 20,
   },
   petName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
   },
   petDetails: {
@@ -219,9 +240,9 @@ profileImage: {
     marginBottom: 10,
     alignSelf: "center",
   },
-  noResultsText:{
-    color: 'black',
-  }
+  noResultsText: {
+    color: "black",
+  },
 });
 
 const App = () => {
@@ -277,6 +298,6 @@ const App = () => {
       />
     </Tab.Navigator>
   );
-}
+};
 
 export default App;
