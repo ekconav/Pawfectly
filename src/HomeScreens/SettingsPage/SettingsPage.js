@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, onSnapshot } from "firebase/firestore";
-import { auth, db } from "../../FirebaseConfig";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { auth, db, storage } from "../../FirebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
 
-const SettingsPage = ({ onProfileImageChange }) => {
+const SettingsPage = () => {
   const [userDetails, setUserDetails] = useState({});
-  const [profileImage, setProfileImage] = useState(
-    require("../../components/cat1.png")
-  );
+  const [profileImage, setProfileImage] = useState("");
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -21,7 +20,13 @@ const SettingsPage = ({ onProfileImageChange }) => {
         const docRef = doc(db, "users", user.uid);
         const unsubscribeDoc = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
-            setUserDetails(docSnap.data());
+            const data = docSnap.data();
+            setUserDetails(data);
+            if (data.accountPicture) {
+              setProfileImage({ uri: data.accountPicture });
+            } else {
+              setProfileImage(require("../../components/user.png"));
+            }
           } else {
             console.log("No such document");
           }
@@ -37,28 +42,31 @@ const SettingsPage = ({ onProfileImageChange }) => {
   }, []);
 
   const handlePickImage = async () => {
-    try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        alert("Sorry, we need camera roll permissions to make this work!");
-        return;
-      }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+    if (!result.canceled) {
+      const { uri } = result.assets[0];
+      const user = auth.currentUser;
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
+      if (user) {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const storageRef = ref(storage, `profilePictures/${user.uid}`);
+        await uploadBytes(storageRef, blob);
 
-      if (!result.cancelled) {
-        setProfileImage({ uri: result.uri });
-        onProfileImageChange(result.uri);
-        navigation.navigate("Home", { profileImageURI: result.uri });
+        const downloadURL = await getDownloadURL(storageRef);
+
+        const docRef = doc(db, "users", user.uid);
+        await updateDoc(docRef, {
+          accountPicture: downloadURL,
+        });
+        setProfileImage({ uri: downloadURL });
+        Alert.alert("Success", "Profile picture updated");
       }
-    } catch (error) {
-      console.error("Error picking image:", error);
     }
   };
 

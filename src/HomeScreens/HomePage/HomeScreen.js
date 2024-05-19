@@ -1,16 +1,34 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, StyleSheet, Image, TouchableOpacity, Platform, RefreshControl } from 'react-native';
-import { collection, getDocs, query, where, orderBy, startAt, endAt } from 'firebase/firestore';
-import { db, storage } from '../../FirebaseConfig';
-import { ref, getDownloadURL } from 'firebase/storage';
-import { useNavigation } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import FavoritesPage from '../Favorites/FavoritesPage';
-import MessagePage from '../MessagePage/MessagePage';
-import { SettingOptions } from '../SettingsPage/SettingStack';
-import COLORS from '../../const/colors';
-import SearchBar from './SearchBar'; // Import the SearchBar component
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Platform,
+  RefreshControl,
+} from "react-native";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  doc,
+  onSnapshot,
+} from "firebase/firestore";
+import { auth, db, storage } from "../../FirebaseConfig";
+import { ref, getDownloadURL } from "firebase/storage";
+import { useNavigation } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import FavoritesPage from "../Favorites/FavoritesPage";
+import MessagePage from "../MessagePage/MessagePage";
+import { SettingOptions } from "../SettingsPage/SettingStack";
+import COLORS from "../../const/colors";
+import SearchBar from "./SearchBar"; // Import the SearchBar component
 
 const Tab = createBottomTabNavigator();
 
@@ -18,47 +36,61 @@ const HomeScreen = ({ refresh }) => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [profileImage, setProfileImage] = useState("");
   const navigation = useNavigation();
 
   useEffect(() => {
     fetchPets();
+
+    const unsubscribe = onSnapshot(
+      doc(db, "users", auth.currentUser.uid),
+      (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          if (userData.accountPicture) {
+            setProfileImage({ uri: userData.accountPicture });
+          } else {
+            setProfileImage(require("../../components/user.png"));
+          }
+        }
+      }
+    );
+    return () => unsubscribe();
   }, [refresh, searchQuery]);
 
   const fetchPets = async () => {
     try {
-      const petsCollectionRef = collection(db, 'pets');
+      const petsCollectionRef = collection(db, "pets");
       let queryRef = petsCollectionRef;
-  
+
       // Apply search filter based on the search query
       if (searchQuery) {
         const searchQueryLowerCase = searchQuery.toLowerCase();
         // Construct a query to search across multiple fields
         queryRef = query(
           queryRef,
-          where('age', '>=', searchQueryLowerCase),
-          orderBy('breed'),
+          where("age", ">=", searchQueryLowerCase),
+          orderBy("breed")
         );
       }
-  
+
       const querySnapshot = await getDocs(queryRef);
       const petsData = [];
-  
-      querySnapshot.forEach(async doc => {
+
+      querySnapshot.forEach(async (doc) => {
         const petData = doc.data();
         const imageUrl = await getDownloadURL(ref(storage, petData.images));
         petsData.push({ id: doc.id, ...petData, imageUrl });
       });
-  
+
       setPets(petsData);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching pet data:', error);
+      console.error("Error fetching pet data:", error);
       setLoading(false);
     }
   };
-  
-  
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -75,9 +107,9 @@ const HomeScreen = ({ refresh }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         {/* Profile Image */}
-        <TouchableOpacity onPress={() => navigation.navigate('Set')}>
+        <TouchableOpacity onPress={() => navigation.navigate("Set")}>
           <Image
-            source={require('../../components/cat1.png')} // Change the source to your profile image
+            source={profileImage} // Change the source to your profile image
             style={styles.profileImage}
           />
         </TouchableOpacity>
@@ -86,7 +118,7 @@ const HomeScreen = ({ refresh }) => {
       <Text style={styles.title}>Find Awesome Pets</Text>
       {/* SearchBar component */}
       <SearchBar onSearch={handleSearch} />
-      
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="blue" />
@@ -96,16 +128,27 @@ const HomeScreen = ({ refresh }) => {
           data={pets}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("DetailsPage", { pet: item })}
+            >
               <View style={styles.petContainer}>
-                <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
+                <Image
+                  source={{
+                    uri: `${item.imageUrl}?time=${new Date().getTime()}`,
+                  }}
+                  style={styles.petImage}
+                />
                 <Text style={styles.petName}>{item.name}</Text>
                 <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
-                <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
+                <Text
+                  style={styles.petDetails}
+                >{`Description: ${item.description}`}</Text>
               </View>
             </TouchableOpacity>
           )}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       )}
     </View>
@@ -121,8 +164,8 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS == "android" ? 40 : 0,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     marginBottom: 5,
     paddingEnd: 10,
   },
@@ -133,17 +176,17 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 46,
-    fontWeight: '400',
+    fontWeight: "400",
     marginBottom: 20,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   searchInput: {
@@ -160,26 +203,26 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     marginBottom: 30,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
   },
   petName: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   petDetails: {
     fontSize: 14,
     marginBottom: 3,
   },
   petImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 10,
     marginBottom: 10,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });
 
@@ -196,7 +239,7 @@ const App = () => {
             <Ionicons name="paw-outline" color={color} size={size} />
           ),
           headerShown: false,
-          tabBarLabel: 'Home',
+          tabBarLabel: "Home",
         }}
       />
       <Tab.Screen
@@ -207,29 +250,30 @@ const App = () => {
             <Ionicons name="heart-outline" color={color} size={size} />
           ),
           headerShown: false,
-          tabBarLabel: 'Favorites',
+          tabBarLabel: "Favorites",
         }}
       />
       <Tab.Screen
-        name='Message'
+        name="Message"
         component={MessagePage}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="chatbubble-outline" color={color} size={size} />
-            ),
-          headerShown: false, 
-          tabBarLabel: 'Message'}} 
-          />
-          
-      <Tab.Screen 
-      name="Set" 
-      component={SettingOptions} 
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="chatbubble-outline" color={color} size={size} />
+          ),
+          headerShown: false,
+          tabBarLabel: "Message",
+        }}
+      />
+
+      <Tab.Screen
+        name="Set"
+        component={SettingOptions}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" color={color} size={size} />
           ),
           headerShown: false,
-          tabBarLabel: 'Settings',
+          tabBarLabel: "Settings",
         }}
       />
     </Tab.Navigator>

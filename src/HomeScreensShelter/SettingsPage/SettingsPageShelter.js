@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, db } from "../../FirebaseConfig";
+import { auth, db, storage } from "../../FirebaseConfig";
 import { styles } from "./styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const SettingsPageShelter = () => {
   const navigation = useNavigation();
   const [shelterDetails, setShelterDetails] = useState({});
-  const [shelterImage, setShelterImage] = useState(
-    require("../../components/cat1.png")
-  );
+  const [shelterImage, setShelterImage] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (shelter) => {
@@ -21,7 +20,13 @@ const SettingsPageShelter = () => {
         const docRef = doc(db, "shelters", shelter.uid);
         const unsubscribeDoc = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
-            setShelterDetails(docSnap.data());
+            const data = docSnap.data();
+            setShelterDetails(data);
+            if (data.accountPicture) {
+              setShelterImage({ uri: data.accountPicture });
+            } else {
+              setShelterImage(require("../../components/user.png"));
+            }
           } else {
             console.log("No such document");
           }
@@ -37,28 +42,31 @@ const SettingsPageShelter = () => {
   }, []);
 
   const handlePickImage = async () => {
-    try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        alert("Sorry, we need camera roll permissions to make this work!");
-        return;
-      }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+    if (!result.canceled) {
+      const { uri } = result.assets[0];
+      const user = auth.currentUser;
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
+      if (user) {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const storageRef = ref(storage, `profilePictures/${user.uid}`);
+        await uploadBytes(storageRef, blob);
 
-      if (!result.canceled) {
-        setShelterImage({ uri: result.uri });
-        onProfileImageChange(result.uri);
-        navigation.navigate("Home", { profileImageURI: result.uri });
+        const downloadURL = await getDownloadURL(storageRef);
+
+        const docRef = doc(db, "shelters", user.uid);
+        await updateDoc(docRef, {
+          accountPicture: downloadURL,
+        });
+        setShelterImage({ uri: downloadURL });
+        Alert.alert("Success", "Profile picture updated");
       }
-    } catch (error) {
-      console.error("Error picking image: ", error);
     }
   };
 
