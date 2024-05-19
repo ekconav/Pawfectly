@@ -51,6 +51,23 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     textAlign: 'center',
   },
+  imageContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+},
+addPhoto: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 120,
+    height: 120,
+    borderWidth: 1,
+    borderColor: 'black',
+    borderRadius: 10,
+    marginBottom: 10,
+},
+addPhotoText: {
+    marginTop: 5,
+},
   logoutButton: {
     backgroundColor: "#3080ff",
     paddingVertical: 10,

@@ -5,7 +5,6 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         padding: 20,
         backgroundColor: '#fff',
-        paddingTop: Platform.OS == "android"? 50 : 0,
     },
     imageContainer: {
         alignItems: 'center',

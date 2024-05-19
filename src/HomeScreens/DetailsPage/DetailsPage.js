@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import COLORS from '../../const/colors';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import styles from '../DetailsPage/styles'
+import styles from '../DetailsPage/styles';
 
 const DetailsPage = ({ route }) => {
   const [petDetails, setPetDetails] = useState(null);
@@ -19,7 +19,7 @@ const DetailsPage = ({ route }) => {
         console.error('Error fetching pet details:', error);
       }
     };
-  
+
     fetchPetDetails();
   }, [route.params]);
 
@@ -38,11 +38,12 @@ const DetailsPage = ({ route }) => {
       const updatedFavorites = [...favorites, petDetails];
       // Update AsyncStorage with the updated favorites
       await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+      Alert.alert("Succesful", "Pet Added to Favorites")
       console.log('Favorite button pressed');
     } catch (error) {
       console.error('Error adding pet to favorites:', error);
     }
-    
+
     // Navigate to the Favorites tab
     navigation.navigate('Favorites');
   };
@@ -55,42 +56,39 @@ const DetailsPage = ({ route }) => {
     );
   }
 
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <StatusBar backgroundColor={COLORS.background} />
       <SafeAreaView style={{ flex: 1 }}>
-        <Image source={{ uri: petDetails.imageUrl }} style={styles.petImage} />
-        {/* Render Header */}
-        <View style={styles.header}>
-          <Icon name="arrow-left" size={28} color={COLORS.dark} onPress={() => navigation.goBack()} />
-          <Icon name="dots-vertical" size={28} color={COLORS.dark} />
-        </View>
-        <View style={styles.detailsContainer}>
-
-          {/* Render Pet name, description, and breed */}
-          <Text style={styles.petName}>Name: {petDetails.name}</Text>
-          <Text style={styles.petDescription}>Description: {petDetails.description}</Text>
-          <Text style={styles.petBreed}>Breed: {petDetails.breed}</Text>
-
-          {/* Render Pet type and age */}
-          <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 5 }}>{`Type: ${petDetails.type}`}</Text>
-          <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 5 }}>{`Gender: ${petDetails.gender}`}</Text>
-          <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 5 }}>{`Age: ${petDetails.age}`}</Text>
-
-          {/* Render location and icon */}
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Icon name="map-marker" color={COLORS.primary} size={20} />
-            <Text style={{ fontSize: 16, color: COLORS.grey, marginLeft: 5 }}>{petDetails.location}</Text>
+        <View style={{ flex: 1 }}>
+          {/* Render Pet Image with back arrow */}
+          <View style={styles.container}>
+            <Image source={{ uri: petDetails.imageUrl }} style={styles.petImage} />
+            <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.overlayButton}>
+              <Icon name="arrow-left" size={28} color={COLORS.white} />
+            </TouchableOpacity>
           </View>
-        {/* Adoption button */}
-        <TouchableOpacity style={styles.button} onPress={handleAdoption}>
-            <Text style={styles.buttonText}>Adoption</Text>
-          </TouchableOpacity>
-
-          {/* Favorite button */}
-          <TouchableOpacity style={[styles.button, { backgroundColor: COLORS.primary }]} onPress={handleFavorite}>
-            <Icon name="heart-outline" size={20} color={COLORS.white} />
-          </TouchableOpacity>
+          {/* Render Pet Details */}
+          <View style={styles.detailsContainer}>
+            <Text style={styles.petName}>Name: {petDetails.name}</Text>
+            <Text style={styles.petBreed}>Breed: {petDetails.breed}</Text>
+            <Text style={styles.petDetail}>{`Type: ${petDetails.type}`}</Text>
+            <Text style={styles.petDetail}>{`Gender: ${petDetails.gender}`}</Text>
+            <Text style={styles.petDetail}>{`Age: ${petDetails.age}`}</Text>
+            <Text style={styles.petDetail}>{`Location: ${petDetails.location}`}</Text>
+            <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 90 }}>{`Description: ${petDetails.description}`}</Text>
+            {/* Adoption and Favorite buttons */}
+            <View style={styles.buttonContainer}>
+              {/* Favorite button */}
+              <TouchableOpacity style={[styles.button, styles.favoriteButton]} onPress={handleFavorite}>
+                <Icon name="heart-outline" size={20} color={COLORS.white} />
+              </TouchableOpacity>
+              {/* Adoption button */}
+              <TouchableOpacity style={[styles.button, styles.adoptionButton]} onPress={handleAdoption}>
+                <Text style={styles.buttonText}>Adoption</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </SafeAreaView>
     </SafeAreaView>
@@ -98,3 +96,4 @@ const DetailsPage = ({ route }) => {
 };
 
 export default DetailsPage;
+

@@ -1,34 +1,16 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  ActivityIndicator,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  Platform,
-  RefreshControl,
-} from "react-native";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  doc,
-  onSnapshot,
-} from "firebase/firestore";
-import { auth, db, storage } from "../../FirebaseConfig";
-import { ref, getDownloadURL } from "firebase/storage";
-import { useNavigation } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
-import FavoritesPage from "../Favorites/FavoritesPage";
-import MessagePage from "../MessagePage/MessagePage";
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList,  ActivityIndicator, StyleSheet, Image, TouchableOpacity, RefreshControl } from 'react-native';
+import { collection, query, where, getDocs, orderBy, doc, onSnapshot } from 'firebase/firestore';
+import { auth, db, storage } from '../../FirebaseConfig';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { useNavigation } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import FavoritesPage from '../Favorites/FavoritesPage';
+import MessagePage from '../MessagePage/MessagePage';
 import { SettingOptions } from "../SettingsPage/SettingStack";
-import COLORS from "../../const/colors";
-import SearchBar from "./SearchBar"; // Import the SearchBar component
+import { Ionicons } from '@expo/vector-icons';
+import SearchBar from './SearchBar';
+
 
 const Tab = createBottomTabNavigator();
 
@@ -38,70 +20,77 @@ const HomeScreen = ({ refresh }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileImage, setProfileImage] = useState("");
+  const [searchType, setSearchType] = useState('');
+  const [searchAge, setSearchAge] = useState('');
+  const [searchLocation, setSearchLocation] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
     fetchPets();
-
     const unsubscribe = onSnapshot(
-      doc(db, "users", auth.currentUser.uid),
+      doc(db, "users", auth.currentUser.uid), 
       (doc) => {
-        if (doc.exists()) {
+        if(doc.exists()) {
           const userData = doc.data();
-          if (userData.accountPicture) {
-            setProfileImage({ uri: userData.accountPicture });
+          if(userData.accountPicture) {
+            setProfileImage({uri: userData.accountPicture})
           } else {
-            setProfileImage(require("../../components/user.png"));
+            setProfileImage(require("../../components/user.png"))
           }
         }
       }
-    );
+    )
     return () => unsubscribe();
-  }, [refresh, searchQuery]);
+  }, [refresh, searchQuery])
 
   const fetchPets = async () => {
     try {
       const petsCollectionRef = collection(db, "pets");
-      let queryRef = petsCollectionRef;
+      let queryRef = query(petsCollectionRef);
 
-      // Apply search filter based on the search query
-      if (searchQuery) {
-        const searchQueryLowerCase = searchQuery.toLowerCase();
-        // Construct a query to search across multiple fields
-        queryRef = query(
-          queryRef,
-          where("age", ">=", searchQueryLowerCase),
-          orderBy("breed")
-        );
+      if(searchQuery) {
+        queryRef = queryRef.where("name", "==", searchQuery.toLowerCase())
+          .orWhere("type", "==", searchQuery.toLowerCase())
+          .orWhere("gender", "==", searchQuery.toLowerCase())
+          .orWhere("age", "==", searchQuery.toLowerCase())
+          .orWhere("breed", "==", searchQuery.toLowerCase())
+          .orWhere("description", "==", searchQuery.toLowerCase());
       }
-
       const querySnapshot = await getDocs(queryRef);
       const petsData = [];
 
-      querySnapshot.forEach(async (doc) => {
-        const petData = doc.data();
-        const imageUrl = await getDownloadURL(ref(storage, petData.images));
-        petsData.push({ id: doc.id, ...petData, imageUrl });
-      });
-
+      await Promise.all(
+        querySnapshot.docs.map(async (doc) => {
+          const petData = doc.data();
+          const imageUrl = await getDownloadURL(ref(storage, petData.images));
+          petsData.push({id:doc.id, ...petData, imageUrl})
+        })  
+      )
       setPets(petsData);
       setLoading(false);
-    } catch (error) {
+    } catch(error) {
       console.error("Error fetching pet data:", error);
       setLoading(false);
     }
-  };
+  }
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchPets();
     setRefreshing(false);
-  }, [searchQuery]);
+  }, []);
 
-  // Function to handle search query change
-  const handleSearch = (query) => {
-    setSearchQuery(query);
+  const handleSearch = () => {
+    onRefresh(); // Trigger search
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="blue" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -116,52 +105,60 @@ const HomeScreen = ({ refresh }) => {
       </View>
       {/* Title */}
       <Text style={styles.title}>Find Awesome Pets</Text>
-      {/* SearchBar component */}
-      <SearchBar onSearch={handleSearch} />
+  
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="blue" />
-        </View>
-      ) : (
-        <FlatList
-          data={pets}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("DetailsPage", { pet: item })}
-            >
-              <View style={styles.petContainer}>
-                <Image
-                  source={{
-                    uri: `${item.imageUrl}?time=${new Date().getTime()}`,
-                  }}
-                  style={styles.petImage}
-                />
-                <Text style={styles.petName}>{item.name}</Text>
-                <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
-                <Text
-                  style={styles.petDetails}
-                >{`Description: ${item.description}`}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
+      <SearchBar
+    searchQuery={searchQuery}
+    setSearchQuery={setSearchQuery}
+    onSearch={handleSearch} // Pass the handleSearch function
+  />
+
+  {pets.length === 0 ? (
+    <Text style={styles.noResultsText}>No such result found.</Text>
+  ) : (
+    <FlatList
+      data={pets.filter((pet) => {
+        const { name, type, gender, age, breed, description } = pet;
+        const lowerCaseSearchQuery = searchQuery.toLowerCase();
+        return (
+          name.toLowerCase().includes(lowerCaseSearchQuery) ||
+          type.toLowerCase().includes(lowerCaseSearchQuery) ||
+          gender.toLowerCase().includes(lowerCaseSearchQuery) ||
+          age.toLowerCase().includes(lowerCaseSearchQuery) ||
+          breed.toLowerCase().includes(lowerCaseSearchQuery) ||
+          description.toLowerCase().includes(lowerCaseSearchQuery)
+        );
+      })}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
+          <View style={styles.petContainer}>
+            <Image source={{ uri: `${item.imageUrl}?time=${new Date().getTime()}` }} style={styles.petImage} />
+            <Text style={styles.petName}>{item.name}</Text>
+            <Text style={styles.petDetails}>{`Type: ${item.type}`}</Text>
+            <Text style={styles.petDetails}>{`Gender: ${item.gender}`}</Text>
+            <Text style={styles.petDetails}>{`Age: ${item.age}`}</Text>
+            <Text style={styles.petDetails}>{`Breed: ${item.breed}`}</Text>
+            <Text style={styles.petDetails}>{`Description: ${item.description}`}</Text>
+          </View>
+        </TouchableOpacity>
       )}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    />
+  )}
+
     </View>
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
+    flexGrow: 1,
+    backgroundColor: '#fff',
     paddingVertical: 20,
     paddingHorizontal: 10,
-    paddingTop: Platform.OS == "android" ? 40 : 0,
+  
   },
   header: {
     flexDirection: "row",
@@ -169,7 +166,8 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     paddingEnd: 10,
   },
-  profileImage: {
+
+profileImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -198,20 +196,17 @@ const styles = StyleSheet.create({
     marginRight: 10,
     paddingBottom: 20,
   },
+
   petContainer: {
-    backgroundColor: COLORS.background,
-    borderRadius: 20,
-    padding: 10,
-    marginBottom: 30,
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
+    backgroundColor: '#f0f0f0',
+    borderRadius: 30,
+    padding: 20,
+    marginBottom: 20,
   },
   petName: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: 'bold',
     marginBottom: 5,
-    alignSelf: "center",
   },
   petDetails: {
     fontSize: 14,
@@ -224,6 +219,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: "center",
   },
+  noResultsText:{
+    color: 'black',
+  }
 });
 
 const App = () => {
@@ -233,7 +231,6 @@ const App = () => {
     <Tab.Navigator>
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="paw-outline" color={color} size={size} />
@@ -241,7 +238,9 @@ const App = () => {
           headerShown: false,
           tabBarLabel: "Home",
         }}
-      />
+      >
+        {() => <HomeScreen refresh={refresh} />}
+      </Tab.Screen>
       <Tab.Screen
         name="Favorites"
         component={FavoritesPage}
@@ -278,6 +277,6 @@ const App = () => {
       />
     </Tab.Navigator>
   );
-};
+}
 
 export default App;
