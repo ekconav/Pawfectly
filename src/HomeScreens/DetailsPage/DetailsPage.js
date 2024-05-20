@@ -5,6 +5,8 @@ import COLORS from '../../const/colors';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from '../DetailsPage/styles';
+import { db } from '../../FirebaseConfig';
+import { doc, getDoc } from "firebase/firestore";
 
 const DetailsPage = ({ route }) => {
   const [petDetails, setPetDetails] = useState(null);
@@ -14,12 +16,21 @@ const DetailsPage = ({ route }) => {
     const fetchPetDetails = async () => {
       try {
         const { pet } = route.params;
+        const shelterRef = doc(db, "shelters", pet.userId);
+        const docSnap = await getDoc(shelterRef);
+  
+        if (!docSnap.exists()) {
+          console.log("No such document!");
+        } else {
+          console.log("Document data: ", docSnap.data());
+          pet.shelterName = docSnap.data().shelterName; 
+        }
         setPetDetails(pet);
       } catch (error) {
         console.error('Error fetching pet details:', error);
       }
     };
-
+  
     fetchPetDetails();
   }, [route.params]);
 
@@ -76,7 +87,8 @@ const DetailsPage = ({ route }) => {
             <Text style={styles.petDetail}>{`Gender: ${petDetails.gender}`}</Text>
             <Text style={styles.petDetail}>{`Age: ${petDetails.age}`}</Text>
             <Text style={styles.petDetail}>{`Location: ${petDetails.location}`}</Text>
-            <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 90 }}>{`Description: ${petDetails.description}`}</Text>
+            <Text style={styles.petDetail}>{`Description: ${petDetails.description}`}</Text>
+            <Text style={{ fontSize: 16, color: COLORS.dark, marginBottom: 90 }}>{`Shelter Name: ${petDetails.shelterName}`}</Text>
             {/* Adoption and Favorite buttons */}
             <View style={styles.buttonContainer}>
               {/* Favorite button */}
