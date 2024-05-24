@@ -14,8 +14,8 @@ import COLORS from "../../const/colors";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../DetailsPage/styles";
-import { db } from "../../FirebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../../FirebaseConfig";
+import { getDoc, setDoc, doc } from "firebase/firestore";
 
 const DetailsPage = ({ route }) => {
   const [petDetails, setPetDetails] = useState(null);
@@ -44,12 +44,19 @@ const DetailsPage = ({ route }) => {
     fetchPetDetails();
   }, [route.params]);
 
-  const handleAdoption = () => {
-    // Implement adoption logic here
+  const handleAdoption = async () => {
+    const userId = auth.currentUser.uid;
+    const shelterId = petDetails.userId;
+    const petId = petDetails.id; // Assuming you have the petId in petDetails
+
+    const conversationId = `${userId}_${shelterId}_${petId}`;
+
     navigation.navigate("MessagePage", {
-      shelterEmail: petDetails.shelterEmail,
+      conversationId,
+      userId,
+      shelterId,
+      petId,
     });
-    console.log("Adoption button pressed");
   };
 
   const handleFavorite = async () => {

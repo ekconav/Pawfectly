@@ -19,6 +19,7 @@ import MessagePage from "../MessagePage/MessagePage";
 import { SettingOptions } from "../SettingsPage/SettingStack";
 import { Ionicons } from "@expo/vector-icons";
 import SearchBar from "./SearchBar";
+import ConversationPage from "../ConversationsPage/ConversationPage";
 
 const Tab = createBottomTabNavigator();
 
@@ -275,7 +276,7 @@ const App = () => {
       />
       <Tab.Screen
         name="Message"
-        component={MessagePage}
+        component={ConversationPage}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubble-outline" color={color} size={size} />

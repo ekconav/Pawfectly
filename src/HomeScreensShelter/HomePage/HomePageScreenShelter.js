@@ -12,7 +12,7 @@ import {
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons"; // or import Ionicons from 'react-native-vector-icons/Ionicons';
 import COLORS from "../../const/colors";
-import MessagePageShelter from "../MessagePage/MessagePageShelter";
+import ConversationPageShelter from "../ConversationsPage/ConversationPageShelter";
 import { SettingOptionsShelter } from "../SettingsPage/SettingStackShelter";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Addpet from "../AddPet/AddPet";
@@ -238,7 +238,7 @@ const HomePageScreenShelter = () => (
 
     <Tab.Screen
       name="Message"
-      component={MessagePageShelter}
+      component={ConversationPageShelter}
       options={{
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="chatbubble-outline" color={color} size={size} />
