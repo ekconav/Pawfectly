@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { db } from "../../FirebaseConfig";
 import {
   collection,
@@ -16,6 +10,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
+import styles from "./styles";
 
 const ConversationPage = ({ navigation }) => {
   const [conversations, setConversations] = useState([]);
@@ -110,7 +105,9 @@ const ConversationPage = ({ navigation }) => {
               // Check if senderRead is false, and apply highlight if true
               !item.senderRead && styles.unreadConversation,
             ]}
-            onPress={() => navigateToMessages(item.id, item.petId, item.participants[1])}
+            onPress={() =>
+              navigateToMessages(item.id, item.petId, item.participants[1])
+            }
           >
             <Text style={styles.shelterName}>
               Conversation with {shelterNames[item.id]}
@@ -122,42 +119,5 @@ const ConversationPage = ({ navigation }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 10,
-  },
-  conversationItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    paddingVertical: 15,
-  },
-  shelterName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  lastMessage: {
-    fontSize: 16,
-    color: "#666",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  noConversationsContainer: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 10,
-    justifyContent: "center", // Center content vertically
-    alignItems: "center", // Center content horizontally
-  },
-  unreadConversation: {
-    backgroundColor: "#ccd0f0", // Highlight color for unread conversations
-  },
-});
 
 export default ConversationPage;

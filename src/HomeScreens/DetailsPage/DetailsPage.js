@@ -5,7 +5,6 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
-  StyleSheet,
   TouchableOpacity,
   Alert,
 } from "react-native";
@@ -15,7 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../DetailsPage/styles";
 import { auth, db } from "../../FirebaseConfig";
-import { getDoc, setDoc, doc } from "firebase/firestore";
+import { getDoc, doc } from "firebase/firestore";
 
 const DetailsPage = ({ route }) => {
   const [petDetails, setPetDetails] = useState(null);

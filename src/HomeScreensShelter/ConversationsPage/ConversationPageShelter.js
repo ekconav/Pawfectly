@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { db, auth } from "../../FirebaseConfig";
 import {
   collection,
@@ -16,6 +10,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
+import styles from "./styles";
 
 const ConversationPageShelter = ({ navigation }) => {
   const [conversations, setConversations] = useState([]);
@@ -117,9 +112,7 @@ const ConversationPageShelter = ({ navigation }) => {
             ]}
             onPress={() => navigateToMessages(item.id, item.petId)}
           >
-            <Text style={styles.userName}>
-              From: {userNames[item.id]}
-            </Text>
+            <Text style={styles.userName}>From: {userNames[item.id]}</Text>
             <Text style={styles.lastMessage}>{item.lastMessage}</Text>
           </TouchableOpacity>
         )}
@@ -127,42 +120,5 @@ const ConversationPageShelter = ({ navigation }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 10,
-  },
-  conversationItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    paddingVertical: 15,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  lastMessage: {
-    fontSize: 16,
-    color: "#666",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  noConversationsContainer: {
-    flex: 1,
-    backgroundColor: "#fff",
-    padding: 10,
-    justifyContent: "center", // Center content vertically
-    alignItems: "center", // Center content horizontally
-  },
-  unreadConversation: {
-    backgroundColor: "#ccd0f0", // Highlight color for unread conversations
-  },
-});
 
 export default ConversationPageShelter;
