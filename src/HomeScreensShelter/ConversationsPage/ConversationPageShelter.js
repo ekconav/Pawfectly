@@ -68,7 +68,7 @@ const ConversationPageShelter = ({ navigation }) => {
     }
   };
 
-  const navigateToMessages = async (conversationId, petId) => {
+  const navigateToMessages = async (conversationId, petId, userId) => {
     try {
       const conversationRef = doc(db, "conversations", conversationId);
       // Update receiverRead to true
@@ -79,7 +79,11 @@ const ConversationPageShelter = ({ navigation }) => {
       console.error("Error updating receiverRead:", error);
     }
 
-    navigation.navigate("MessagePageShelter", { conversationId, petId });
+    navigation.navigate("MessagePageShelter", {
+      conversationId,
+      petId,
+      userId,
+    });
   };
 
   if (loading) {
@@ -110,7 +114,9 @@ const ConversationPageShelter = ({ navigation }) => {
               // Check if receiverRead is false, and apply highlight if true
               !item.receiverRead && styles.unreadConversation,
             ]}
-            onPress={() => navigateToMessages(item.id, item.petId)}
+            onPress={() =>
+              navigateToMessages(item.id, item.petId, item.participants[0])
+            }
           >
             <Text style={styles.userName}>From: {userNames[item.id]}</Text>
             <Text style={styles.lastMessage}>{item.lastMessage}</Text>

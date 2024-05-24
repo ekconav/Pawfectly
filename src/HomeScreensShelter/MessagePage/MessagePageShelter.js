@@ -23,7 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import styles from "./styles";
 
 const MessagePageShelter = ({ route }) => {
-  const { conversationId, petId } = route.params;
+  const { conversationId, petId, userId } = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [senderName, setSenderName] = useState("");
@@ -125,7 +125,7 @@ const MessagePageShelter = ({ route }) => {
       await addDoc(messagesRef, {
         text: newMessage,
         senderId: currentUser.uid,
-        receiverId: senderName, // Use senderId or receiverId if available
+        receiverId: userId, 
         timestamp: serverTimestamp(),
       });
 
