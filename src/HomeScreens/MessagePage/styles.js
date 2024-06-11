@@ -37,6 +37,12 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
   },
+  messageImage: {
+    width: 180, // Adjust the width as needed to fit within the chat bubble
+    height: 180, // Adjust the height as needed to fit within the chat bubble
+    borderRadius: 10, // Add border radius for rounded corners
+    resizeMode: 'contain', // Ensure the entire image fits within the specified dimensions
+  },   
   messageTime: {
     fontSize: 12,
     color: "#666",
@@ -48,6 +54,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#ccc",
     backgroundColor: "#fff",
+    position: "relative",
   },
   input: {
     flex: 1,
@@ -56,6 +63,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     marginRight: 10,
+    paddingRight: 50,
   },
   sendButton: {
     backgroundColor: "#34b7f1",
@@ -82,6 +90,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  imageIcon: {
+    position: "absolute",
+    right: 80,
+    top: 18,
+  }
 });
 
 export default styles;
