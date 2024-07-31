@@ -31,6 +31,8 @@ const MessagePage = ({ route }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [shelterName, setShelterName] = useState("");
+  const [userAccountPicture, setUserAccountPicture] = useState("");
+  const [shelterAccountPicture, setShelterAccountPicture] = useState(""); // State for shelter account picture
   const [petName, setPetName] = useState("");
   const [loading, setLoading] = useState(true); // Initialize loading state
   const currentUser = auth.currentUser;
@@ -46,9 +48,21 @@ const MessagePage = ({ route }) => {
           console.error("Pet document not found for petId:", petId);
         }
 
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         const shelterDoc = await getDoc(doc(db, "shelters", shelterId));
+
+        if (userDoc.exists()) {
+          setUserAccountPicture(userDoc.data().accountPicture);
+        } else {
+          console.error(
+            "User document not found for userId: ",
+            currentUser.uid
+          );
+        }
+
         if (shelterDoc.exists()) {
           setShelterName(shelterDoc.data().shelterName);
+          setShelterAccountPicture(shelterDoc.data().accountPicture); // Set shelter account picture
         } else {
           console.error("Shelter document not found for shelterId:", shelterId);
         }
@@ -120,19 +134,12 @@ const MessagePage = ({ route }) => {
           receiverRead: false,
         });
       }
-      // Fetch the shelter name after sending the message
-      const shelterDoc = await getDoc(doc(db, "shelters", shelterId));
-      if (shelterDoc.exists()) {
-        setShelterName(shelterDoc.data().shelterName);
-      } else {
-        console.error("Shelter document not found for shelterId:", shelterId);
-      }
-
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
     }
   };
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -171,14 +178,6 @@ const MessagePage = ({ route }) => {
       });
       console.log("Image message sent successfully");
 
-      // Fetch the shelter name after sending the message
-      const shelterDoc = await getDoc(doc(db, "shelters", shelterId));
-      if (shelterDoc.exists()) {
-        setShelterName(shelterDoc.data().shelterName);
-      } else {
-        console.error("Shelter document not found for shelterId:", shelterId);
-      }
-
       const conversationRef = doc(db, "conversations", conversationId);
       await updateDoc(conversationRef, {
         lastMessage: "Image",
@@ -212,14 +211,31 @@ const MessagePage = ({ route }) => {
           isCurrentUser ? styles.sentMessage : styles.receivedMessage,
         ]}
       >
-        {isImageMessage ? (
-          <Image source={{ uri: item.text }} style={styles.messageImage} />
-        ) : (
-          <Text style={styles.messageText}>{item.text}</Text>
-        )}
-        {messageTime ? (
-          <Text style={styles.messageTime}>{messageTime}</Text>
-        ) : null}
+        {/* Display profile image */}
+        <View>
+          {!isCurrentUser && (
+            <Image
+              source={
+                shelterAccountPicture
+                  ? { uri: shelterAccountPicture }
+                  : require("../../components/user.png")
+              }
+              style={styles.shelterProfileImage}
+            />
+          )}
+        </View>
+
+        {/* Display message */}
+        <View style={styles.messageContent}>
+          {isImageMessage ? (
+            <Image source={{ uri: item.text }} style={styles.messageImage} />
+          ) : (
+            <Text style={styles.messageText}>{item.text}</Text>
+          )}
+          {messageTime ? (
+            <Text style={styles.messageTime}>{messageTime}</Text>
+          ) : null}
+        </View>
       </View>
     );
   };
@@ -239,7 +255,19 @@ const MessagePage = ({ route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{shelterName}</Text>
+        <View style={styles.headerContent}>
+          {/* Display shelter account picture in header */}
+          <Image
+            source={
+              shelterAccountPicture
+                ? { uri: shelterAccountPicture }
+                : require("../../components/user.png")
+            }
+            style={styles.shelterAccountPictureHeader}
+          />
+          {/* Display shelter name */}
+          <Text style={styles.headerTitle}>{shelterName}</Text>
+        </View>
       </View>
 
       {/* Pet Name Header */}

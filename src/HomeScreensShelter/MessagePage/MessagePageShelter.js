@@ -30,6 +30,8 @@ const MessagePageShelter = ({ route }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [senderName, setSenderName] = useState("");
+  const [userAccountPicture, setUserAccountPicture] = useState("");
+  const [shelterAccountPicture, setShelterAccountPicture] = useState("");
   const [petName, setPetName] = useState("");
   const [loading, setLoading] = useState(true);
   const currentUser = auth.currentUser;
@@ -98,9 +100,32 @@ const MessagePageShelter = ({ route }) => {
       }
     };
 
+    const fetchData = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, "users", userId));
+        const shelterDoc = await getDoc(doc(db, "shelters", currentUser.uid));
+
+        if (userDoc.exists()) {
+          setUserAccountPicture(userDoc.data().accountPicture);
+        } else {
+          console.error("User document not found for userId: ", userId);
+        }
+
+        if (shelterDoc.exists()) {
+          setShelterAccountPicture(shelterDoc.data().accountPicture);
+        } else {
+          console.error(
+            "Shelter document not found for shelterId: ",
+            currentUser.uid
+          );
+        }
+      } catch (error) {}
+    };
+
     fetchMessages();
     fetchConversation();
     fetchPetName();
+    fetchData();
   }, [conversationId]);
 
   const fetchSenderName = async (senderId) => {
@@ -156,7 +181,7 @@ const MessagePageShelter = ({ route }) => {
       aspect: [4, 3],
       quality: 1,
     });
-    
+
     // Check if result.assets is not null before accessing its properties
     if (result && !result.cancelled && result.assets) {
       console.log("Image selected:", result.assets[0].uri);
@@ -221,14 +246,31 @@ const MessagePageShelter = ({ route }) => {
           isCurrentUser ? styles.sentMessage : styles.receivedMessage,
         ]}
       >
-        {isImageMessage ? (
-          <Image source={{ uri: item.text }} style={styles.messageImage} />
-        ) : (
-          <Text style={styles.messageText}>{item.text}</Text>
-        )}
-        {messageTime ? (
-          <Text style={styles.messageTime}>{messageTime}</Text>
-        ) : null}
+        {/* Display profile image */}
+        <View>
+          {!isCurrentUser && (
+            <Image
+              source={
+                userAccountPicture
+                  ? { uri: userAccountPicture }
+                  : require("../../components/user.png")
+              }
+              style={styles.shelterProfileImage}
+            />
+          )}
+        </View>
+
+        {/* Display message */}
+        <View>
+          {isImageMessage ? (
+            <Image source={{ uri: item.text }} style={styles.messageImage} />
+          ) : (
+            <Text style={styles.messageText}>{item.text}</Text>
+          )}
+          {messageTime ? (
+            <Text style={styles.messageTime}>{messageTime}</Text>
+          ) : null}
+        </View>
       </View>
     );
   };
@@ -248,6 +290,17 @@ const MessagePageShelter = ({ route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
+        <View style={styles.headerContent}>
+          {/* Display shelter account picture in header */}
+          <Image
+            source={
+              userAccountPicture
+                ? { uri: userAccountPicture }
+                : require("../../components/user.png")
+            }
+            style={styles.shelterAccountPictureHeader}
+          />
+        </View>
         <Text style={styles.headerTitle}>{senderName}</Text>
       </View>
 
