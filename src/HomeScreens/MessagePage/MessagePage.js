@@ -5,8 +5,9 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
+  Image,
 } from "react-native";
-import { db, auth } from "../../FirebaseConfig";
+import { db, auth, storage } from "../../FirebaseConfig"; // Ensure you import storage from FirebaseConfig
 import {
   collection,
   query,
@@ -19,8 +20,10 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Import storage functions
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker"; // Import ImagePicker
 import styles from "./styles";
 
 const MessagePage = ({ route }) => {
@@ -28,6 +31,8 @@ const MessagePage = ({ route }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [shelterName, setShelterName] = useState("");
+  const [userAccountPicture, setUserAccountPicture] = useState("");
+  const [shelterAccountPicture, setShelterAccountPicture] = useState(""); // State for shelter account picture
   const [petName, setPetName] = useState("");
   const [loading, setLoading] = useState(true); // Initialize loading state
   const currentUser = auth.currentUser;
@@ -43,9 +48,21 @@ const MessagePage = ({ route }) => {
           console.error("Pet document not found for petId:", petId);
         }
 
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         const shelterDoc = await getDoc(doc(db, "shelters", shelterId));
+
+        if (userDoc.exists()) {
+          setUserAccountPicture(userDoc.data().accountPicture);
+        } else {
+          console.error(
+            "User document not found for userId: ",
+            currentUser.uid
+          );
+        }
+
         if (shelterDoc.exists()) {
           setShelterName(shelterDoc.data().shelterName);
+          setShelterAccountPicture(shelterDoc.data().accountPicture); // Set shelter account picture
         } else {
           console.error("Shelter document not found for shelterId:", shelterId);
         }
@@ -58,10 +75,12 @@ const MessagePage = ({ route }) => {
         );
         const q = query(messagesRef, orderBy("timestamp", "asc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
-          const messagesData = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
+          const messagesData = snapshot.docs
+            .map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }))
+            .reverse(); // Reverse the array here
           setMessages(messagesData);
         });
         setLoading(false); // Update loading state once data is fetched
@@ -115,18 +134,60 @@ const MessagePage = ({ route }) => {
           receiverRead: false,
         });
       }
-
-      // Fetch the shelter name after sending the message
-      const shelterDoc = await getDoc(doc(db, "shelters", shelterId));
-      if (shelterDoc.exists()) {
-        setShelterName(shelterDoc.data().shelterName);
-      } else {
-        console.error("Shelter document not found for shelterId:", shelterId);
-      }
-
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
+    }
+  };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    // Check if result.assets is not null before accessing its properties
+    if (result && !result.cancelled && result.assets) {
+      console.log("Image selected:", result.assets[0].uri);
+      handleSendImage(result.assets[0].uri);
+    }
+  };
+
+  const handleSendImage = async (imageUri) => {
+    try {
+      const imageRef = ref(storage, `images/${Date.now()}_${currentUser.uid}`);
+      const img = await fetch(imageUri);
+      const bytes = await img.blob();
+      await uploadBytes(imageRef, bytes);
+      const imageUrl = await getDownloadURL(imageRef);
+      console.log("Image uploaded successfully:", imageUrl);
+
+      const messagesRef = collection(
+        db,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+      await addDoc(messagesRef, {
+        text: imageUrl,
+        senderId: currentUser.uid,
+        receiverId: shelterId,
+        timestamp: serverTimestamp(),
+      });
+      console.log("Image message sent successfully");
+
+      const conversationRef = doc(db, "conversations", conversationId);
+      await updateDoc(conversationRef, {
+        lastMessage: "Image",
+        lastTimestamp: serverTimestamp(),
+        petId: petId,
+        senderRead: true,
+        receiverRead: false,
+      });
+    } catch (error) {
+      console.error("Error sending image message:", error);
     }
   };
 
@@ -142,6 +203,7 @@ const MessagePage = ({ route }) => {
           hour12: true,
         })
       : "";
+    const isImageMessage = item.text.startsWith("http");
     return (
       <View
         style={[
@@ -149,10 +211,31 @@ const MessagePage = ({ route }) => {
           isCurrentUser ? styles.sentMessage : styles.receivedMessage,
         ]}
       >
-        <Text style={styles.messageText}>{item.text}</Text>
-        {messageTime ? (
-          <Text style={styles.messageTime}>{messageTime}</Text>
-        ) : null}
+        {/* Display profile image */}
+        <View>
+          {!isCurrentUser && (
+            <Image
+              source={
+                shelterAccountPicture
+                  ? { uri: shelterAccountPicture }
+                  : require("../../components/user.png")
+              }
+              style={styles.shelterProfileImage}
+            />
+          )}
+        </View>
+
+        {/* Display message */}
+        <View style={styles.messageContent}>
+          {isImageMessage ? (
+            <Image source={{ uri: item.text }} style={styles.messageImage} />
+          ) : (
+            <Text style={styles.messageText}>{item.text}</Text>
+          )}
+          {messageTime ? (
+            <Text style={styles.messageTime}>{messageTime}</Text>
+          ) : null}
+        </View>
       </View>
     );
   };
@@ -172,7 +255,19 @@ const MessagePage = ({ route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{shelterName}</Text>
+        <View style={styles.headerContent}>
+          {/* Display shelter account picture in header */}
+          <Image
+            source={
+              shelterAccountPicture
+                ? { uri: shelterAccountPicture }
+                : require("../../components/user.png")
+            }
+            style={styles.shelterAccountPictureHeader}
+          />
+          {/* Display shelter name */}
+          <Text style={styles.headerTitle}>{shelterName}</Text>
+        </View>
       </View>
 
       {/* Pet Name Header */}
@@ -182,10 +277,11 @@ const MessagePage = ({ route }) => {
 
       {/* Messages */}
       <FlatList
-        data={messages}
+        data={messages} // Pass the reversed array directly
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.messagesContainer}
+        inverted // Reverse the layout
       />
 
       {/* Input */}
@@ -195,7 +291,11 @@ const MessagePage = ({ route }) => {
           placeholder="Type a message"
           value={newMessage}
           onChangeText={setNewMessage}
+          multiline={true} // Allow multiple lines
         />
+        <TouchableOpacity style={styles.imageIcon} onPress={pickImage}>
+          <Ionicons name="image" size={30} color="skyblue" />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
           <Ionicons name="send" size={24} color="white" />
         </TouchableOpacity>

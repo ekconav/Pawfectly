@@ -25,6 +25,8 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     maxWidth: "75%",
+    flexDirection: "row", // Added for aligning profile images
+    alignItems: "flex-end", // Added for aligning profile images
   },
   sentMessage: {
     alignSelf: "flex-end",
@@ -37,6 +39,14 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 16,
   },
+  messageImage: {
+    marginTop: -10,
+    marginBottom: -10,
+    width: 180, // Adjust the width as needed to fit within the chat bubble
+    height: 180, // Adjust the height as needed to fit within the chat bubble
+    borderRadius: 10, // Add border radius for rounded corners
+    resizeMode: "contain", // Ensure the entire image fits within the specified dimensions
+  },
   messageTime: {
     fontSize: 12,
     color: "#666",
@@ -48,6 +58,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#ccc",
     backgroundColor: "#fff",
+    position: "relative",
   },
   input: {
     flex: 1,
@@ -56,6 +67,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     marginRight: 10,
+    paddingRight: 50,
   },
   sendButton: {
     backgroundColor: "#34b7f1",
@@ -81,6 +93,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  imageIcon: {
+    position: "absolute",
+    right: 80,
+    top: 18,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  shelterAccountPictureHeader: {
+    width: 50, // Adjust width as needed
+    height: 50, // Adjust height as needed
+    borderRadius: 25, // Half of width and height for circular shape
+    marginLeft: 10,
+  },
+  shelterProfileImage: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: 5,
+  },
+  userProfileImage: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginLeft: 5,
   },
 });
 
