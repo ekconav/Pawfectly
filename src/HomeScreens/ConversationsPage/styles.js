@@ -6,19 +6,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 10,
   },
-  conversationItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    paddingVertical: 15,
-  },
-  shelterName: {
-    fontSize: 18,
+  title: {
+    fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 5,
-  },
-  lastMessage: {
-    fontSize: 16,
-    color: "#666",
   },
   loadingContainer: {
     flex: 1,
@@ -29,11 +19,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     padding: 10,
-    justifyContent: "center", // Center content vertically
-    alignItems: "center", // Center content horizontally
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  conversationItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    paddingVertical: 15,
   },
   unreadConversation: {
-    backgroundColor: "#ccd0f0", // Highlight color for unread conversations
+    fontWeight: "bold",
+    color: "black",
+  },
+  shelterInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  shelterImage: {
+    width: 45,
+    height: 45,
+    borderRadius: 50,
+    marginRight: 10,
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  shelterName: {
+    fontSize: 16,
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: "#949494",
   },
 });
 
