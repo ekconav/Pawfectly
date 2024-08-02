@@ -10,7 +10,9 @@ import {
   doc,
   updateDoc,
   limit,
+  deleteDoc,
 } from "firebase/firestore";
+import Modal from "react-native-modal";
 import styles from "./styles";
 
 const ConversationPage = ({ navigation }) => {
@@ -19,6 +21,8 @@ const ConversationPage = ({ navigation }) => {
   const [shelterImage, setShelterImage] = useState({});
   const [lastMessages, setLastMessages] = useState({});
   const [loading, setLoading] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedConversationId, setSelectedConversationId] = useState(null);
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -138,6 +142,46 @@ const ConversationPage = ({ navigation }) => {
     navigation.navigate("MessagePage", { conversationId, petId, shelterId });
   };
 
+  const handleLongPress = (conversationId) => {
+    setSelectedConversationId(conversationId);
+    setIsModalVisible(true);
+  };
+
+  const handleDeleteConversation = async () => {
+    if (selectedConversationId) {
+      try {
+        const messagesRef = collection(
+          db,
+          "conversations",
+          selectedConversationId,
+          "messages"
+        );
+
+        const deleteMessages = (snapshot) => {
+          const deletePromises = snapshot.docs.map((msgDoc) =>
+            deleteDoc(doc(messagesRef, msgDoc.id))
+          );
+          return Promise.all(deletePromises);
+        };
+
+        const unsubscribe = onSnapshot(
+          messagesRef,
+          async (snapshot) => {
+            await deleteMessages(snapshot);
+            await deleteDoc(doc(db, "conversations", selectedConversationId));
+            setIsModalVisible(false);
+            unsubscribe();
+          },
+          (error) => {
+            console.error("Error fetching messages:", error);
+          }
+        );
+      } catch (error) {
+        console.error("Error deleting conversation:", error);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -178,6 +222,7 @@ const ConversationPage = ({ navigation }) => {
               onPress={() =>
                 navigateToMessages(item.id, item.petId, item.participants[1])
               }
+              onLongPress={() => handleLongPress(item.id)}
             >
               <View style={styles.shelterInfoContainer}>
                 <Image
@@ -211,6 +256,25 @@ const ConversationPage = ({ navigation }) => {
           );
         }}
       />
+      <Modal isVisible={isModalVisible}>
+        <View style={styles.modalContent}>
+          <Text>Delete this conversation?</Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={() => setIsModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.deleteButton]}
+              onPress={handleDeleteConversation}
+            >
+              <Text style={styles.modalButtonText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
