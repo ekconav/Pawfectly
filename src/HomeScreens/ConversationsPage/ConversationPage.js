@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import { db } from "../../FirebaseConfig";
 import {
@@ -12,8 +12,15 @@ import {
   limit,
   deleteDoc,
 } from "firebase/firestore";
-import Modal from "react-native-modal";
+import { Swipeable } from "react-native-gesture-handler";
+import { useFocusEffect } from "@react-navigation/native";
 import styles from "./styles";
+
+const DeleteButton = ({ onDelete }) => (
+  <TouchableOpacity style={styles.slideDeleteButton} onPress={onDelete}>
+    <Text style={styles.slideDeleteButtonText}>Delete</Text>
+  </TouchableOpacity>
+);
 
 const ConversationPage = ({ navigation }) => {
   const [conversations, setConversations] = useState([]);
@@ -21,8 +28,7 @@ const ConversationPage = ({ navigation }) => {
   const [shelterImage, setShelterImage] = useState({});
   const [lastMessages, setLastMessages] = useState({});
   const [loading, setLoading] = useState(true);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedConversationId, setSelectedConversationId] = useState(null);
+  const swipeableRefs = useRef({});
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -142,45 +148,60 @@ const ConversationPage = ({ navigation }) => {
     navigation.navigate("MessagePage", { conversationId, petId, shelterId });
   };
 
-  const handleLongPress = (conversationId) => {
-    setSelectedConversationId(conversationId);
-    setIsModalVisible(true);
-  };
+  const handleDeleteConversation = async (conversationId) => {
+    try {
+      const messagesRef = collection(
+        db,
+        "conversations",
+        conversationId,
+        "messages"
+      );
 
-  const handleDeleteConversation = async () => {
-    if (selectedConversationId) {
-      try {
-        const messagesRef = collection(
-          db,
-          "conversations",
-          selectedConversationId,
-          "messages"
+      const deleteMessages = (snapshot) => {
+        const deletePromises = snapshot.docs.map((msgDoc) =>
+          deleteDoc(doc(messagesRef, msgDoc.id))
         );
+        return Promise.all(deletePromises);
+      };
 
-        const deleteMessages = (snapshot) => {
-          const deletePromises = snapshot.docs.map((msgDoc) =>
-            deleteDoc(doc(messagesRef, msgDoc.id))
-          );
-          return Promise.all(deletePromises);
-        };
-
-        const unsubscribe = onSnapshot(
-          messagesRef,
-          async (snapshot) => {
-            await deleteMessages(snapshot);
-            await deleteDoc(doc(db, "conversations", selectedConversationId));
-            setIsModalVisible(false);
-            unsubscribe();
-          },
-          (error) => {
-            console.error("Error fetching messages:", error);
-          }
-        );
-      } catch (error) {
-        console.error("Error deleting conversation:", error);
-      }
+      const unsubscribe = onSnapshot(
+        messagesRef,
+        async (snapshot) => {
+          await deleteMessages(snapshot);
+          await deleteDoc(doc(db, "conversations", conversationId));
+          unsubscribe();
+        },
+        (error) => {
+          console.error("Error fetching messages:", error);
+        }
+      );
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
     }
   };
+
+  const handleSwipeableOpen = (key) => {
+    // Close any previously open Swipeable component
+    Object.keys(swipeableRefs.current).forEach((refKey) => {
+      if (refKey !== key && swipeableRefs.current[refKey]) {
+        swipeableRefs.current[refKey].close();
+      }
+    });
+  };
+
+  const closeAllSwipeables = () => {
+    Object.keys(swipeableRefs.current).forEach((refKey) => {
+      if (swipeableRefs.current[refKey]) {
+        swipeableRefs.current[refKey].close();
+      }
+    });
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      closeAllSwipeables();
+    }, [])
+  );
 
   if (loading) {
     return (
@@ -214,67 +235,63 @@ const ConversationPage = ({ navigation }) => {
           }
 
           return (
-            <TouchableOpacity
-              style={[
-                styles.conversationItem,
-                !item.senderRead && styles.unreadConversation,
-              ]}
-              onPress={() =>
-                navigateToMessages(item.id, item.petId, item.participants[1])
-              }
-              onLongPress={() => handleLongPress(item.id)}
-            >
-              <View style={styles.shelterInfoContainer}>
-                <Image
-                  source={
-                    shelterImage[item.id]
-                      ? { uri: shelterImage[item.id] }
-                      : require("../../components/user.png")
-                  }
-                  style={styles.shelterImage}
+            <Swipeable
+              ref={(ref) => {
+                if (ref) {
+                  swipeableRefs.current[item.id] = ref;
+                } else {
+                  delete swipeableRefs.current[item.id];
+                }
+              }}
+              renderRightActions={() => (
+                <DeleteButton
+                  onDelete={() => handleDeleteConversation(item.id)}
                 />
-                <View style={styles.textContainer}>
-                  <Text
-                    style={[
-                      styles.shelterName,
-                      !item.senderRead && styles.unreadConversation,
-                    ]}
-                  >
-                    {shelterNames[item.id]}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.lastMessage,
-                      !item.senderRead && styles.unreadConversation,
-                    ]}
-                  >
-                    {lastMessageText}
-                  </Text>
+              )}
+              onSwipeableOpen={() => handleSwipeableOpen(item.id)}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.conversationItem,
+                  !item.senderRead && styles.unreadConversation,
+                ]}
+                onPress={() =>
+                  navigateToMessages(item.id, item.petId, item.participants[1])
+                }
+              >
+                <View style={styles.shelterInfoContainer}>
+                  <Image
+                    source={
+                      shelterImage[item.id]
+                        ? { uri: shelterImage[item.id] }
+                        : require("../../components/user.png")
+                    }
+                    style={styles.shelterImage}
+                  />
+                  <View style={styles.textContainer}>
+                    <Text
+                      style={[
+                        styles.shelterName,
+                        !item.senderRead && styles.unreadConversation,
+                      ]}
+                    >
+                      {shelterNames[item.id]}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.lastMessage,
+                        !item.senderRead && styles.unreadConversation,
+                      ]}
+                    >
+                      {lastMessageText}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Swipeable>
           );
         }}
       />
-      <Modal isVisible={isModalVisible}>
-        <View style={styles.modalContent}>
-          <Text>Delete this conversation?</Text>
-          <View style={styles.modalButtonContainer}>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.cancelButton]}
-              onPress={() => setIsModalVisible(false)}
-            >
-              <Text style={styles.modalButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.deleteButton]}
-              onPress={handleDeleteConversation}
-            >
-              <Text style={styles.modalButtonText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
