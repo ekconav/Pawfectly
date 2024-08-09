@@ -28,10 +28,11 @@ const EditPet = ({ navigation, route }) => {
   const [type, setType] = useState(editedPet.type);
   const [description, setDescription] = useState(editedPet.description);
   const [age, setAge] = useState(editedPet.age);
-  const [breed, setBreed] = useState(editedPet.breed); // Add state for breed
+  const [breed, setBreed] = useState(editedPet.breed);
+  const [adopted, setAdopted] = useState(editedPet.adopted);
   const [ageModalVisible, setAgeModalVisible] = useState(false);
-  const [breedModalVisible, setBreedModalVisible] = useState(false); // Add state for breed modal visibility
-  const [customBreed, setCustomBreed] = useState(""); // State for custom breed input
+  const [breedModalVisible, setBreedModalVisible] = useState(false);
+  const [customBreed, setCustomBreed] = useState("");
 
   const petAges = [
     "0 - 3 Months",
@@ -46,8 +47,8 @@ const EditPet = ({ navigation, route }) => {
     "Labrador Retriever",
     "German Shepherd",
     "Golden Retriever",
-  ]; // Add some sample dog breeds
-  const catBreeds = ["Persian", "Maine Coon", "Siamese"]; // Add some sample cat breeds
+  ];
+  const catBreeds = ["Persian", "Maine Coon", "Siamese"];
 
   const handleAgeSelection = (selectedAge) => {
     setAge(selectedAge);
@@ -68,7 +69,7 @@ const EditPet = ({ navigation, route }) => {
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri); // Ensure you're accessing the correct URI
+      setImage(result.assets[0].uri);
     }
   };
 
@@ -110,6 +111,7 @@ const EditPet = ({ navigation, route }) => {
       images: imageUrl,
       name,
       type,
+      adopted, 
     };
 
     try {
@@ -246,9 +248,9 @@ const EditPet = ({ navigation, route }) => {
                       <TouchableOpacity
                         style={styles.okButton}
                         onPress={() => {
-                          handleBreedSelection(customBreed); // Set custom breed value
-                          setCustomBreed(""); // Clear the custom breed input
-                          setBreedModalVisible(false); // Close the modal
+                          handleBreedSelection(customBreed);
+                          setCustomBreed("");
+                          setBreedModalVisible(false);
                         }}
                       >
                         <Text style={styles.okButtonText}>OK</Text>
@@ -284,9 +286,9 @@ const EditPet = ({ navigation, route }) => {
                       <TouchableOpacity
                         style={styles.okButton}
                         onPress={() => {
-                          handleBreedSelection(customBreed); // Set custom breed value
-                          setCustomBreed(""); // Clear the custom breed input
-                          setBreedModalVisible(false); // Close the modal
+                          handleBreedSelection(customBreed);
+                          setCustomBreed("");
+                          setBreedModalVisible(false);
                         }}
                       >
                         <Text style={styles.okButtonText}>OK</Text>
@@ -303,6 +305,13 @@ const EditPet = ({ navigation, route }) => {
             onChangeText={(text) => setDescription(text)}
             style={styles.inputField}
           />
+          <View style={styles.checkboxContainer}>
+            <Checkbox
+              value={adopted}
+              onValueChange={(newValue) => setAdopted(newValue)}
+            />
+            <Text style={styles.checkboxLabel}>Adopted</Text>
+          </View>
         </View>
         <TouchableOpacity onPress={handleSave} style={styles.uploadButton}>
           <Text style={styles.uploadButtonText}>Save</Text>
