@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
-import { db } from "../../FirebaseConfig";
+import { db, auth } from "../../FirebaseConfig";
 import {
   collection,
   query,
   orderBy,
   onSnapshot,
+  where,
   getDoc,
   doc,
   updateDoc,
@@ -33,8 +34,14 @@ const ConversationPage = ({ navigation }) => {
   useEffect(() => {
     const fetchConversations = async () => {
       try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) return;
         const conversationsRef = collection(db, "conversations");
-        const q = query(conversationsRef, orderBy("lastTimestamp", "desc"));
+        const q = query(
+          conversationsRef,
+          where("participants", "array-contains", currentUser.uid),
+          orderBy("lastTimestamp", "desc")
+        );
         const unsubscribe = onSnapshot(q, async (snapshot) => {
           const conversationsData = snapshot.docs.map((doc) => ({
             id: doc.id,

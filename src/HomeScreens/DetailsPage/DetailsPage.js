@@ -87,7 +87,6 @@ const DetailsPage = ({ route }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
-      <StatusBar backgroundColor={COLORS.background} />
       <SafeAreaView style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
           {/* Render Pet Image with back arrow */}
