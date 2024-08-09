@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { View } from "react-native";
+import { SafeAreaView, StatusBar } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { auth } from "./src/FirebaseConfig";
 import UserStack from "./src/UserStack";
@@ -54,7 +54,8 @@ const App = () => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar backgroundColor={COLORS.white} barStyle="dark-content" />
       <Spinner visible={!fontsLoaded} color={COLORS.prim} />
       {fontsLoaded && (
         <NavigationContainer>
@@ -111,7 +112,7 @@ const App = () => {
           </Stack.Navigator>
         </NavigationContainer>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
