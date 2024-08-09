@@ -2,76 +2,68 @@ import { StyleSheet } from "react-native";
 import COLORS from "../const/colors";
 
 const style = StyleSheet.create({
-  container: {
+  loginPageContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: COLORS.background,
   },
-  title: {
-    fontSize: 28, // Increase font size
-    marginBottom: 24, // Increase margin bottom
-    fontWeight: 'bold', // Make text bold
-    color: COLORS.primary, // Change text color
-    textAlign: 'center', // Center align text
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  input: {
-    height: 48, // Increase input height
-    borderWidth: 2, // Increase border width
-    borderRadius: 10, // Increase border radius
-    marginBottom: 24, // Increase margin bottom
-    paddingHorizontal: 16, // Increase horizontal padding
-    width: '100%',
-    borderColor: COLORS.secondary, // Change border color
-    color: COLORS.text, // Change text color
+  loginPageTitle: {
+    fontSize: 24,
+    marginBottom: 24,
+    color: COLORS.title,
+    textAlign: "center",
+    fontFamily: "Poppins_700Bold",
   },
-  inputLabel: {
-    fontSize: 18, // Increase font size
-    textAlign: 'left', 
-    alignSelf: 'flex-start', 
-    marginBottom: 12, // Increase margin bottom
-    color: COLORS.primary, // Change text color
-  },
-  button: {
-    backgroundColor: 'blue', // Change to your desired button color
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    paddingBottom: 10, // Adjust as needed
-    marginBottom: 10,
-  },
-  buttonText: {
-    color: 'white',
+  loginPageInputLabel: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "left",
+    alignSelf: "flex-start",
+    marginBottom: 5,
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
   },
-  text: {
-    color: COLORS.primary, // Change text color
-    textDecorationLine: 'underline',
-    fontSize: 16, // Increase font size
-    textAlign: 'center',
+  loginPageInput: {
+    height: 48,
+    width: "100%",
+    fontFamily: "Poppins_400Regular",
+    borderRadius: 10,
+    marginBottom: 24,
+    paddingHorizontal: 16,
+    color: COLORS.black,
+    backgroundColor: COLORS.input,
   },
-  subtitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  loginPageButton: {
+    width: 194,
+    height: 50,
+    backgroundColor: COLORS.prim,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 20,
+    marginBottom: 30,
   },
-  subtitle: {
-    fontSize: 18,
-    marginRight: 4, 
+  loginPageButtonText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+    fontFamily: "Poppins_700Bold",
   },
-  text: {
-    color: 'blue',
-    textDecorationLine: 'underline',
-    fontSize: 15,
-    marginLeft: 4,
+  loginPageSubtitle: {
+    fontSize: 12,
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.title,
   },
-  image: {
-    height: 300,
-    width: 280,
-    marginBottom: 24, // Increase margin bottom
-  }
+  loginPageLink: {
+    color: COLORS.link,
+    fontSize: 12,
+    fontFamily: "Poppins_500Medium",
+  },
 });
 
 export default style;
