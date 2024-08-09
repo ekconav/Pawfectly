@@ -1,78 +1,121 @@
-import { StyleSheet } from 'react-native';
-import COLORS from '../const/colors';
+import { StyleSheet } from "react-native";
+import COLORS from "../const/colors";
 
 const styles = StyleSheet.create({
-  container: {
+  signUpPageContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.white,
   },
-  title: {
+  signUpPageTitle: {
     fontSize: 24,
     marginBottom: 16,
+    fontFamily: "Poppins_700Bold",
+    color: COLORS.title,
   },
-  label: {
+  signUpPageLabel: {
     fontSize: 12,
-    marginBottom: 5,
+    fontFamily: "Poppins_500Medium",
     marginLeft: 5,
+    color: COLORS.title,
   },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 16,
-    paddingLeft: 8,
-    width: '100%',
+  signUpPageinput: {
+    height: 35,
+    paddingTop: 3.5,
+    width: "100%",
+    fontFamily: "Poppins_400Regular",
+    borderRadius: 10,
+    marginBottom: 10,
+    paddingHorizontal: 16,
+    color: COLORS.black,
+    backgroundColor: COLORS.input,
   },
-  inputContainer: {
-    width: '100%',
+  signUpPageInputContainer: {
+    width: "100%",
   },
-  mobileInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingBottom: 5,
+  signUpPageMobileInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    position: "relative",
+    marginBottom: 10,
+    backgroundColor: COLORS.input,
+    borderRadius: 10,
   },
-  countryCode: {
+  countryCodeOverlay: {
+    position: "absolute",
+    left: 8,
+    paddingTop: 3.5,
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    zIndex: 1,
+  },
+  signUpPageMobileNumberInput: {
+    flex: 1,
+    height: 35,
+    paddingTop: 3.5,
+    paddingLeft: 45,
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.black,
+    borderRadius: 10,
+  },
+  signUpPageEmailInput: {
+    flexDirection: "row",
+    backgroundColor: COLORS.input,
+    borderRadius: 10,
+    paddingRight: 10,
+    height: 35,
+    marginBottom: 10,
+  },
+  signUpPageEmailSuffix: {
+    marginLeft: 10,
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    paddingTop: 6,
+  },
+  signUpPageRegisterButton: {
+    backgroundColor: COLORS.prim,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    width: 194,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  signUpPageButtonText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontFamily: "Poppins_700Bold",
+  },
+  signUpPageBackButtonText: {
+    color: COLORS.title,
+    fontSize: 13,
+    fontFamily: "Poppins_500Medium",
+    marginTop: 20,
+  },
+  signUpPageLink: {
+    color: COLORS.link,
+  },
+  signUpPageFileUpload: {
+    backgroundColor: COLORS.input,
+    borderRadius: 10,
+    height: 35,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+
+  signUpPageUploadIcon: {
+    color: COLORS.title,
+    fontSize: 20,
     marginRight: 10,
   },
-  mobileNumberInput: {
-    flex: 1,
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingLeft: 8,
-  },
-  emailInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  emailSuffix: {
-    marginLeft: 10,
-  },
-  button: {
-    backgroundColor: '#007bff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  backButton: {
-    backgroundColor: COLORS.red,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 16,
+
+  signUpPageUploadText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

@@ -11,7 +11,7 @@ import styles from "../LandingPage/styles";
 const LandingPage = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.landingPageTitle}>PAWFECTLY{"\n"}ADAPTABLE</Text>
+      <Text style={styles.landingPageTitle}>PAWFECTLY{"\n"}ADOPTABLE</Text>
       <View style={styles.landingPageImageContainer}>
         <Image
           style={styles.landingPageImage}
