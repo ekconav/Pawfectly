@@ -7,6 +7,7 @@ const style = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
+    backgroundColor: COLORS.white,
   },
   loadingContainer: {
     flex: 1,

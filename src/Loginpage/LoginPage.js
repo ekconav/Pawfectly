@@ -50,11 +50,7 @@ const LoginPage = () => {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
-      </View>
-    );
+    
   }
 
   return (
