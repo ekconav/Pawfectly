@@ -16,6 +16,9 @@ const COLORS = {
   title: "#5F5B5B",
   subtitle: "#ADA8A8",
   white: "#FFFFFF",
+  black: "#000000",
+  input: "#82739757",
+  link: "#0085FF",
 };
 
 export default COLORS;
