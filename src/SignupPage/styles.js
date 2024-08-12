@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.input,
     borderRadius: 10,
   },
-  countryCodeOverlay: {
+  signUpPageCountryCodeOverlay: {
     position: "absolute",
     left: 8,
     paddingTop: 3.5,
@@ -116,6 +116,79 @@ const styles = StyleSheet.create({
   signUpPageUploadText: {
     color: COLORS.title,
     fontFamily: "Poppins_400Regular",
+  },
+  signUpPageModalContent: {
+    backgroundColor: COLORS.white,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  signUpPageModalTitle: {
+    fontSize: 14,
+    fontFamily: "Poppins_500Medium",
+    marginBottom: 20,
+  },
+  signUpPageCheckboxContainer: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  signUpPageCheckbox: {
+    marginBottom: 10,
+  },
+  signUpPageCheckboxLabel: {
+    marginBottom: 20,
+    fontFamily: "Poppins_600SemiBold",
+  },
+  signUpPageButtonContainer: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  signUpPageModalCancelButton: {
+    backgroundColor: "gray",
+    padding: 10,
+    borderRadius: 5,
+  },
+  signUpPageModalCancelButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
+  },
+  signUpPageModalConfirmButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    borderRadius: 5,
+  },
+  signUpPageModalConfirmButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
+  },
+  signUpPageLink: {
+    color: COLORS.link,
+  },
+  signUpPageTermsScrollView: {
+    maxHeight: 600, // Adjust as needed
+    marginBottom: 20,
+  },
+  signUpPageTOSTitle: {
+    fontSize: 16,
+    fontFamily: "Poppins_700Bold",
+    marginBottom: 20,
+  },
+  signUpPageTextContainer: {
+    marginBottom: 10,
+  },
+  signUpPageSubtitle: {
+    fontFamily: "Poppins_600SemiBold",
+  },
+  signUpPageDescription: {
+    fontFamily: "Poppins_400Regular",
+    textAlign: "justify",
+    paddingLeft: 15,
+  },
+  signUpPageEmailAd: {
+    color: COLORS.prim,
+    fontFamily: "Poppins_500Medium",
   },
 });
 

@@ -1,9 +1,17 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../FirebaseConfig";
 import styles from "../Loginpage/style";
+import COLORS from "../const/colors";
 
 const LoginPage = () => {
   const navigation = useNavigation();
@@ -50,7 +58,11 @@ const LoginPage = () => {
   };
 
   if (loading) {
-    
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.prim} />
+      </View>
+    );
   }
 
   return (

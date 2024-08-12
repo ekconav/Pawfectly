@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,18 +6,27 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { doc, setDoc } from "firebase/firestore";
+import {
+  doc,
+  orderBy,
+  setDoc,
+  query,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 import { auth, db, storage } from "../FirebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
 import COLORS from "../const/colors";
-import { Ionicons } from "@expo/vector-icons";
+import Modal from "react-native-modal";
+import CheckBox from "expo-checkbox";
 
-// Function to truncate filenames
 const truncateFilename = (filename, maxLength = 20) => {
   if (filename.length <= maxLength) return filename;
   return filename.substring(0, maxLength) + "...";
@@ -34,6 +43,11 @@ const SignupPage = () => {
   const [loading, setLoading] = useState(false);
   const [imageUri, setImageUri] = useState("");
   const [fileName, setFileName] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [tosItems, setTosItems] = useState([]);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsOfServiceModalVisible, setTermsOfServiceModalVisible] =
+    useState(false);
   const navigation = useNavigation();
 
   const addUserToFirestore = async (userId, userData) => {
@@ -45,6 +59,24 @@ const SignupPage = () => {
       throw error;
     }
   };
+
+  useEffect(() => {
+    const fetchTOS = async () => {
+      try {
+        const q = query(collection(db, "TOS"), orderBy("order", "asc"));
+        const querySnapshot = await getDocs(q);
+        const tosData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTosItems(tosData);
+      } catch (error) {
+        console.error("Error fetching TOS:", error.message);
+      }
+    };
+
+    fetchTOS();
+  }, []);
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -84,6 +116,14 @@ const SignupPage = () => {
         return;
       }
 
+      setModalVisible(true);
+    } else {
+      Alert.alert("", "Please fill in all fields.");
+    }
+  };
+
+  const handleConfirmSignup = async () => {
+    if (termsAccepted) {
       setLoading(true);
 
       try {
@@ -106,9 +146,9 @@ const SignupPage = () => {
         if (imageUri) {
           try {
             const response = await fetch(imageUri);
-            const blob = await response.blob(); // Convert URI to Blob
+            const blob = await response.blob();
 
-            const fileRef = ref(storage, `governmentIds/${user.uid}.jpg`);
+            const fileRef = ref(storage, `governmentIds/${user.uid}`);
             await uploadBytes(fileRef, blob);
             governmentIdUrl = await getDownloadURL(fileRef);
             console.log("Image uploaded and URL retrieved:", governmentIdUrl);
@@ -139,10 +179,19 @@ const SignupPage = () => {
         Alert.alert("", "Error signing up. Please try again.");
       } finally {
         setLoading(false);
+        setModalVisible(false);
       }
     } else {
-      Alert.alert("", "Please fill in all fields.");
+      Alert.alert("", "You must agree to the terms of service to sign up.");
     }
+  };
+
+  const handleShowTermsOfService = () => {
+    setTermsOfServiceModalVisible(true);
+  };
+
+  const handleCloseTermsOfServiceModal = () => {
+    setTermsOfServiceModalVisible(false);
   };
 
   return (
@@ -167,7 +216,7 @@ const SignupPage = () => {
       <View style={styles.signUpPageInputContainer}>
         <Text style={styles.signUpPageLabel}>Mobile Number</Text>
         <View style={styles.signUpPageMobileInput}>
-          <Text style={styles.countryCodeOverlay}>+63</Text>
+          <Text style={styles.signUpPageCountryCodeOverlay}>+63</Text>
           <TextInput
             style={[styles.signUpPageMobileNumberInput]}
             onChangeText={(text) => setMobileNumber(text)}
@@ -253,6 +302,79 @@ const SignupPage = () => {
           Login
         </Text>
       </Text>
+
+      {/* Modal for Terms of Service */}
+      <Modal isVisible={modalVisible}>
+        <View style={styles.signUpPageModalContent}>
+          <Text style={styles.signUpPageModalTitle}>
+            By using Pawfectly Adoptable, you agree to these{" "}
+            <Text
+              style={styles.signUpPageLink}
+              onPress={handleShowTermsOfService}
+            >
+              Terms of Service
+            </Text>
+            .
+          </Text>
+          <View style={styles.signUpPageCheckboxContainer}>
+            <CheckBox
+              style={styles.signUpPageCheckbox}
+              value={termsAccepted}
+              onValueChange={setTermsAccepted}
+              color={COLORS.prim}
+            />
+            <Text style={styles.signUpPageCheckboxLabel}>
+              I agree to the Terms of Service
+            </Text>
+          </View>
+          <View style={styles.signUpPageButtonContainer}>
+            <TouchableOpacity
+              style={styles.signUpPageModalCancelButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.signUpPageModalCancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.signUpPageModalConfirmButton}
+              onPress={handleConfirmSignup}
+            >
+              <Text style={styles.signUpPageModalConfirmButtonText}>
+                Confirm
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal isVisible={termsOfServiceModalVisible}>
+        <View style={styles.signUpPageModalContent}>
+          <Text style={styles.signUpPageTOSTitle}>Terms of Service</Text>
+          <ScrollView style={styles.signUpPageTermsScrollView}>
+            {tosItems.map((item) => (
+              <View key={item.id} style={styles.signUpPageTextContainer}>
+                <Text style={styles.signUpPageSubtitle}>
+                  {item.order}. {item.title}
+                </Text>
+                <Text style={styles.signUpPageDescription}>
+                  {item.description}
+                </Text>
+              </View>
+            ))}
+            <View style={styles.signUpPageTextContainer}>
+              <Text style={styles.signUpPageDescription}>
+                <Text style={styles.signUpPageEmailAd}>
+                  pawfectly_adoptable@gmail.com
+                </Text>
+              </Text>
+            </View>
+          </ScrollView>
+          <TouchableOpacity
+            style={styles.signUpPageModalCancelButton}
+            onPress={handleCloseTermsOfServiceModal}
+          >
+            <Text style={styles.signUpPageModalCancelButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
