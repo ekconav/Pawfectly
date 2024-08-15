@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Poppins_700Bold",
   },
   buttonTextShelter: {

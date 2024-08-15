@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -195,114 +196,117 @@ const SignupPage = () => {
   };
 
   return (
-    <View style={styles.signUpPageContainer}>
-      <Text style={styles.signUpPageTitle}>SIGN UP</Text>
-      <View style={styles.signUpPageInputContainer}>
-        <Text style={styles.signUpPageLabel}>First Name</Text>
-        <TextInput
-          style={styles.signUpPageinput}
-          onChangeText={(text) => setFirstName(text)}
-          value={firstName}
-        />
-      </View>
-      <View style={styles.signUpPageInputContainer}>
-        <Text style={styles.signUpPageLabel}>Last Name</Text>
-        <TextInput
-          style={styles.signUpPageinput}
-          onChangeText={(text) => setLastName(text)}
-          value={lastName}
-        />
-      </View>
-      <View style={styles.signUpPageInputContainer}>
-        <Text style={styles.signUpPageLabel}>Mobile Number</Text>
-        <View style={styles.signUpPageMobileInput}>
-          <Text style={styles.signUpPageCountryCodeOverlay}>+63</Text>
+    <KeyboardAvoidingView style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.signUpPageContainer}>
+        <Text style={styles.signUpPageTitle}>SIGN UP</Text>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>First Name</Text>
           <TextInput
-            style={[styles.signUpPageMobileNumberInput]}
-            onChangeText={(text) => setMobileNumber(text)}
-            value={mobileNumber}
-            keyboardType="phone-pad"
-            maxLength={10}
+            style={styles.signUpPageinput}
+            onChangeText={(text) => setFirstName(text)}
+            value={firstName}
           />
         </View>
-      </View>
-      <View style={styles.signUpPageInputContainer}>
-        <Text style={styles.signUpPageLabel}>Address</Text>
-        <TextInput
-          style={styles.signUpPageinput}
-          onChangeText={(text) => setAddress(text)}
-          value={address}
-        />
-      </View>
-      <View style={styles.signUpPageInputContainer}>
-        <Text style={styles.signUpPageLabel}>Email Address</Text>
-        <View style={styles.signUpPageEmailInput}>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>Last Name</Text>
           <TextInput
-            style={[
-              styles.signUpPageinput,
-              { flex: 1, backgroundColor: "none" },
-            ]}
-            onChangeText={(value) => setEmail(value)}
-            value={email}
-            keyboardType="email-address"
+            style={styles.signUpPageinput}
+            onChangeText={(text) => setLastName(text)}
+            value={lastName}
           />
-          <Text style={styles.signUpPageEmailSuffix}>@user.com</Text>
         </View>
-      </View>
-      <View style={styles.signUpPageInputContainer}>
-        <Text style={styles.signUpPageLabel}>Password</Text>
-        <TextInput
-          style={styles.signUpPageinput}
-          onChangeText={(value) => setPassword(value)}
-          value={password}
-          secureTextEntry
-        />
-      </View>
-      <View style={styles.signUpPageInputContainer}>
-        <Text style={styles.signUpPageLabel}>Confirm Password</Text>
-        <TextInput
-          style={styles.signUpPageinput}
-          onChangeText={(text) => setConfirmPassword(text)}
-          value={confirmPassword}
-          secureTextEntry
-        />
-      </View>
-      <View style={styles.signUpPageInputContainer}>
-        <Text style={styles.signUpPageLabel}>Picture of any Government ID</Text>
-        <TouchableOpacity
-          style={styles.signUpPageFileUpload}
-          onPress={handlePickImage}
-        >
-          <Ionicons
-            style={styles.signUpPageUploadIcon}
-            name="cloud-upload-outline"
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>Mobile Number</Text>
+          <View style={styles.signUpPageMobileInput}>
+            <Text style={styles.signUpPageCountryCodeOverlay}>+63</Text>
+            <TextInput
+              style={[styles.signUpPageMobileNumberInput]}
+              onChangeText={(text) => setMobileNumber(text)}
+              value={mobileNumber}
+              keyboardType="phone-pad"
+              maxLength={10}
+            />
+          </View>
+        </View>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>Address</Text>
+          <TextInput
+            style={styles.signUpPageinput}
+            onChangeText={(text) => setAddress(text)}
+            value={address}
           />
-          <Text style={styles.signUpPageUploadText}>
-            {fileName ? fileName : "File Upload"}
+        </View>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>Email Address</Text>
+          <View style={styles.signUpPageEmailInput}>
+            <TextInput
+              style={[
+                styles.signUpPageinput,
+                { flex: 1, backgroundColor: "none" },
+              ]}
+              onChangeText={(value) => setEmail(value)}
+              value={email}
+              keyboardType="email-address"
+            />
+            <Text style={styles.signUpPageEmailSuffix}>@user.com</Text>
+          </View>
+        </View>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>Password</Text>
+          <TextInput
+            style={styles.signUpPageinput}
+            onChangeText={(value) => setPassword(value)}
+            value={password}
+            secureTextEntry
+          />
+        </View>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>Confirm Password</Text>
+          <TextInput
+            style={styles.signUpPageinput}
+            onChangeText={(text) => setConfirmPassword(text)}
+            value={confirmPassword}
+            secureTextEntry
+          />
+        </View>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>
+            Picture of any Government ID
           </Text>
-        </TouchableOpacity>
-      </View>
-      <TouchableOpacity
-        style={styles.signUpPageRegisterButton}
-        onPress={handleSignup}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color={COLORS.white} />
-        ) : (
-          <Text style={styles.signUpPageButtonText}>Register</Text>
-        )}
-      </TouchableOpacity>
-      <Text style={styles.signUpPageBackButtonText}>
-        Already have an account?
-        <Text
-          style={styles.signUpPageLink}
-          onPress={() => navigation.navigate("LoginPage")}
+          <TouchableOpacity
+            style={styles.signUpPageFileUpload}
+            onPress={handlePickImage}
+          >
+            <Ionicons
+              style={styles.signUpPageUploadIcon}
+              name="cloud-upload-outline"
+            />
+            <Text style={styles.signUpPageUploadText}>
+              {fileName ? fileName : "File Upload"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style={styles.signUpPageRegisterButton}
+          onPress={handleSignup}
+          disabled={loading}
         >
-          Login
+          {loading ? (
+            <ActivityIndicator color={COLORS.white} />
+          ) : (
+            <Text style={styles.signUpPageButtonText}>Register</Text>
+          )}
+        </TouchableOpacity>
+        <Text style={styles.signUpPageBackButtonText}>
+          Already have an account?{" "}
+          <Text
+            style={styles.signUpPageLink}
+            onPress={() => navigation.navigate("LoginPage")}
+          >
+            Login
+          </Text>
         </Text>
-      </Text>
-
+      </ScrollView>
       {/* Modal for Terms of Service */}
       <Modal isVisible={modalVisible}>
         <View style={styles.signUpPageModalContent}>
@@ -375,7 +379,7 @@ const SignupPage = () => {
           </TouchableOpacity>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
