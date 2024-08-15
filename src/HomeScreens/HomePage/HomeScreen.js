@@ -19,6 +19,7 @@ import { SettingOptions } from "../SettingsPage/SettingStack";
 import { Ionicons } from "@expo/vector-icons";
 import SearchBar from "./SearchBar";
 import ConversationPage from "../ConversationsPage/ConversationPage";
+import COLORS from "../../const/colors";
 
 const Tab = createBottomTabNavigator();
 
@@ -110,7 +111,7 @@ const HomeScreen = ({ refresh }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="blue" />
+        <ActivityIndicator size="large" color={COLORS.prim} />
       </View>
     );
   }

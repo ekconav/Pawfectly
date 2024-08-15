@@ -1,58 +1,58 @@
-import { StyleSheet } from 'react-native';
-import COLORS from '../const/colors';
-
+import { StyleSheet } from "react-native";
+import COLORS from "../const/colors";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
-    
+    backgroundColor: COLORS.white,
   },
-  title: {
+  landingPageTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: 'center',
-    color: COLORS.primary,
+    textAlign: "center",
+    color: COLORS.title,
     paddingBottom: 40,
-    fontFamily: '' ,
-
+    fontFamily: "Poppins_700Bold",
   },
-  imageContainer: {
-    alignItems: 'center',
-   
+  landingPageImageContainer: {
+    alignItems: "center",
   },
-  image: {
-    width: 320,
-    height: 320,
+  landingPageImage: {
+    width: 287,
+    height: 410,
     marginBottom: 5,
+    borderTopLeftRadius: 135,
+    borderTopRightRadius: 135,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  subtitle: {
-    fontSize: 18,
-    textAlign: 'center',
+  landingPageSubtitle: {
+    fontSize: 15,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
     marginBottom: 20,
-    color: COLORS.dark,
+    color: COLORS.subtitle,
     paddingTop: 50,
   },
   boldText: {
-    fontWeight: 'bold',
-    fontSize: 25,
+    fontSize: 24,
+    fontFamily: "Poppins_700Bold",
+    color: COLORS.title,
   },
-  button: {
-    backgroundColor: COLORS.primary,
+  landingPageButton: {
+    backgroundColor: COLORS.prim,
     paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 30,
+    paddingHorizontal: 50,
+    borderRadius: 10,
   },
-  buttonText: {
+  landingPageButtonText: {
     color: COLORS.white,
     fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    
+    fontFamily: "Poppins_700Bold",
+    textAlign: "center",
   },
 });
 

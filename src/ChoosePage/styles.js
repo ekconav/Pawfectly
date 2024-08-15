@@ -1,42 +1,61 @@
-import { StyleSheet } from 'react-native';
-import COLORS from '../const/colors';
+import { StyleSheet } from "react-native";
+import COLORS from "../const/colors";
 
 const styles = StyleSheet.create({
-  container: {
+  choosePageContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  choosePageTitle: {
+    fontSize: 24,
+    fontFamily: "Poppins_700Bold",
     marginBottom: 20,
+    color: COLORS.title,
+    top: -80,
+    textAlign: "center",
   },
-  buttonContainer: {
-    flexDirection: 'row', // Align buttons side by side
-    justifyContent: 'space-around', // Evenly space buttons horizontally
-    width: '100%', // Ensure the buttons take up the full width of the parent container
-    marginBottom: 100, // Add margin bottom to create space between buttons and image
+  choosePageButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginBottom: 100,
+    marginTop: 50,
   },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 15,
+  choosePageButtonWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  choosePageButton: {
+    backgroundColor: COLORS.prim,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 150,
-    width: '45%', // Adjust width to fit two buttons side by side with some space between them
+    padding: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 50,
+    width: 130,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: "#fff",
+    fontSize: 11,
+    fontFamily: "Poppins_700Bold",
   },
-  image: {
-    height: '35%', // Adjust height as needed
-    width: '150%', // Adjust width as needed
-
+  buttonTextShelter: {
+    color: "#fff",
+    fontSize: 11,
+    fontFamily: "Poppins_700Bold",
+  },
+  choosePageImage: {
+    height: 98,
+    width: 101,
+    marginBottom: 20,
+  },
+  choosePageText: {
+    fontSize: 15,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
+    color: COLORS.subtitle,
   },
 });
 

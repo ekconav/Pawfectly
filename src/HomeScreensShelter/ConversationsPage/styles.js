@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 10,
     justifyContent: "center",
-    alignItems: "center", 
+    alignItems: "center",
   },
   conversationItem: {
     padding: 10,
@@ -53,42 +53,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#949494",
   },
-  modalContent: {
-    backgroundColor: "#fff",
-    padding: 20,
+  slideDeleteButton: {
+    backgroundColor: "red",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 75,
     borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    borderColor: "#ddd",
-    borderWidth: 1,
   },
-  modalText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  modalButtonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 5,
-  },
-  cancelButton: {
-    backgroundColor: "#ccc", 
-  },
-  deleteButton: {
-    backgroundColor: "#f00", 
-  },
-  modalButtonText: {
-    color: "#fff", 
-    fontSize: 16,
+  slideDeleteButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 

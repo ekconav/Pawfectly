@@ -1,33 +1,42 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
-import styles from '../ChoosePage/styles';
+import React from "react";
+import { View, Text, TouchableOpacity, Image } from "react-native";
+import styles from "../ChoosePage/styles";
 
 const ChoosePage = ({ navigation }) => {
   const handleAdopterLogin = () => {
-    // Navigate to adopter login screen
-    navigation.navigate('SignupPage');
+    navigation.navigate("SignupPage");
   };
 
   const handleShelterLogin = () => {
-    // Navigate to shelter login screen
-    navigation.navigate('SignupShelter');
+    navigation.navigate("SignupShelter");
   };
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require('../components/meow.png')} // Corrected image path
-        style={styles.image}
-        resizeMode="contain"
-      />
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleAdopterLogin}>
-          <Text style={styles.buttonText}>Signup as Adopter</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleShelterLogin}>
-          <Text style={styles.buttonText}>Signup as Shelter</Text>
-        </TouchableOpacity>
+    <View style={styles.choosePageContainer}>
+      <Text style={styles.choosePageTitle}>PAWFECTLY{"\n"}ADOPTABLE</Text>
+      <View style={styles.choosePageButtonContainer}>
+        <View style={styles.choosePageButtonWrapper}>
+          <Image
+            source={require("../components/chooseUser.png")}
+            style={styles.choosePageImage}
+            resizeMode="contain"
+          />
+          <TouchableOpacity style={styles.choosePageButton} onPress={handleAdopterLogin}>
+            <Text style={styles.buttonText}>User Registration</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.choosePageButtonWrapper}>
+          <Image
+            source={require("../components/chooseShelter.png")}
+            style={styles.choosePageImage}
+            resizeMode="contain"
+          />
+          <TouchableOpacity style={styles.choosePageButton} onPress={handleShelterLogin}>
+            <Text style={styles.buttonTextShelter}>Shelter Registration</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+      <Text style={styles.choosePageText}>Make your life more happy with us</Text>
     </View>
   );
 };
