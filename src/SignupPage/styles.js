@@ -3,7 +3,7 @@ import COLORS from "../const/colors";
 
 const styles = StyleSheet.create({
   signUpPageContainer: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     color: COLORS.link,
   },
   signUpPageTermsScrollView: {
-    maxHeight: 600, // Adjust as needed
+    maxHeight: 600, 
     marginBottom: 20,
   },
   signUpPageTOSTitle: {
