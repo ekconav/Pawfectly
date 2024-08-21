@@ -21,6 +21,7 @@ import {
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
 import COLORS from "./src/const/colors";
+import * as NavigationBar from "expo-navigation-bar";
 
 const Stack = createStackNavigator();
 
@@ -43,6 +44,11 @@ const App = () => {
     });
 
     return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    NavigationBar.setBackgroundColorAsync(COLORS.white);
+    NavigationBar.setButtonStyleAsync("dark"); 
   }, []);
 
   const isUserEmail = (email) => {

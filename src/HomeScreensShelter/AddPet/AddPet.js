@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { storage, db } from "../../FirebaseConfig"; // Import db from FirebaseConfig
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"; // Import storage functions
 import * as FileSystem from "expo-file-system";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDoc, doc } from "firebase/firestore";
 import { auth } from "../../FirebaseConfig";
 import { useNavigation } from "@react-navigation/native";
 import styles from "../AddPet/styles";
@@ -22,15 +22,14 @@ import styles from "../AddPet/styles";
 const AddPet = () => {
   const [image, setImage] = useState("");
   const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
   const [name, setName] = useState("");
   const [maleChecked, setMaleChecked] = useState(false);
   const [femaleChecked, setFemaleChecked] = useState(false);
   const [dogChecked, setDogChecked] = useState(false);
   const [catChecked, setCatChecked] = useState(false);
   const [breed, setBreed] = useState("");
-  const [details, setDetails] = useState("");
   const [age, setAge] = useState("");
-  const [uploading, setUploading] = useState(false);
   const navigation = useNavigation();
   const [breedModalVisible, setBreedModalVisible] = useState(false);
   const [ageModalVisible, setAgeModalVisible] = useState(false);
@@ -52,6 +51,29 @@ const AddPet = () => {
     "Golden Retriever",
   ];
   const catBreeds = ["Persian", "Maine Coon", "Siamese"];
+
+  useEffect(() => {
+    const fetchShelterAddress = async () => {
+      try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const shelterDoc = await getDoc(doc(db, "shelters", currentUser.uid));
+          if (shelterDoc.exists()) {
+            const shelterData = shelterDoc.data();
+            setLocation(shelterData.address);
+          } else {
+            console.log("No such document!");
+          }
+        } else {
+          console.log("No user logged in!");
+        }
+      } catch (error) {
+        console.error("Error fetching shelter address:", error);
+      }
+    };
+
+    fetchShelterAddress();
+  }, []);
 
   const handleAgeSelection = (selectedAge) => {
     setAge(selectedAge);
@@ -105,7 +127,7 @@ const AddPet = () => {
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
-      multiple: true, // Allow multiple selection 
+      multiple: true, // Allow multiple selection
     });
 
     if (!result.canceled) {
@@ -163,6 +185,7 @@ const AddPet = () => {
         name,
         images: downloadURL,
         description,
+        location,
         gender: maleChecked ? "Male" : "Female",
         type: dogChecked ? "Dog" : "Cat",
         age: ageRange,
@@ -172,6 +195,7 @@ const AddPet = () => {
       // Reset form fields
       setImage("");
       setDescription("");
+      setLocation("");
       setName("");
       setMaleChecked(false);
       setFemaleChecked(false);

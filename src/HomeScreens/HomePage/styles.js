@@ -1,65 +1,137 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
+import COLORS from "../../const/colors";
 
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
+    backgroundColor: COLORS.white,
+    paddingTop: 20,
+    paddingHorizontal: 25,
+  },
+  mainContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-
   },
-  safeContainer: {
-    flex: 1
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: 20,
   },
-
-  image: {
-    width: 200,
-    height: 200,
+  accountName: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 17,
+    marginTop: 5,
+    color: COLORS.title,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  loadingContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+  },
+  buttonContainer: {
+    padding: 5,
+    marginBottom: 15,
+    borderRadius: 20,
+  },
+  petButton: {
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    elevation: 4,
+  },
+  petContainer: {
+    backgroundColor: COLORS.background,
+    borderRadius: 10,
+    borderColor: COLORS.outline,
+    borderWidth: 0.5,
+  },
+  petName: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 16,
+    color: COLORS.title,
+  },
+  petImage: {
+    width: "100%",
+    height: 230,
+    borderRadius: 10,
+    marginBottom: 10,
+    alignItems: "center",
+  },
+  petDetails: {
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+  },
+  petNameGender: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 7,
+    alignItems: "center",
+  },
+  genderIconContainer: {
+    right: 50,
+  },
+  petGenderIconMale: {
+    backgroundColor: COLORS.malegenderbg,
+    padding: 5,
+    borderRadius: 50,
+  },
+  petGenderIconFemale: {
+    backgroundColor: COLORS.femalegenderbg,
+    padding: 5,
+    borderRadius: 50,
+  },
+  iconAddress: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  petAddress: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+  },
+  noResultsText: {
+    color: COLORS.black,
+    fontFamily: "Poppins_400Regular",
+  },
+  categoriesTitle: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 16,
+    color: COLORS.title,
+    marginBottom: 8,
+  },
+  categoryContainer: {
     marginBottom: 20,
   },
-  button: {
-    backgroundColor: '#007bff',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 5,
+  categoryButtonContainer: {
+    flexDirection: "row",
+    gap: 15,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
+  categoryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+    padding: 7,
+    paddingHorizontal: 10,
+    borderRadius: 50,
+    elevation: 1,
   },
-  
-  searchBar: {
-    top: 20,
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderRadius: 5,
-    padding: 10,
+  categoryIcon: {
+    width: 28,
+    height: 28,
+    marginLeft: -1,
   },
-
-  create: {
-   width: 350,
-   paddingTop: 50,
-   paddingBottom: 30,
+  categoryName: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 14,
+    color: COLORS.title,
   },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 10,
-    width: '100', // Ensure header spans the width of the screen
+  refreshControl: {
+    backgroundColor: COLORS.white,
   },
-  headerText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  seeAll: {
-    fontSize: 16,
-    color: 'blue',
-    
-  },
-
 });
 
 export default styles;
