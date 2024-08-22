@@ -105,6 +105,7 @@ const DetailsPage = ({ route }) => {
     } catch (error) {
       console.error("Error adding favorite: ", error);
     }
+    navigation.navigate("Favorites");
   };
 
   const handleCall = async () => {
@@ -134,7 +135,7 @@ const DetailsPage = ({ route }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: petDetails.imageUrl }} style={styles.petImage} />
+        <Image source={{ uri: petDetails.images }} style={styles.petImage} />
         <TouchableOpacity
           onPress={() => navigation.navigate("Home")}
           style={styles.overlayButton}

@@ -1,145 +1,197 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, RefreshControl } from 'react-native';
-import { Swipeable } from 'react-native-gesture-handler';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import COLORS from '../../const/colors';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { auth, db } from "../../FirebaseConfig";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+} from "firebase/firestore";
+import { useNavigation } from "@react-navigation/native";
+import styles from "./styles";
+import COLORS from "../../const/colors";
+import { Ionicons } from "@expo/vector-icons";
+import { Swipeable } from "react-native-gesture-handler";
 
 const FavoritesPage = () => {
   const [favoritePets, setFavoritePets] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  const handleDelete = async (id) => {
-    try {
-      // Filter out the pet with the given id
-      const updatedFavorites = favoritePets.filter((pet) => pet.id !== id);
-      // Update the favorites state
-      setFavoritePets(updatedFavorites);
-      // Update AsyncStorage with the updated favorites
-      await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
-      console.log('Favorite Pet Deleted');
-    } catch (error) {
-      console.error('Error deleting favorite pet:', error);
-    }
-  };
-
   useEffect(() => {
-    const getFavoritePets = async () => {
+    const userId = auth.currentUser.uid;
+
+    const favoritesRef = collection(db, "favorites");
+    const q = query(favoritesRef, where("userId", "==", userId));
+
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       try {
-        // Retrieve favorite pets from AsyncStorage
-        const favoritesJson = await AsyncStorage.getItem('favorites');
-        const favorites = favoritesJson ? JSON.parse(favoritesJson) : [];
-        setFavoritePets(favorites);
+        const petDetailsPromises = querySnapshot.docs.map(
+          async (favoriteDoc) => {
+            const petId = favoriteDoc.data().petId;
+            const petRef = doc(db, "pets", petId);
+            const petDoc = await getDoc(petRef);
+            if (petDoc.exists()) {
+              return { id: petId, ...petDoc.data() };
+            }
+            return null;
+          }
+        );
+
+        const petDetailsArray = await Promise.all(petDetailsPromises);
+        setFavoritePets(petDetailsArray.filter(Boolean));
       } catch (error) {
-        console.error('Error retrieving favorite pets:', error);
+        console.error("Error fetching favorite pets:", error);
+      } finally {
+        setLoading(false);
       }
-    };
+    });
 
-    // Call the function to get favorite pets when the component mounts
-    getFavoritePets();
-  }, []); // Empty dependency array ensures this effect runs only once on mount
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    // Call the function to fetch favorite pets again
-    fetchFavoritePets();
-    setRefreshing(false);
+    return () => unsubscribe();
   }, []);
 
-  // Function to fetch favorite pets again
-  const fetchFavoritePets = async () => {
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      doc(db, "users", auth.currentUser.uid),
+      (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          setProfileImage(
+            userData.accountPicture
+              ? { uri: userData.accountPicture }
+              : require("../../components/user.png")
+          );
+          setFirstName(userData.firstName || "");
+        }
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
+  const handleDelete = async (petId) => {
     try {
-      // Retrieve favorite pets from AsyncStorage
-      const favoritesJson = await AsyncStorage.getItem('favorites');
-      const favorites = favoritesJson ? JSON.parse(favoritesJson) : [];
-      setFavoritePets(favorites);
+      const favoritesRef = collection(db, "favorites");
+      const q = query(favoritesRef, where("petId", "==", petId));
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach(async (doc) => {
+        await deleteDoc(doc.ref);
+      });
+
+      setFavoritePets((prevPets) => prevPets.filter((pet) => pet.id !== petId));
     } catch (error) {
-      console.error('Error retrieving favorite pets:', error);
+      console.error("Error deleting favorite pet:", error);
     }
   };
 
-  // Render item for FlatList
-  const renderFavoriteItem = ({ item }) => (
-    <Swipeable renderRightActions={() => (
-      <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
-        <Ionicons name="trash-bin" size={24} color={COLORS.white} />
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.prim} />
+      </View>
+    );
+  }
+
+  const renderItem = ({ item }) => {
+    const renderRightActions = () => (
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => handleDelete(item.id)}
+      >
+        <Ionicons style={styles.deleteIcon} name="trash-outline" size={24} />
       </TouchableOpacity>
-    )}>
-      <TouchableOpacity onPress={() => navigation.navigate('DetailsPage', { pet: item })}>
-        <View style={styles.item}>
-          <Image 
-            source={{ uri: item.imageUrl }}
-            style={styles.image}
-            resizeMode="cover"
-            onError={(error) => console.error('Error loading image:', error)}
-          />
-          <Text style={styles.itemText}>Name: {item.name}</Text>
-          <Text style={styles.itemText}>Type: {item.type}</Text>
-          <Text style={styles.itemText}>Breed: {item.breed}</Text>
-          <Text style={styles.itemText}>Age: {item.age}</Text>
-          <Text style={styles.itemText}>Location: {item.location}</Text>
+    );
+    return (
+      <Swipeable renderRightActions={renderRightActions}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.petButton}
+            onPress={() => navigation.navigate("DetailsPage", { pet: item })}
+          >
+            <View style={styles.petContainer}>
+              <Image source={{ uri: item.images }} style={styles.petImage} />
+              <View style={styles.petDetails}>
+                <View style={styles.petNameGender}>
+                  <Text style={styles.petName}>{item.name}</Text>
+                  <Text>
+                    {item.gender.toLowerCase() === "male" ? (
+                      <View style={styles.genderIconContainer}>
+                        <Ionicons
+                          style={styles.petGenderIconMale}
+                          name="male"
+                          size={24}
+                          color={COLORS.male}
+                        />
+                      </View>
+                    ) : (
+                      <View style={styles.genderIconContainer}>
+                        <Ionicons
+                          style={styles.petGenderIconFemale}
+                          name="female"
+                          size={24}
+                          color={COLORS.female}
+                        />
+                      </View>
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.addressContainer}>
+                  <View style={styles.iconAddress}>
+                    <Ionicons
+                      name="location-outline"
+                      size={24}
+                      color={COLORS.prim}
+                    />
+                    <Text style={styles.petAddress}>{item.location}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-    </Swipeable>
-  );
+      </Swipeable>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Favorite Pets</Text>
-      <FlatList
-        data={favoritePets}
-        renderItem={renderFavoriteItem}
-        keyExtractor={(item, index) => index.toString()} // Use index as key if id is undefined
-        contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} // Add RefreshControl
-      />
+      <View style={styles.header}>
+        <Text style={styles.accountName}>Welcome, {firstName}!</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Set")}>
+          <Image source={profileImage} style={styles.profileImage} />
+        </TouchableOpacity>
+      </View>
+      {favoritePets.length === 0 ? (
+        <View style={styles.noTextContainer}>
+          <Text style={styles.noFavoritesText}>
+            Uh oh, choose a lovely pet now!
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.mainContainer}>
+          <Text style={styles.pageTitle}>Your Favorite Pets</Text>
+          <FlatList
+            data={favoritePets}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+          />
+        </View>
+      )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.light,
-    paddingVertical: 20,
-    paddingHorizontal: 10,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  list: {
-    flexGrow: 1,
-  },
-  item: {
-    backgroundColor: COLORS.white,
-    padding: 20,
-    marginVertical: 8,
-    borderRadius: 10,
-    elevation: 3,
-  },
-  itemText: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  deleteButton: {
-    backgroundColor: COLORS.red,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 80,
-    height: '100%',
-    borderRadius: 10,
-  },
-});
 
 export default FavoritesPage;

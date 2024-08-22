@@ -124,15 +124,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    // padding: 20,
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
   favoriteContainer: {
-    width: 80,
+    width: "25%",
   },
   adoptMeContainer: {
-    width: 220,
+    width: "73%",
   },
   button: {
     backgroundColor: COLORS.prim,
