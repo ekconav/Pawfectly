@@ -21,6 +21,8 @@ import {
   query,
   where,
   getDocs,
+  Timestamp,
+  setDoc,
 } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
@@ -29,6 +31,7 @@ const DetailsPage = ({ route }) => {
   const [petDetails, setPetDetails] = useState(null);
   const [mobileNumber, setMobileNumber] = useState("");
   const [shelterImage, setShelterImage] = useState("");
+  const [messageSent, setMessageSent] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -52,6 +55,18 @@ const DetailsPage = ({ route }) => {
               : require("../../components/user.png")
           );
           setMobileNumber(pet.mobileNumber);
+
+          const userId = auth.currentUser.uid;
+          const shelterId = pet.userId;
+          const petId = pet.id;
+          const conversationId = `${userId}_${shelterId}_${petId}`;
+
+          const conversationDocRef = doc(db, "conversations", conversationId);
+          const conversationSnap = await getDoc(conversationDocRef);
+
+          if (conversationSnap.exists()) {
+            setMessageSent(true);
+          }
         }
         setPetDetails(pet);
       } catch (error) {
@@ -62,11 +77,10 @@ const DetailsPage = ({ route }) => {
     fetchPetDetails();
   }, [route.params]);
 
-  const handleAdoption = async () => {
+  const handleOpenMessage = async () => {
     const userId = auth.currentUser.uid;
     const shelterId = petDetails.userId;
     const petId = petDetails.id;
-
     const conversationId = `${userId}_${shelterId}_${petId}`;
 
     navigation.navigate("MessagePage", {
@@ -121,6 +135,54 @@ const DetailsPage = ({ route }) => {
     } catch (error) {
       console.error("Error initiating call:", error);
       Alert.alert("Error", "There was an error trying to make a call.");
+    }
+  };
+
+  const handleAdoption = async () => {
+    try {
+      const userId = auth.currentUser.uid;
+      const shelterId = petDetails.userId;
+      const petId = petDetails.id;
+      const conversationId = `${userId}_${shelterId}_${petId}`;
+      const messageText = `Hello, I would like to adopt ${petDetails.name}.`;
+
+      const conversationDocRef = doc(db, "conversations", conversationId);
+      const docSnap = await getDoc(conversationDocRef);
+
+      if (!docSnap.exists()) {
+        await setDoc(conversationDocRef, {
+          participants: [userId, shelterId],
+          petId: petId,
+          lastMessage: messageText,
+          lastTimestamp: Timestamp.now(),
+          receiverRead: false,
+          senderRead: true,
+        });
+
+        const messagesRef = collection(conversationDocRef, "messages");
+        await addDoc(messagesRef, {
+          text: messageText,
+          senderId: userId,
+          receiverId: shelterId,
+          timestamp: Timestamp.now(),
+        });
+
+        setMessageSent(true);
+        console.log("Message sent successfully and conversation created.");
+      }
+
+      // Adding a small delay to ensure the message is saved
+      setTimeout(() => {
+        navigation.navigate("MessagePage", {
+          conversationId,
+          userId,
+          shelterId,
+          petId,
+        });
+      }, 500);
+    } catch (error) {
+      console.error("Error during adoption process: ", error);
+      Alert.alert("Error", "There was an error trying to adopt the pet.");
     }
   };
 
@@ -186,7 +248,7 @@ const DetailsPage = ({ route }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={handleAdoption}
+              onPress={handleOpenMessage}
             >
               <Ionicons name="chatbox-outline" size={24} color={COLORS.white} />
             </TouchableOpacity>
@@ -204,8 +266,14 @@ const DetailsPage = ({ route }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.adoptMeContainer}>
-          <TouchableOpacity style={styles.button} onPress={handleAdoption}>
-            <Text style={styles.textButton}>Adopt Me</Text>
+          <TouchableOpacity
+            style={!messageSent ? styles.adoptButton : styles.adoptButtonSent}
+            onPress={handleAdoption}
+            disabled={messageSent}
+          >
+            <Text style={styles.textButton}>
+              {messageSent ? "Message Sent" : "Adopt Me"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
