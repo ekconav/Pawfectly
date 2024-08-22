@@ -133,7 +133,6 @@ const ConversationPage = ({ navigation }) => {
       if (!snapshot.empty) {
         return snapshot.docs[0].data();
       } else {
-        console.error("No messages found for conversationId:", conversationId);
         return null;
       }
     } catch (error) {

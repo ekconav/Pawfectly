@@ -11,6 +11,12 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
   },
+  loadingContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -28,11 +34,11 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-  loadingContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.white,
+  pageTitle: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 18,
+    color: COLORS.title,
+    textAlign: "center",
   },
   buttonContainer: {
     padding: 5,
@@ -49,11 +55,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderColor: COLORS.outline,
     borderWidth: 0.5,
-  },
-  petName: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 16,
-    color: COLORS.title,
   },
   petImage: {
     width: "100%",
@@ -72,6 +73,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     alignItems: "center",
   },
+  petName: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 16,
+    color: COLORS.title,
+  },
   genderIconContainer: {
     right: 50,
   },
@@ -85,53 +91,33 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 50,
   },
-  iconAddress: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   petAddress: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
   },
-  noResultsText: {
+  iconAddress: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  noTextContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  noFavoritesText: {
     color: COLORS.black,
     fontFamily: "Poppins_400Regular",
     textAlign: "center",
   },
-  categoriesTitle: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 16,
-    color: COLORS.title,
-    marginBottom: 8,
-  },
-  categoryContainer: {
-    marginBottom: 20,
-  },
-  categoryButtonContainer: {
-    flexDirection: "row",
-    gap: 15,
-  },
-  categoryButton: {
-    flexDirection: "row",
+  deleteButton: {
+    backgroundColor: COLORS.delete,
+    width: 50,
+    borderRadius: 20,
     alignItems: "center",
-    backgroundColor: COLORS.background,
-    padding: 7,
-    paddingHorizontal: 10,
-    borderRadius: 50,
-    elevation: 1,
+    justifyContent: "center",
+    marginBottom: 15,
   },
-  categoryIcon: {
-    width: 28,
-    height: 28,
-    marginLeft: -1,
-  },
-  categoryName: {
-    fontFamily: "Poppins_500Medium",
-    fontSize: 14,
-    color: COLORS.title,
-  },
-  refreshControl: {
-    backgroundColor: COLORS.white,
+  deleteIcon: {
+    color: COLORS.white,
   },
 });
 

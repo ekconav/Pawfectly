@@ -185,7 +185,7 @@ const SignupShelter = () => {
           address: address,
           mobileNumber: fullMobileNumber,
           shelterOwner: ownerName,
-          email: email,
+          email: shelterEmail,
           governmentId: governmentIdUrl,
           businessPermit: businessPermitUrl,
         });

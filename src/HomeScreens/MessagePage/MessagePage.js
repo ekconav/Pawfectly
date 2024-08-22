@@ -6,8 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  ActivityIndicator,
 } from "react-native";
-import { db, auth, storage } from "../../FirebaseConfig"; // Ensure you import storage from FirebaseConfig
+import { db, auth, storage } from "../../FirebaseConfig";
 import {
   collection,
   query,
@@ -20,11 +21,12 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Import storage functions
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker"; // Import ImagePicker
+import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
+import COLORS from "../../const/colors";
 
 const MessagePage = ({ route }) => {
   const { conversationId, shelterId, petId } = route.params;
@@ -32,22 +34,14 @@ const MessagePage = ({ route }) => {
   const [newMessage, setNewMessage] = useState("");
   const [shelterName, setShelterName] = useState("");
   const [userAccountPicture, setUserAccountPicture] = useState("");
-  const [shelterAccountPicture, setShelterAccountPicture] = useState(""); // State for shelter account picture
-  const [petName, setPetName] = useState("");
-  const [loading, setLoading] = useState(true); // Initialize loading state
+  const [shelterAccountPicture, setShelterAccountPicture] = useState("");
+  const [loading, setLoading] = useState(true);
   const currentUser = auth.currentUser;
   const navigation = useNavigation();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const petDoc = await getDoc(doc(db, "pets", petId));
-        if (petDoc.exists()) {
-          setPetName(petDoc.data().name);
-        } else {
-          console.error("Pet document not found for petId:", petId);
-        }
-
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         const shelterDoc = await getDoc(doc(db, "shelters", shelterId));
 
@@ -62,7 +56,7 @@ const MessagePage = ({ route }) => {
 
         if (shelterDoc.exists()) {
           setShelterName(shelterDoc.data().shelterName);
-          setShelterAccountPicture(shelterDoc.data().accountPicture); // Set shelter account picture
+          setShelterAccountPicture(shelterDoc.data().accountPicture);
         } else {
           console.error("Shelter document not found for shelterId:", shelterId);
         }
@@ -80,14 +74,14 @@ const MessagePage = ({ route }) => {
               id: doc.id,
               ...doc.data(),
             }))
-            .reverse(); // Reverse the array here
+            .reverse();
           setMessages(messagesData);
         });
-        setLoading(false); // Update loading state once data is fetched
+        setLoading(false);
         return unsubscribe;
       } catch (error) {
         console.error("Error fetching data:", error);
-        setLoading(false); // Update loading state in case of error
+        setLoading(false);
       }
     };
 
@@ -205,36 +199,72 @@ const MessagePage = ({ route }) => {
       : "";
     const isImageMessage = item.text.startsWith("http");
     return (
-      <View
-        style={[
-          styles.messageContainer,
-          isCurrentUser ? styles.sentMessage : styles.receivedMessage,
-        ]}
-      >
-        {/* Display profile image */}
-        <View>
-          {!isCurrentUser && (
-            <Image
-              source={
-                shelterAccountPicture
-                  ? { uri: shelterAccountPicture }
-                  : require("../../components/user.png")
-              }
-              style={styles.shelterProfileImage}
-            />
-          )}
-        </View>
-
-        {/* Display message */}
-        <View style={styles.messageContent}>
-          {isImageMessage ? (
-            <Image source={{ uri: item.text }} style={styles.messageImage} />
-          ) : (
-            <Text style={styles.messageText}>{item.text}</Text>
-          )}
-          {messageTime ? (
-            <Text style={styles.messageTime}>{messageTime}</Text>
-          ) : null}
+      <View style={styles.mainMessageContainer}>
+        <View
+          style={
+            !isCurrentUser
+              ? styles.receiveMessageContainer
+              : styles.sendMessageContainer
+          }
+        >
+          <View>
+            {!isCurrentUser ? (
+              <Image
+                source={
+                  shelterAccountPicture
+                    ? { uri: shelterAccountPicture }
+                    : require("../../components/user.png")
+                }
+                style={styles.shelterProfileImage}
+              />
+            ) : (
+              <Image
+                source={
+                  userAccountPicture
+                    ? { uri: userAccountPicture }
+                    : require("../../components/user.png")
+                }
+                style={styles.userProfileImage}
+              />
+            )}
+          </View>
+          <View
+            style={[
+              styles.messageContainer,
+              isCurrentUser ? styles.sentMessage : styles.receivedMessage,
+            ]}
+          >
+            {/* Display message */}
+            <View style={styles.messageContent}>
+              {isImageMessage ? (
+                <Image
+                  source={{ uri: item.text }}
+                  style={styles.messageImage}
+                />
+              ) : (
+                <Text
+                  style={
+                    isCurrentUser
+                      ? styles.sentMessageText
+                      : styles.receivedMessageText
+                  }
+                >
+                  {item.text}
+                </Text>
+              )}
+              {messageTime ? (
+                <Text
+                  style={
+                    !isCurrentUser
+                      ? styles.receivedMessageTime
+                      : styles.sendMessageTime
+                  }
+                >
+                  {messageTime}
+                </Text>
+              ) : null}
+            </View>
+          </View>
         </View>
       </View>
     );
@@ -243,7 +273,7 @@ const MessagePage = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color={COLORS.prim} />
       </View>
     );
   }
@@ -253,7 +283,7 @@ const MessagePage = ({ route }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={24} color={COLORS.prim} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
           {/* Display shelter account picture in header */}
@@ -270,18 +300,13 @@ const MessagePage = ({ route }) => {
         </View>
       </View>
 
-      {/* Pet Name Header */}
-      <View style={styles.petHeader}>
-        <Text style={styles.petHeaderText}>Pet Name: {petName}</Text>
-      </View>
-
       {/* Messages */}
       <FlatList
-        data={messages} // Pass the reversed array directly
+        data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.messagesContainer}
-        inverted // Reverse the layout
+        inverted
       />
 
       {/* Input */}
@@ -291,13 +316,13 @@ const MessagePage = ({ route }) => {
           placeholder="Type a message"
           value={newMessage}
           onChangeText={setNewMessage}
-          multiline={true} // Allow multiple lines
+          multiline={true}
         />
         <TouchableOpacity style={styles.imageIcon} onPress={pickImage}>
-          <Ionicons name="image" size={30} color="skyblue" />
+          <Ionicons name="image" size={30} color={COLORS.prim} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Ionicons name="send" size={24} color="white" />
+          <Ionicons name="send" size={24} color={COLORS.prim} />
         </TouchableOpacity>
       </View>
     </View>
