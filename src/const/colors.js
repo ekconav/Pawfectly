@@ -24,6 +24,7 @@ const COLORS = {
   malegenderbg: "#8EB1E533",
   female: "#F672E1",
   femalegenderbg: "#F672E133",
+  delete: "#FF001E"
 };
 
 export default COLORS;
