@@ -37,12 +37,12 @@ const AddPet = () => {
     useState(false);
 
   const petAges = [
-    "0 - 3 Months",
-    "4 - 6 Months",
-    "7 - 9 Months",
-    "10 - 12 Months",
-    "1 - 3 Years Old",
-    "4 - 6 Yeard Ols",
+    "0-3 Months",
+    "4-6 Months",
+    "7-9 Months",
+    "10-12 Months",
+    "1-3 Years Old",
+    "4-6 Years Old",
     "7 Years Old and Above",
   ];
   const dogBreeds = [
@@ -125,7 +125,7 @@ const AddPet = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: null,
       quality: 1,
       multiple: true, // Allow multiple selection
     });
@@ -190,6 +190,7 @@ const AddPet = () => {
         type: dogChecked ? "Dog" : "Cat",
         age: ageRange,
         breed,
+        adopted: false,
       });
 
       // Reset form fields

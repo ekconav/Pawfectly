@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
   noResultsText: {
     color: COLORS.black,
     fontFamily: "Poppins_400Regular",
+    textAlign: "center",
   },
   categoriesTitle: {
     fontFamily: "Poppins_600SemiBold",
