@@ -139,7 +139,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
+  adoptButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  adoptButtonSent: {
+    backgroundColor: "rgba(130, 115, 151, 0.5)",
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
   textButton: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 14,
+    color: COLORS.white,
+  },
+  textButtonSent: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 14,
     color: COLORS.white,
