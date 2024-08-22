@@ -186,7 +186,9 @@ const HomeScreen = () => {
       </View>
 
       {pets.length === 0 ? (
-        <Text style={styles.noResultsText}>No such result found.</Text>
+        <Text style={styles.noResultsText}>
+          Unfortunately, we couldn't find anything.
+        </Text>
       ) : (
         <View style={styles.mainContainer}>
           <FlatList
@@ -203,7 +205,8 @@ const HomeScreen = () => {
                   <View style={styles.petContainer}>
                     <Image
                       source={{
-                        uri: `${item.imageUrl}?time=${new Date().getTime()}`,
+                        // uri: `${item.imageUrl}?time=${new Date().getTime()}`,
+                        uri: item.imageUrl,
                       }}
                       style={styles.petImage}
                     />

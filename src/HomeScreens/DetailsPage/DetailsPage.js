@@ -3,22 +3,33 @@ import {
   View,
   Text,
   SafeAreaView,
-  StatusBar,
+  ActivityIndicator,
   Image,
   TouchableOpacity,
   Alert,
+  Linking,
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import COLORS from "../../const/colors";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../DetailsPage/styles";
 import { auth, db } from "../../FirebaseConfig";
-import { getDoc, doc } from "firebase/firestore";
+import {
+  getDoc,
+  doc,
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
+import { Ionicons } from "@expo/vector-icons";
+import { ScrollView } from "react-native-gesture-handler";
 
 const DetailsPage = ({ route }) => {
   const [petDetails, setPetDetails] = useState(null);
-  const navigation = useNavigation(); // Initialize useNavigation hook
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [shelterImage, setShelterImage] = useState("");
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchPetDetails = async () => {
@@ -33,6 +44,14 @@ const DetailsPage = ({ route }) => {
           console.log("Document data: ", docSnap.data());
           pet.shelterName = docSnap.data().shelterName;
           pet.location = docSnap.data().address;
+          pet.accountPicture = docSnap.data().accountPicture;
+          pet.mobileNumber = docSnap.data().mobileNumber;
+          setShelterImage(
+            pet.accountPicture
+              ? { uri: pet.accountPicture }
+              : require("../../components/user.png")
+          );
+          setMobileNumber(pet.mobileNumber);
         }
         setPetDetails(pet);
       } catch (error) {
@@ -46,7 +65,7 @@ const DetailsPage = ({ route }) => {
   const handleAdoption = async () => {
     const userId = auth.currentUser.uid;
     const shelterId = petDetails.userId;
-    const petId = petDetails.id; // Assuming you have the petId in petDetails
+    const petId = petDetails.id;
 
     const conversationId = `${userId}_${shelterId}_${petId}`;
 
@@ -60,86 +79,135 @@ const DetailsPage = ({ route }) => {
 
   const handleFavorite = async () => {
     try {
-      // Retrieve favorite pets from AsyncStorage
-      const favoritesJson = await AsyncStorage.getItem("favorites");
-      const favorites = favoritesJson ? JSON.parse(favoritesJson) : [];
-      // Add the current pet to favorites
-      const updatedFavorites = [...favorites, petDetails];
-      // Update AsyncStorage with the updated favorites
-      await AsyncStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-      Alert.alert("Succesful", "Pet Added to Favorites");
-      console.log("Favorite button pressed");
-    } catch (error) {
-      console.error("Error adding pet to favorites:", error);
-    }
+      const userId = auth.currentUser.uid;
+      const petId = petDetails.id;
 
-    // Navigate to the Favorites tab
-    navigation.navigate("Favorites");
+      const favoritesRef = collection(db, "favorites");
+
+      const q = query(
+        favoritesRef,
+        where("userId", "==", userId),
+        where("petId", "==", petId)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        Alert.alert("", "This pet is already in your favorites.");
+        return;
+      }
+
+      await addDoc(favoritesRef, {
+        userId: userId,
+        petId: petId,
+      });
+
+      console.log("Favorite added successfully");
+    } catch (error) {
+      console.error("Error adding favorite: ", error);
+    }
+  };
+
+  const handleCall = async () => {
+    try {
+      if (mobileNumber) {
+        await Linking.openURL(`tel:${mobileNumber}`);
+      } else {
+        Alert.alert(
+          "No phone number available",
+          "The shelter's phone number is not available."
+        );
+      }
+    } catch (error) {
+      console.error("Error initiating call:", error);
+      Alert.alert("Error", "There was an error trying to make a call.");
+    }
   };
 
   if (!petDetails) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color={COLORS.prim} />
       </View>
     );
   }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
-          {/* Render Pet Image with back arrow */}
-          <View style={styles.container}>
-            <Image
-              source={{ uri: petDetails.imageUrl }}
-              style={styles.petImage}
+      <View style={styles.imageContainer}>
+        <Image source={{ uri: petDetails.imageUrl }} style={styles.petImage} />
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Home")}
+          style={styles.overlayButton}
+        >
+          <View style={styles.arrowContainer}>
+            <Ionicons
+              name="arrow-back-outline"
+              size={24}
+              color={COLORS.title}
             />
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Home")}
-              style={styles.overlayButton}
-            >
-              <Icon name="arrow-left" size={28} color={COLORS.white} />
-            </TouchableOpacity>
           </View>
-          {/* Render Pet Details */}
-          <View style={styles.detailsContainer}>
-            <Text style={styles.petName}>Name: {petDetails.name}</Text>
-            <Text style={styles.petBreed}>Breed: {petDetails.breed}</Text>
-            <Text style={styles.petDetail}>{`Type: ${petDetails.type}`}</Text>
-            <Text
-              style={styles.petDetail}
-            >{`Gender: ${petDetails.gender}`}</Text>
-            <Text style={styles.petDetail}>{`Age: ${petDetails.age}`}</Text>
-            <Text
-              style={styles.petDetail}
-            >{`Location: ${petDetails.location}`}</Text>
-            <Text
-              style={styles.petDetail}
-            >{`Description: ${petDetails.description}`}</Text>
-            <Text
-              style={{ fontSize: 16, color: COLORS.dark, marginBottom: 90 }}
-            >{`Shelter Name: ${petDetails.shelterName}`}</Text>
-            {/* Adoption and Favorite buttons */}
-            <View style={styles.buttonContainer}>
-              {/* Favorite button */}
-              <TouchableOpacity
-                style={[styles.button, styles.favoriteButton]}
-                onPress={handleFavorite}
-              >
-                <Icon name="heart-outline" size={20} color={COLORS.white} />
-              </TouchableOpacity>
-              {/* Adoption button */}
-              <TouchableOpacity
-                style={[styles.button, styles.adoptionButton]}
-                onPress={handleAdoption}
-              >
-                <Text style={styles.buttonText}>Adoption</Text>
-              </TouchableOpacity>
-            </View>
+        </TouchableOpacity>
+      </View>
+      <ScrollView
+        style={styles.petDetails}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+      >
+        <Text style={styles.petName}>{petDetails.name}</Text>
+        <View style={styles.addressInformation}>
+          <Ionicons name="location-outline" size={24} color={COLORS.prim} />
+          <Text style={styles.textAddress}>{petDetails.location}</Text>
+        </View>
+        <View style={styles.midInfoContainer}>
+          <View style={styles.midInfo}>
+            <Text style={styles.midInfoDetail}>{petDetails.gender}</Text>
+            <Text style={styles.midInfoTitle}>Sex</Text>
+          </View>
+          <View style={styles.midInfo}>
+            <Text style={styles.midInfoDetail}>{petDetails.breed}</Text>
+            <Text style={styles.midInfoTitle}>Breed</Text>
+          </View>
+          <View style={styles.midInfo}>
+            <Text style={styles.midInfoDetail}>{petDetails.age}</Text>
+            <Text style={styles.midInfoTitle}>Age</Text>
           </View>
         </View>
-      </SafeAreaView>
+        <View style={styles.shelterContainer}>
+          <View style={styles.shelterInfo}>
+            <Image source={shelterImage} style={styles.shelterImage} />
+            <View>
+              <Text style={styles.midInfoTitle}>Currently In:</Text>
+              <Text style={styles.shelterName}>{petDetails.shelterName}</Text>
+            </View>
+          </View>
+          <View style={styles.callMessage}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
+              <Ionicons name="call-outline" size={24} color={COLORS.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleAdoption}
+            >
+              <Ionicons name="chatbox-outline" size={24} color={COLORS.white} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.aboutContainer}>
+          <Text style={styles.aboutTitle}>About {petDetails.name}</Text>
+          <Text style={styles.aboutDescription}>{petDetails.description}</Text>
+        </View>
+      </ScrollView>
+      <View style={styles.buttonContainer}>
+        <View style={styles.favoriteContainer}>
+          <TouchableOpacity style={styles.button} onPress={handleFavorite}>
+            <Ionicons name="heart-outline" size={22} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.adoptMeContainer}>
+          <TouchableOpacity style={styles.button} onPress={handleAdoption}>
+            <Text style={styles.textButton}>Adopt Me</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
