@@ -169,7 +169,7 @@ const FavoritesPage = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.accountName}>Welcome, {firstName}!</Text>
+        <Text style={styles.accountName}>Favorites</Text>
         <TouchableOpacity onPress={() => navigation.navigate("Set")}>
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
