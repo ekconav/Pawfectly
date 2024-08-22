@@ -16,10 +16,13 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
 import styles from "./styles";
+import { Ionicons } from "@expo/vector-icons";
+import COLORS from "../../const/colors";
+import { ActivityIndicator } from "react-native-paper";
 
 const DeleteButton = ({ onDelete }) => (
   <TouchableOpacity style={styles.slideDeleteButton} onPress={onDelete}>
-    <Text style={styles.slideDeleteButtonText}>Delete</Text>
+    <Ionicons name="trash-outline" size={24} color={COLORS.white} />
   </TouchableOpacity>
 );
 
@@ -28,6 +31,7 @@ const ConversationPage = ({ navigation }) => {
   const [shelterNames, setShelterNames] = useState({});
   const [shelterImage, setShelterImage] = useState({});
   const [lastMessages, setLastMessages] = useState({});
+  const [profileImage, setProfileImage] = useState("");
   const [loading, setLoading] = useState(true);
   const swipeableRefs = useRef({});
 
@@ -203,6 +207,23 @@ const ConversationPage = ({ navigation }) => {
     });
   };
 
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      doc(db, "users", auth.currentUser.uid),
+      (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          setProfileImage(
+            userData.accountPicture
+              ? { uri: userData.accountPicture }
+              : require("../../components/user.png")
+          );
+        }
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       closeAllSwipeables();
@@ -212,92 +233,104 @@ const ConversationPage = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
-  if (conversations.length === 0) {
-    return (
-      <View style={styles.noConversationsContainer}>
-        <Text>No conversations</Text>
+        <ActivityIndicator size="large" color={COLORS.prim} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Chats</Text>
-      <FlatList
-        data={conversations}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          let lastMessageText = item.lastMessage;
-          if (item.lastMessage === "Image") {
-            lastMessageText =
-              item.participants[0] === lastMessages[item.id]?.senderId
-                ? "You sent a photo"
-                : `${shelterNames[item.id]} sent a photo`;
-          }
+      <View style={styles.header}>
+        <Text style={styles.accountName}>Chats</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Set")}>
+          <Image source={profileImage} style={styles.profileImage} />
+        </TouchableOpacity>
+      </View>
 
-          return (
-            <Swipeable
-              ref={(ref) => {
-                if (ref) {
-                  swipeableRefs.current[item.id] = ref;
-                } else {
-                  delete swipeableRefs.current[item.id];
-                }
-              }}
-              renderRightActions={() => (
-                <DeleteButton
-                  onDelete={() => handleDeleteConversation(item.id)}
-                />
-              )}
-              onSwipeableOpen={() => handleSwipeableOpen(item.id)}
-            >
-              <TouchableOpacity
-                style={[
-                  styles.conversationItem,
-                  !item.senderRead && styles.unreadConversation,
-                ]}
-                onPress={() =>
-                  navigateToMessages(item.id, item.petId, item.participants[1])
-                }
-              >
-                <View style={styles.shelterInfoContainer}>
-                  <Image
-                    source={
-                      shelterImage[item.id]
-                        ? { uri: shelterImage[item.id] }
-                        : require("../../components/user.png")
+      {conversations.length === 0 ? (
+        <View style={styles.noConversationsContainer}>
+          <Text style={styles.noConversationsText}>
+            You have no conversations.
+          </Text>
+        </View>
+      ) : (
+        <View>
+          <FlatList
+            data={conversations}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              let lastMessageText = item.lastMessage;
+              if (item.lastMessage === "Image") {
+                lastMessageText =
+                  item.participants[0] === lastMessages[item.id]?.senderId
+                    ? "You sent a photo"
+                    : `${shelterNames[item.id]} sent a photo`;
+              }
+
+              return (
+                <Swipeable
+                  ref={(ref) => {
+                    if (ref) {
+                      swipeableRefs.current[item.id] = ref;
+                    } else {
+                      delete swipeableRefs.current[item.id];
                     }
-                    style={styles.shelterImage}
-                  />
-                  <View style={styles.textContainer}>
-                    <Text
-                      style={[
-                        styles.shelterName,
-                        !item.senderRead && styles.unreadConversation,
-                      ]}
-                    >
-                      {shelterNames[item.id]}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.lastMessage,
-                        !item.senderRead && styles.unreadConversation,
-                      ]}
-                    >
-                      {lastMessageText}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </Swipeable>
-          );
-        }}
-      />
+                  }}
+                  renderRightActions={() => (
+                    <DeleteButton
+                      onDelete={() => handleDeleteConversation(item.id)}
+                    />
+                  )}
+                  onSwipeableOpen={() => handleSwipeableOpen(item.id)}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.conversationItem,
+                      !item.senderRead && styles.unreadConversation,
+                    ]}
+                    onPress={() =>
+                      navigateToMessages(
+                        item.id,
+                        item.petId,
+                        item.participants[1]
+                      )
+                    }
+                  >
+                    <View style={styles.shelterInfoContainer}>
+                      <Image
+                        source={
+                          shelterImage[item.id]
+                            ? { uri: shelterImage[item.id] }
+                            : require("../../components/user.png")
+                        }
+                        style={styles.shelterImage}
+                      />
+                      <View style={styles.textContainer}>
+                        <Text
+                          style={[
+                            styles.shelterName,
+                            !item.senderRead && styles.unreadConversation,
+                          ]}
+                        >
+                          {shelterNames[item.id]}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.lastMessage,
+                            !item.senderRead && styles.unreadConversation,
+                          ]}
+                        >
+                          {lastMessageText}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </Swipeable>
+              );
+            }}
+          />
+        </View>
+      )}
     </View>
   );
 };
