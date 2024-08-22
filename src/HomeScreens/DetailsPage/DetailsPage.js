@@ -23,6 +23,7 @@ import {
   getDocs,
   Timestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
@@ -65,7 +66,18 @@ const DetailsPage = ({ route }) => {
           const conversationSnap = await getDoc(conversationDocRef);
 
           if (conversationSnap.exists()) {
-            setMessageSent(true);
+            // Check if the message already exists
+            const messagesRef = collection(conversationDocRef, "messages");
+            const messageText = `Hello, I would like to adopt ${pet.name}.`;
+            const messageQuery = query(
+              messagesRef,
+              where("text", "==", messageText)
+            );
+            const messageSnap = await getDocs(messageQuery);
+
+            if (!messageSnap.empty) {
+              setMessageSent(true);
+            }
           }
         }
         setPetDetails(pet);
@@ -77,7 +89,7 @@ const DetailsPage = ({ route }) => {
     fetchPetDetails();
   }, [route.params]);
 
-  const handleOpenMessage = async () => {
+  const handleOpenMessage = () => {
     const userId = auth.currentUser.uid;
     const shelterId = petDetails.userId;
     const petId = petDetails.id;
@@ -147,9 +159,41 @@ const DetailsPage = ({ route }) => {
       const messageText = `Hello, I would like to adopt ${petDetails.name}.`;
 
       const conversationDocRef = doc(db, "conversations", conversationId);
-      const docSnap = await getDoc(conversationDocRef);
+      const conversationSnap = await getDoc(conversationDocRef);
 
-      if (!docSnap.exists()) {
+      if (conversationSnap.exists()) {
+        // Check if the message already exists
+        const messagesRef = collection(conversationDocRef, "messages");
+        const messageQuery = query(
+          messagesRef,
+          where("text", "==", messageText)
+        );
+        const messageSnap = await getDocs(messageQuery);
+
+        if (!messageSnap.empty) {
+          console.log("Message already exists.");
+          setMessageSent(true);
+          return; // Exit the function if the message already exists
+        } else {
+          // Add the message if it does not exist
+          await addDoc(messagesRef, {
+            text: messageText,
+            senderId: userId,
+            receiverId: shelterId,
+            timestamp: Timestamp.now(),
+          });
+
+          await updateDoc(conversationDocRef, {
+            lastMessage: messageText,
+            lastTimestamp: Timestamp.now(),
+            receiverRead: false,
+            senderRead: true,
+          });
+          console.log("Message sent successfully.");
+          setMessageSent(true);
+        }
+      } else {
+        // If conversation does not exist, create it and then add the message
         await setDoc(conversationDocRef, {
           participants: [userId, shelterId],
           petId: petId,
@@ -167,8 +211,8 @@ const DetailsPage = ({ route }) => {
           timestamp: Timestamp.now(),
         });
 
+        console.log("Conversation created and message sent.");
         setMessageSent(true);
-        console.log("Message sent successfully and conversation created.");
       }
 
       // Adding a small delay to ensure the message is saved
