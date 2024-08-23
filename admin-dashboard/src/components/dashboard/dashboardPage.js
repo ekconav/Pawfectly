@@ -1,9 +1,11 @@
 import React from "react";
+import Header from "../header/header";
 
 const Dashboard = () => {
   return (
     <div>
-      <h1>This is the dashboard page</h1>
+      <Header />
+      <h1>Dashboard Page</h1>
     </div>
   );
 };
