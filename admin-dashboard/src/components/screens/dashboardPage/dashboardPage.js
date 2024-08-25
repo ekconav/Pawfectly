@@ -1,7 +1,7 @@
 import React from "react";
-import Header from "../header/header";
+import Header from "../../header/header";
 
-const Dashboard = () => {
+const DashboardPage = () => {
   return (
     <div>
       <Header />
@@ -10,4 +10,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPage;
