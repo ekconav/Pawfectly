@@ -7,13 +7,20 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.outline,
     height: 80,
     alignItems: "center",
-    position: "relative", // Add relative positioning for dropdown
   },
-  navLinks: {
+  nav: {
+    display: "flex",
+    justifyContent: "space-between",
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+  },
+  navLinksContainer: {
     display: "flex",
     flexDirection: "row",
     gap: 80,
-    padding: 80,
+    alignItems: "center",
+    padding: 25,
   },
   titleLink: {
     textDecorationLine: "none",
@@ -45,22 +52,27 @@ const styles = StyleSheet.create({
     textDecorationLine: "none",
     color: COLORS.hover,
   },
+  profile: {
+    display: "flex",
+    alignItems: "center",
+    paddingRight: 20,
+  },
   profileContainer: {
-    position: "relative",
-    marginLeft: "auto", // Align to the right
-    marginRight: 20, // Space from the right edge
-    cursor: "pointer", // Indicate that it's clickable
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
   },
   profilePicture: {
-    width: 40,
-    height: 40,
-    borderRadius: 20, // Make it a circle
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 1,
-    borderColor: COLORS.title, // Optional: color of the border
+    borderColor: COLORS.title,
+    cursor: "pointer",
   },
   dropdownMenu: {
     position: "absolute",
-    top: 50, // Adjust based on the profile picture size
+    top: 50,
     right: 0,
     backgroundColor: "#fff",
     borderRadius: 4,
@@ -71,8 +83,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2, // Android shadow
-    zIndex: 10, // Make sure it appears on top
+    elevation: 2,
+    zIndex: 10,
   },
   dropdownItem: {
     paddingVertical: 10,
