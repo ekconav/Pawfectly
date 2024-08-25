@@ -101,12 +101,14 @@ const styles = StyleSheet.create({
   },
   noTextContainer: {
     flex: 1,
+    backgroundColor: COLORS.white,
     justifyContent: "center",
   },
   noFavoritesText: {
-    color: COLORS.black,
+    fontSize: 14,
     fontFamily: "Poppins_400Regular",
     textAlign: "center",
+    color: COLORS.title,
   },
   deleteButton: {
     backgroundColor: COLORS.delete,
