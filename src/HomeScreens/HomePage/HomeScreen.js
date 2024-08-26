@@ -303,11 +303,11 @@ const App = () => (
       component={SettingOptions}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <Ionicons name="settings-outline" color={color} size={size} />
+          <Ionicons name="person-outline" color={color} size={size} />
         ),
         tabBarActiveTintColor: COLORS.prim,
         headerShown: false,
-        tabBarLabel: "Settings",
+        tabBarLabel: "Profile",
       }}
     />
   </Tab.Navigator>

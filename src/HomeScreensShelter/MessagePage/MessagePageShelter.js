@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, Text, FlatList, TextInput, TouchableOpacity, Image } from "react-native";
 import { db, auth, storage } from "../../FirebaseConfig";
 import {
   collection,
@@ -19,10 +12,10 @@ import {
   updateDoc,
   getDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Import storage functions
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker"; // Import ImagePicker
+import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
 
 const MessagePageShelter = ({ route }) => {
@@ -40,12 +33,7 @@ const MessagePageShelter = ({ route }) => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const messagesRef = collection(
-          db,
-          "conversations",
-          conversationId,
-          "messages"
-        );
+        const messagesRef = collection(db, "conversations", conversationId, "messages");
         const q = query(messagesRef, orderBy("timestamp", "asc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
           const messagesData = snapshot.docs
@@ -64,21 +52,14 @@ const MessagePageShelter = ({ route }) => {
 
     const fetchConversation = async () => {
       try {
-        const conversationDoc = await getDoc(
-          doc(db, "conversations", conversationId)
-        );
+        const conversationDoc = await getDoc(doc(db, "conversations", conversationId));
         if (conversationDoc.exists()) {
           const senderId = conversationDoc
             .data()
-            .participants.find(
-              (participant) => participant !== currentUser.uid
-            );
+            .participants.find((participant) => participant !== currentUser.uid);
           fetchSenderName(senderId);
         } else {
-          console.error(
-            "Conversation document not found for conversationId:",
-            conversationId
-          );
+          console.error("Conversation document not found for conversationId:", conversationId);
         }
       } catch (error) {
         console.error("Error fetching conversation:", error);
@@ -114,10 +95,7 @@ const MessagePageShelter = ({ route }) => {
         if (shelterDoc.exists()) {
           setShelterAccountPicture(shelterDoc.data().accountPicture);
         } else {
-          console.error(
-            "Shelter document not found for shelterId: ",
-            currentUser.uid
-          );
+          console.error("Shelter document not found for shelterId: ", currentUser.uid);
         }
       } catch (error) {}
     };
@@ -146,12 +124,7 @@ const MessagePageShelter = ({ route }) => {
       return;
     }
     try {
-      const messagesRef = collection(
-        db,
-        "conversations",
-        conversationId,
-        "messages"
-      );
+      const messagesRef = collection(db, "conversations", conversationId, "messages");
       await addDoc(messagesRef, {
         text: newMessage,
         senderId: currentUser.uid,
@@ -198,12 +171,7 @@ const MessagePageShelter = ({ route }) => {
       const imageUrl = await getDownloadURL(imageRef);
       console.log("Image uploaded successfully:", imageUrl);
 
-      const messagesRef = collection(
-        db,
-        "conversations",
-        conversationId,
-        "messages"
-      );
+      const messagesRef = collection(db, "conversations", conversationId, "messages");
       await addDoc(messagesRef, {
         text: imageUrl,
         senderId: currentUser.uid,
@@ -267,9 +235,7 @@ const MessagePageShelter = ({ route }) => {
           ) : (
             <Text style={styles.messageText}>{item.text}</Text>
           )}
-          {messageTime ? (
-            <Text style={styles.messageTime}>{messageTime}</Text>
-          ) : null}
+          {messageTime ? <Text style={styles.messageTime}>{messageTime}</Text> : null}
         </View>
       </View>
     );
