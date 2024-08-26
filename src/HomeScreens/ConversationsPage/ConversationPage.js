@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { db, auth } from "../../FirebaseConfig";
 import {
   collection,
@@ -18,7 +18,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import styles from "./styles";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "../../const/colors";
-import { ActivityIndicator } from "react-native-paper";
 
 const DeleteButton = ({ onDelete }) => (
   <TouchableOpacity style={styles.slideDeleteButton} onPress={onDelete}>
@@ -37,6 +36,7 @@ const ConversationPage = ({ navigation }) => {
 
   useEffect(() => {
     const fetchConversations = async () => {
+      setLoading(true);
       try {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
@@ -99,10 +99,7 @@ const ConversationPage = ({ navigation }) => {
       if (shelterDoc.exists()) {
         return shelterDoc.data().accountPicture;
       } else {
-        console.error(
-          "Shelter document not found for receiverId: ",
-          receiverId
-        );
+        console.error("Shelter document not found for receiverId: ", receiverId);
         return "Unknown Shelter";
       }
     } catch (error) {
@@ -113,12 +110,7 @@ const ConversationPage = ({ navigation }) => {
 
   const getLastMessage = async (conversationId) => {
     try {
-      const messagesRef = collection(
-        db,
-        "conversations",
-        conversationId,
-        "messages"
-      );
+      const messagesRef = collection(db, "conversations", conversationId, "messages");
       const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
       const snapshot = await new Promise((resolve, reject) => {
         const unsubscribe = onSnapshot(
@@ -160,12 +152,7 @@ const ConversationPage = ({ navigation }) => {
 
   const handleDeleteConversation = async (conversationId) => {
     try {
-      const messagesRef = collection(
-        db,
-        "conversations",
-        conversationId,
-        "messages"
-      );
+      const messagesRef = collection(db, "conversations", conversationId, "messages");
 
       const deleteMessages = (snapshot) => {
         const deletePromises = snapshot.docs.map((msgDoc) =>
@@ -191,7 +178,6 @@ const ConversationPage = ({ navigation }) => {
   };
 
   const handleSwipeableOpen = (key) => {
-    // Close any previously open Swipeable component
     Object.keys(swipeableRefs.current).forEach((refKey) => {
       if (refKey !== key && swipeableRefs.current[refKey]) {
         swipeableRefs.current[refKey].close();
@@ -208,19 +194,16 @@ const ConversationPage = ({ navigation }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      doc(db, "users", auth.currentUser.uid),
-      (doc) => {
-        if (doc.exists()) {
-          const userData = doc.data();
-          setProfileImage(
-            userData.accountPicture
-              ? { uri: userData.accountPicture }
-              : require("../../components/user.png")
-          );
-        }
+    const unsubscribe = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        setProfileImage(
+          userData.accountPicture
+            ? { uri: userData.accountPicture }
+            : require("../../components/user.png")
+        );
       }
-    );
+    });
     return () => unsubscribe();
   }, []);
 
@@ -246,12 +229,9 @@ const ConversationPage = ({ navigation }) => {
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
       </View>
-
       {conversations.length === 0 ? (
         <View style={styles.noConversationsContainer}>
-          <Text style={styles.noConversationsText}>
-            You have no conversations.
-          </Text>
+          <Text style={styles.noConversationsText}>You have no conversations.</Text>
         </View>
       ) : (
         <View>
@@ -277,24 +257,13 @@ const ConversationPage = ({ navigation }) => {
                     }
                   }}
                   renderRightActions={() => (
-                    <DeleteButton
-                      onDelete={() => handleDeleteConversation(item.id)}
-                    />
+                    <DeleteButton onDelete={() => handleDeleteConversation(item.id)} />
                   )}
                   onSwipeableOpen={() => handleSwipeableOpen(item.id)}
                 >
                   <TouchableOpacity
-                    style={[
-                      styles.conversationItem,
-                      !item.senderRead && styles.unreadConversation,
-                    ]}
-                    onPress={() =>
-                      navigateToMessages(
-                        item.id,
-                        item.petId,
-                        item.participants[1]
-                      )
-                    }
+                    style={[styles.conversationItem, !item.senderRead && styles.unreadConversation]}
+                    onPress={() => navigateToMessages(item.id, item.petId, item.participants[1])}
                   >
                     <View style={styles.shelterInfoContainer}>
                       <Image
