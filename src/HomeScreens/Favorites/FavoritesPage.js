@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { auth, db } from "../../FirebaseConfig";
 import {
   collection,
@@ -26,7 +19,6 @@ import { Swipeable } from "react-native-gesture-handler";
 
 const FavoritesPage = () => {
   const [favoritePets, setFavoritePets] = useState([]);
-  const [firstName, setFirstName] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
@@ -39,17 +31,15 @@ const FavoritesPage = () => {
 
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       try {
-        const petDetailsPromises = querySnapshot.docs.map(
-          async (favoriteDoc) => {
-            const petId = favoriteDoc.data().petId;
-            const petRef = doc(db, "pets", petId);
-            const petDoc = await getDoc(petRef);
-            if (petDoc.exists()) {
-              return { id: petId, ...petDoc.data() };
-            }
-            return null;
+        const petDetailsPromises = querySnapshot.docs.map(async (favoriteDoc) => {
+          const petId = favoriteDoc.data().petId;
+          const petRef = doc(db, "pets", petId);
+          const petDoc = await getDoc(petRef);
+          if (petDoc.exists()) {
+            return { id: petId, ...petDoc.data() };
           }
-        );
+          return null;
+        });
 
         const petDetailsArray = await Promise.all(petDetailsPromises);
         setFavoritePets(petDetailsArray.filter(Boolean));
@@ -64,20 +54,16 @@ const FavoritesPage = () => {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      doc(db, "users", auth.currentUser.uid),
-      (doc) => {
-        if (doc.exists()) {
-          const userData = doc.data();
-          setProfileImage(
-            userData.accountPicture
-              ? { uri: userData.accountPicture }
-              : require("../../components/user.png")
-          );
-          setFirstName(userData.firstName || "");
-        }
+    const unsubscribe = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        setProfileImage(
+          userData.accountPicture
+            ? { uri: userData.accountPicture }
+            : require("../../components/user.png")
+        );
       }
-    );
+    });
     return () => unsubscribe();
   }, []);
 
@@ -107,10 +93,7 @@ const FavoritesPage = () => {
 
   const renderItem = ({ item }) => {
     const renderRightActions = () => (
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => handleDelete(item.id)}
-      >
+      <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
         <Ionicons style={styles.deleteIcon} name="trash-outline" size={24} />
       </TouchableOpacity>
     );
@@ -150,11 +133,7 @@ const FavoritesPage = () => {
                 </View>
                 <View style={styles.addressContainer}>
                   <View style={styles.iconAddress}>
-                    <Ionicons
-                      name="location-outline"
-                      size={24}
-                      color={COLORS.prim}
-                    />
+                    <Ionicons name="location-outline" size={24} color={COLORS.prim} />
                     <Text style={styles.petAddress}>{item.location}</Text>
                   </View>
                 </View>
@@ -176,18 +155,12 @@ const FavoritesPage = () => {
       </View>
       {favoritePets.length === 0 ? (
         <View style={styles.noTextContainer}>
-          <Text style={styles.noFavoritesText}>
-            Uh oh, choose a lovely pet now!
-          </Text>
+          <Text style={styles.noFavoritesText}>Uh oh, choose a lovely pet now!</Text>
         </View>
       ) : (
         <View style={styles.mainContainer}>
           <Text style={styles.pageTitle}>Your Favorite Pets</Text>
-          <FlatList
-            data={favoritePets}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-          />
+          <FlatList data={favoritePets} renderItem={renderItem} keyExtractor={(item) => item.id} />
         </View>
       )}
     </View>

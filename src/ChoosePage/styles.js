@@ -37,12 +37,12 @@ const styles = StyleSheet.create({
     width: 130,
   },
   buttonText: {
-    color: "#fff",
+    color: COLORS.white,
     fontSize: 11,
     fontFamily: "Poppins_700Bold",
   },
   buttonTextShelter: {
-    color: "#fff",
+    color: COLORS.white,
     fontSize: 11,
     fontFamily: "Poppins_700Bold",
   },
