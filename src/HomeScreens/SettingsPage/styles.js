@@ -6,6 +6,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: COLORS.white,
   },
+  loadingContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    backgroundColor: COLORS.white,
+  },
   coverPhoto: {
     height: 160,
     width: "100%",
