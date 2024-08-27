@@ -167,6 +167,7 @@ const SignupPage = () => {
           email: userEmail,
           verified: false,
           governmentId: governmentIdUrl,
+          termsAccepted: true,
         });
 
         navigation.navigate("LoginPage");

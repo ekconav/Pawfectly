@@ -124,7 +124,6 @@ const SettingsPage = () => {
 
             setPets(furbabiesData);
 
-            setLoading(true);
             await Promise.all(
               furbabiesData.map(async (pet, index) => {
                 const imageUrl = await getDownloadURL(ref(storage, pet.image));
@@ -135,7 +134,6 @@ const SettingsPage = () => {
                 });
               })
             );
-            setLoading(false);
           } catch (error) {
             console.error("Error fetching furbabies data: ", error);
           } finally {
@@ -403,6 +401,14 @@ const SettingsPage = () => {
       console.error("Error signing out:", error.message);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.prim} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
