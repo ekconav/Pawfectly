@@ -188,6 +188,7 @@ const SignupShelter = () => {
           email: shelterEmail,
           governmentId: governmentIdUrl,
           businessPermit: businessPermitUrl,
+          verified: false,
         });
 
         navigation.navigate("LoginPage");
