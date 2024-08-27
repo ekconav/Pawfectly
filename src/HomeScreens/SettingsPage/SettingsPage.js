@@ -379,7 +379,6 @@ const SettingsPage = () => {
     } else if (option === "Request Account Deletion") {
       navigation.navigate("Request Account Deletion");
     }
-    console.log(option);
   };
 
   const handleOverlayPress = () => {
