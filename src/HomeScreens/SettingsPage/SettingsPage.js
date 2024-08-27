@@ -153,42 +153,6 @@ const SettingsPage = () => {
     return () => unsubscribeAuth();
   }, []);
 
-  // For profile account picture
-  const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      const { uri } = result.assets[0];
-      const user = auth.currentUser;
-
-      if (user) {
-        setLoading(true);
-        try {
-          const response = await fetch(uri);
-          const blob = await response.blob();
-          const storageRef = ref(storage, `profilePictures/${user.uid}`);
-          await uploadBytes(storageRef, blob);
-
-          const downloadURL = await getDownloadURL(storageRef);
-
-          const docRef = doc(db, "users", user.uid);
-          await updateDoc(docRef, {
-            accountPicture: downloadURL,
-          });
-          setProfileImage({ uri: downloadURL });
-        } catch (error) {
-          console.error("Error uploading profile picture: ", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    }
-  };
-
   // For profile cover photo
   const handlePickCover = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -404,9 +368,7 @@ const SettingsPage = () => {
     setIsSettingModalVisible(false);
     if (option === "Logout") {
       handleLogout();
-    } else if (option === "Account") {
-      navigation.navigate("Account");
-    } else if (option === "About") {
+    } else if (option === "About Pawfectly") {
       navigation.navigate("About");
     } else if (option === "Change Password") {
       navigation.navigate("Change Password");
@@ -445,13 +407,16 @@ const SettingsPage = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.coverPhotoContainer}>
+      <View>
         <TouchableOpacity onPress={handlePickCover}>
           <Image source={coverImage} style={styles.coverPhoto} />
         </TouchableOpacity>
       </View>
       <View style={styles.profileImageContainer}>
-        <TouchableOpacity style={styles.profileButton} onPress={handlePickImage}>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => navigation.navigate("Account")}
+        >
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
         <TouchableOpacity
@@ -649,8 +614,7 @@ const SettingsPage = () => {
         >
           <View style={styles.dropdownMenu}>
             {[
-              "Account",
-              "About",
+              "About Pawfectly",
               "Change Password",
               "Terms of Service",
               "Privacy Policy",

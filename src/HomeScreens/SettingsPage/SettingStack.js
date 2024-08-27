@@ -6,7 +6,7 @@ import ChangePassScreen from "./Setting Options/ChangePassPage";
 import TOSScreen from "./Setting Options/TOS";
 import PrivacyScreen from "./Setting Options/PrivacyPage";
 import DeleteAccScreen from "./Setting Options/DeleteAccPage";
-import AccountScreen from "./Setting Options/AccountPage";
+import AccountScreen from "./Setting Options/Account Page/AccountPage";
 import EditAccountScreen from "./Setting Options/EditAccountPage";
 
 const Stack = createStackNavigator();
@@ -20,7 +20,7 @@ export const SettingOptions = () => {
       <Stack.Screen name="Terms of Service" component={TOSScreen} />
       <Stack.Screen name="Privacy Policy" component={PrivacyScreen} />
       <Stack.Screen name="Request Account Deletion" component={DeleteAccScreen} />
-      <Stack.Screen name="Account" component={AccountScreen} />
+      <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Edit Account" component={EditAccountScreen} />
     </Stack.Navigator>
   );

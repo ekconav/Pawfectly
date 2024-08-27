@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 10,
     elevation: 5,
-    height: 275,
+    height: 235,
     top: 180,
   },
   dropdownItem: {
