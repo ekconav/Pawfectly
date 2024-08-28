@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaView, StatusBar } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { auth } from "./src/FirebaseConfig";
+import { auth, db } from "./src/FirebaseConfig";
 import UserStack from "./src/UserStack";
 import ShelterStack from "./src/ShelterStack";
 import LandingPage from "./src/LandingPage/LandingPage";
@@ -22,11 +22,12 @@ import {
 } from "@expo-google-fonts/poppins";
 import COLORS from "./src/const/colors";
 import * as NavigationBar from "expo-navigation-bar";
+import { doc, getDoc } from "firebase/firestore";
 
 const Stack = createStackNavigator();
 
 const App = () => {
-  const [userEmail, setUserEmail] = useState("");
+  const [userType, setUserType] = useState("");
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -35,11 +36,23 @@ const App = () => {
   });
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        setUserEmail(user.email);
+        const userDocRef = doc(db, "users", user.uid);
+        const shelterDocRef = doc(db, "shelters", user.uid);
+
+        const userDoc = await getDoc(userDocRef);
+        const shelterDoc = await getDoc(shelterDocRef);
+
+        if (userDoc.exists()) {
+          setUserType("user");
+        } else if (shelterDoc.exists()) {
+          setUserType("shelter");
+        } else {
+          setUserType("");
+        }
       } else {
-        setUserEmail("");
+        setUserType("");
       }
     });
 
@@ -48,16 +61,8 @@ const App = () => {
 
   useEffect(() => {
     NavigationBar.setBackgroundColorAsync(COLORS.white);
-    NavigationBar.setButtonStyleAsync("dark"); 
+    NavigationBar.setButtonStyleAsync("dark");
   }, []);
-
-  const isUserEmail = (email) => {
-    return email && email.endsWith("@user.com");
-  };
-
-  const isShelterEmail = (email) => {
-    return email && email.endsWith("@shelter.com");
-  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -102,13 +107,13 @@ const App = () => {
               options={{ headerShown: false }}
             />
 
-            {isUserEmail(userEmail) ? (
+            {userType === "user" ? (
               <Stack.Screen
                 name="UserStack"
                 component={UserStack}
                 options={{ headerShown: false }}
               />
-            ) : isShelterEmail(userEmail) ? (
+            ) : userType === "shelter" ? (
               <Stack.Screen
                 name="ShelterStack"
                 component={ShelterStack}

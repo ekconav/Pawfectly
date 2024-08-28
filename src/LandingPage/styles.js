@@ -11,10 +11,9 @@ const styles = StyleSheet.create({
   },
   landingPageTitle: {
     fontSize: 24,
-    marginBottom: 20,
+    marginBottom: 60,
     textAlign: "center",
     color: COLORS.title,
-    paddingBottom: 40,
     fontFamily: "Poppins_700Bold",
   },
   landingPageImageContainer: {
@@ -29,23 +28,25 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-  landingPageSubtitle: {
-    fontSize: 15,
-    fontFamily: "Poppins_400Regular",
-    textAlign: "center",
-    marginBottom: 20,
-    color: COLORS.subtitle,
-    paddingTop: 50,
+  textContainer: {
+    alignItems: "center",
+    marginVertical: 20,
   },
-  boldText: {
-    fontSize: 24,
+  title: {
+    fontSize: 20,
     fontFamily: "Poppins_700Bold",
     color: COLORS.title,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
+    color: COLORS.subtitle,
   },
   landingPageButton: {
     backgroundColor: COLORS.prim,
     paddingVertical: 15,
-    paddingHorizontal: 50,
+    paddingHorizontal: 40,
     borderRadius: 10,
   },
   landingPageButtonText: {

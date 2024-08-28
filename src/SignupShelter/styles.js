@@ -66,12 +66,6 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     borderRadius: 10,
   },
-  shelterSignUpEmailSuffix: {
-    marginLeft: 10,
-    fontFamily: "Poppins_400Regular",
-    color: COLORS.title,
-    paddingTop: 6,
-  },
   shelterSignUpButton: {
     backgroundColor: COLORS.prim,
     paddingVertical: 10,
@@ -182,6 +176,28 @@ const styles = StyleSheet.create({
   shelterSignUpEmailAd: {
     color: COLORS.prim,
     fontFamily: "Poppins_500Medium",
+  },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  buttonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

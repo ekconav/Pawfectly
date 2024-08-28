@@ -4,13 +4,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from "react-native";
+import { doc, getDoc } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../FirebaseConfig";
-import styles from "../Loginpage/style";
+import { auth, db } from "../FirebaseConfig";
+import Modal from "react-native-modal";
+import styles from "./style";
 import COLORS from "../const/colors";
 
 const LoginPage = () => {
@@ -18,37 +19,52 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   const handleLogin = async () => {
     if (email && password) {
+      setLoading(true);
+
       try {
-        setLoading(true);
         const userCredential = await signInWithEmailAndPassword(
           auth,
           email,
           password
         );
-        setLoading(false);
+        const userUID = userCredential.user.uid;
 
-        const userEmail = userCredential.user.email;
+        const userDocRef = doc(db, "users", userUID);
+        const shelterDocRef = doc(db, "shelters", userUID);
 
-        if (userEmail.endsWith("@user.com")) {
+        const userDoc = await getDoc(userDocRef);
+        const shelterDoc = await getDoc(shelterDocRef);
+
+        if (userDoc.exists()) {
           console.log("User logged in");
-        } else if (userEmail.endsWith("@shelter.com")) {
+          navigation.navigate("UserStack");
+        } else if (shelterDoc.exists()) {
           console.log("Shelter logged in");
+          navigation.navigate("ShelterStack");
         } else {
-          console.log("Unknown user logged in");
+          setModalMessage("Email is not registered.");
+          setAlertModal(true);
         }
-        navigation.navigate(
-          userEmail.endsWith("@user.com") ? "UserStack" : "ShelterStack"
-        );
       } catch (error) {
+        if (error.message.includes("auth/invalid-credential")) {
+          setModalMessage("Please check your email and password.");
+        } else if (error.message.includes("auth/invalid-email")) {
+          setModalMessage("Please provide a valid email.");
+        } else {
+          setModalMessage("Error logging in. Please try again.");
+        }
+        setAlertModal(true);
+      } finally {
         setLoading(false);
-        console.error("Sign-in Error:", error.message);
-        Alert.alert("Oopss!", "Please Check Your Email and Password");
       }
     } else {
-      Alert.alert("Error", "Please fill in all fields.");
+      setModalMessage("Please fill in all fields.");
+      setAlertModal(true);
     }
   };
 
@@ -73,6 +89,7 @@ const LoginPage = () => {
         style={styles.loginPageInput}
         onChangeText={(value) => setEmail(value)}
         value={email}
+        keyboardType="email-address"
       />
       <Text style={styles.loginPageInputLabel}>Password</Text>
       <TextInput
@@ -92,6 +109,19 @@ const LoginPage = () => {
           Sign up here
         </Text>
       </Text>
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
