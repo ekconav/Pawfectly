@@ -374,7 +374,7 @@ const SettingsPage = () => {
       navigation.navigate("Terms of Service");
     } else if (option === "Privacy Policy") {
       navigation.navigate("Privacy Policy");
-    } else if (option === "Request Account Deletion") {
+    } else if (option === "Delete Account") {
       navigation.navigate("Request Account Deletion");
     }
   };
@@ -623,7 +623,7 @@ const SettingsPage = () => {
               "Change Password",
               "Terms of Service",
               "Privacy Policy",
-              "Request Account Deletion",
+              "Delete Account",
               "Logout",
             ].map((option, index) => (
               <TouchableOpacity

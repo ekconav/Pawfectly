@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   dropdownMenu: {
-    width: 180,
+    width: 135,
     backgroundColor: "white",
     borderRadius: 8,
     paddingVertical: 10,

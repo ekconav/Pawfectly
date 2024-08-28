@@ -102,7 +102,7 @@ const ChangePassPage = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <Modal isVisible={isModalVisible} animationType="fade">
+      <Modal isVisible={isModalVisible}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalText}>{modalMessage}</Text>
           <View style={styles.buttonContainer}>
