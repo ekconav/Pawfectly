@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
@@ -49,6 +48,8 @@ const SignupPage = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsOfServiceModalVisible, setTermsOfServiceModalVisible] =
     useState(false);
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
 
   const addUserToFirestore = async (userId, userData) => {
@@ -104,22 +105,28 @@ const SignupPage = () => {
       mobileNumber &&
       confirmPassword
     ) {
+      if (!email.includes("@")) {
+        setModalMessage("Please enter a valid email address.");
+        setAlertModal(true);
+        return;
+      }
+
       if (password !== confirmPassword) {
-        Alert.alert("", "Passwords do not match. Please try again.");
+        setModalMessage("Passwords do not match. Please try again.");
+        setAlertModal(true);
         return;
       }
 
       if (!imageUri) {
-        Alert.alert(
-          "",
-          "Please upload a government ID picture before registering."
-        );
+        setModalMessage("Please upload a government ID picture before registering.");
+        setAlertModal(true);
         return;
       }
 
       setModalVisible(true);
     } else {
-      Alert.alert("", "Please fill in all fields.");
+      setModalMessage("Please fill in all fields.");
+      setAlertModal(true);
     }
   };
 
@@ -130,17 +137,12 @@ const SignupPage = () => {
       try {
         console.log("Starting signup process...");
 
-        const userEmail = email.trim() + "@user.com";
-        console.log("Creating user with email:", userEmail);
-
         const userCredential = await createUserWithEmailAndPassword(
           auth,
-          userEmail,
+          email,
           password
         );
         const user = userCredential.user;
-        console.log("User created successfully:", user);
-
         const fullMobileNumber = `+63${mobileNumber}`;
         let governmentIdUrl = "";
 
@@ -154,8 +156,8 @@ const SignupPage = () => {
             governmentIdUrl = await getDownloadURL(fileRef);
             console.log("Image uploaded and URL retrieved:", governmentIdUrl);
           } catch (uploadError) {
-            console.error("Error uploading image:", uploadError.message);
-            Alert.alert("", "Error uploading image. Please try again.");
+            setModalMessage("Error uploading image. Please try again.");
+            setAlertModal(true);
           }
         }
 
@@ -164,27 +166,33 @@ const SignupPage = () => {
           lastName: lastName,
           mobileNumber: fullMobileNumber,
           address: address,
-          email: userEmail,
+          email: email,
           verified: false,
           governmentId: governmentIdUrl,
           termsAccepted: true,
         });
 
-        navigation.navigate("LoginPage");
-        Alert.alert("", "Signup Successful", [
-          {
-            text: "OK",
-          },
-        ]);
+        setModalMessage("Signup Successful.");
+        setAlertModal(true);
+        setTimeout(() => {
+          navigation.navigate("LoginPage");
+        }, 2000);
       } catch (error) {
-        console.error("Signup Error:", error.message);
-        Alert.alert("", "Error signing up. Please try again.");
+        if (error.message.includes("auth/email-already-in-use")) {
+          setModalMessage("Error signing up. Email already in use.");
+        } else if (error.message.includes("auth/weak-password")) {
+          setModalMessage("Password is too weak. Password should be at least 6 characters.");
+        } else {
+          setModalMessage("Error logging in. Please try again.");
+        }
+        setAlertModal(true);
       } finally {
         setLoading(false);
         setModalVisible(false);
       }
     } else {
-      Alert.alert("", "You must agree to the terms of service to sign up.");
+      setModalMessage("You must agree to the terms of service to sign up.");
+      setAlertModal(true);
     }
   };
 
@@ -194,6 +202,13 @@ const SignupPage = () => {
 
   const handleCloseTermsOfServiceModal = () => {
     setTermsOfServiceModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    if (modalVisible) {
+      setTermsAccepted(false);
+    }
+    setModalVisible(false);
   };
 
   return (
@@ -221,8 +236,13 @@ const SignupPage = () => {
           <View style={styles.signUpPageMobileInput}>
             <Text style={styles.signUpPageCountryCodeOverlay}>+63</Text>
             <TextInput
-              style={[styles.signUpPageMobileNumberInput]}
-              onChangeText={(text) => setMobileNumber(text)}
+              style={styles.signUpPageMobileNumberInput}
+              onChangeText={(text) => {
+                if (text.startsWith("0")) {
+                  text = text.slice(1);
+                }
+                setMobileNumber(text);
+              }}
               value={mobileNumber}
               keyboardType="phone-pad"
               maxLength={10}
@@ -239,18 +259,12 @@ const SignupPage = () => {
         </View>
         <View style={styles.signUpPageInputContainer}>
           <Text style={styles.signUpPageLabel}>Email Address</Text>
-          <View style={styles.signUpPageEmailInput}>
-            <TextInput
-              style={[
-                styles.signUpPageinput,
-                { flex: 1, backgroundColor: "none" },
-              ]}
-              onChangeText={(value) => setEmail(value)}
-              value={email}
-              keyboardType="email-address"
-            />
-            <Text style={styles.signUpPageEmailSuffix}>@user.com</Text>
-          </View>
+          <TextInput
+            style={styles.signUpPageinput}
+            onChangeText={(value) => setEmail(value)}
+            value={email}
+            keyboardType="email-address"
+          />
         </View>
         <View style={styles.signUpPageInputContainer}>
           <Text style={styles.signUpPageLabel}>Password</Text>
@@ -271,9 +285,7 @@ const SignupPage = () => {
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>
-            Picture of any Government ID
-          </Text>
+          <Text style={styles.signUpPageLabel}>Picture of any Government ID</Text>
           <TouchableOpacity
             style={styles.signUpPageFileUpload}
             onPress={handlePickImage}
@@ -313,10 +325,7 @@ const SignupPage = () => {
         <View style={styles.signUpPageModalContent}>
           <Text style={styles.signUpPageModalTitle}>
             By using Pawfectly Adoptable, you agree to these{" "}
-            <Text
-              style={styles.signUpPageLink}
-              onPress={handleShowTermsOfService}
-            >
+            <Text style={styles.signUpPageLink} onPress={handleShowTermsOfService}>
               Terms of Service
             </Text>
             .
@@ -335,7 +344,7 @@ const SignupPage = () => {
           <View style={styles.signUpPageButtonContainer}>
             <TouchableOpacity
               style={styles.signUpPageModalCancelButton}
-              onPress={() => setModalVisible(false)}
+              onPress={handleCancel}
             >
               <Text style={styles.signUpPageModalCancelButtonText}>Cancel</Text>
             </TouchableOpacity>
@@ -343,9 +352,7 @@ const SignupPage = () => {
               style={styles.signUpPageModalConfirmButton}
               onPress={handleConfirmSignup}
             >
-              <Text style={styles.signUpPageModalConfirmButtonText}>
-                Confirm
-              </Text>
+              <Text style={styles.signUpPageModalConfirmButtonText}>Confirm</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -359,9 +366,7 @@ const SignupPage = () => {
                 <Text style={styles.signUpPageSubtitle}>
                   {item.order}. {item.title}
                 </Text>
-                <Text style={styles.signUpPageDescription}>
-                  {item.description}
-                </Text>
+                <Text style={styles.signUpPageDescription}>{item.description}</Text>
               </View>
             ))}
             <View style={styles.signUpPageTextContainer}>
@@ -378,6 +383,19 @@ const SignupPage = () => {
           >
             <Text style={styles.signUpPageModalCancelButtonText}>Close</Text>
           </TouchableOpacity>
+        </View>
+      </Modal>
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </KeyboardAvoidingView>

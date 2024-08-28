@@ -1,12 +1,6 @@
 import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  SafeAreaView,
-} from "react-native";
-import styles from "../LandingPage/styles";
+import { View, Text, Image, TouchableOpacity, SafeAreaView } from "react-native";
+import styles from "./styles";
 
 const LandingPage = ({ navigation }) => {
   return (
@@ -18,11 +12,10 @@ const LandingPage = ({ navigation }) => {
           source={require("../components/forImageContainer.jpeg")}
         />
       </View>
-      <Text style={styles.landingPageSubtitle}>
-        <Text style={styles.boldText}>Find Your New Friends</Text>
-        {"\n"}
-        Make your life more happy with us
-      </Text>
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>Adopt a Furry Friend Today!</Text>
+        <Text style={styles.subtitle}>Unleash Happiness with Every Paw Print</Text>
+      </View>
 
       <TouchableOpacity
         style={styles.landingPageButton}
