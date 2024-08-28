@@ -7,6 +7,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     padding: 20,
   },
+  loading: {
+    flex: 1,
+    justifyContent: "center"
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -27,6 +31,8 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 100,
     overflow: "hidden",
+    elevation: 1,
+    backgroundColor: COLORS.white,
   },
   profileImage: {
     width: "100%",
@@ -39,6 +45,7 @@ const styles = StyleSheet.create({
     padding: 10,
     bottom: 40,
     left: 50,
+    elevation: 1,
   },
   textInputContainers: {
     flexDirection: "column",
@@ -73,6 +80,7 @@ const styles = StyleSheet.create({
     padding: 10,
     width: 100,
     borderRadius: 10,
+    elevation: 1,
   },
   buttonContainer: {
     marginTop: 20,

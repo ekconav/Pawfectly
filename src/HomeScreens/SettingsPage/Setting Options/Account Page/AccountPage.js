@@ -8,6 +8,7 @@ import {
   Image,
   KeyboardAvoidingView,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { db, auth, storage } from "../../../../FirebaseConfig";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -26,6 +27,7 @@ const AccountPage = () => {
   const [address, setAddress] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -36,11 +38,15 @@ const AccountPage = () => {
       getDoc(userDocRef).then((docSnap) => {
         if (docSnap.exists()) {
           const userData = docSnap.data();
-          setAccountPicture({ uri: userData.accountPicture });
           setFirstName(userData.firstName);
           setLastName(userData.lastName);
           setAddress(userData.address);
           setMobileNumber(userData.mobileNumber);
+          if (userData.accountPicture) {
+            setAccountPicture({ uri: userData.accountPicture });
+          } else {
+            setAccountPicture(require("../../../../components/user.png"));
+          }
         } else {
           console.log("No such document");
         }
@@ -84,6 +90,7 @@ const AccountPage = () => {
       const user = auth.currentUser;
 
       if (user) {
+        setLoading(true);
         try {
           const response = await fetch(uri);
           const blob = await response.blob();
@@ -99,6 +106,8 @@ const AccountPage = () => {
           setAccountPicture({ uri: downloadURL });
         } catch (error) {
           console.error("Error uploading profile picture: ", error);
+        } finally {
+          setLoading(false);
         }
       }
     }
@@ -115,7 +124,11 @@ const AccountPage = () => {
         </View>
         <View style={styles.accountContainer}>
           <TouchableOpacity style={styles.pictureButton} onPress={() => setImageModalVisible(true)}>
-            <Image source={accountPicture} style={styles.profileImage} />
+            {loading ? (
+              <ActivityIndicator style={styles.loading} size="large" color={COLORS.prim} />
+            ) : (
+              <Image source={accountPicture} style={styles.profileImage} />
+            )}
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconImageButton} onPress={handlePickImage}>
             <Ionicons name="image-outline" size={24} color={COLORS.white} />
