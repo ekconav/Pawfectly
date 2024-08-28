@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { auth, db } from "../../FirebaseConfig";
 import {
   collection,
@@ -24,33 +31,40 @@ const FavoritesPage = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const userId = auth.currentUser.uid;
+    const user = auth.currentUser;
 
-    const favoritesRef = collection(db, "favorites");
-    const q = query(favoritesRef, where("userId", "==", userId));
+    if (user) {
+      const favoritesRef = collection(db, "users", user.uid, "favorites");
 
-    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
-      try {
-        const petDetailsPromises = querySnapshot.docs.map(async (favoriteDoc) => {
-          const petId = favoriteDoc.data().petId;
-          const petRef = doc(db, "pets", petId);
-          const petDoc = await getDoc(petRef);
-          if (petDoc.exists()) {
-            return { id: petId, ...petDoc.data() };
-          }
-          return null;
-        });
+      const unsubscribe = onSnapshot(favoritesRef, async (querySnapshot) => {
+        try {
+          const petDetailsPromises = querySnapshot.docs.map(async (favoriteDoc) => {
+            const petId = favoriteDoc.data().petId;
+            const petRef = doc(db, "pets", petId);
+            const petDoc = await getDoc(petRef);
+            if (petDoc.exists()) {
+              return { id: petId, ...petDoc.data() };
+            }
+            return null;
+          });
 
-        const petDetailsArray = await Promise.all(petDetailsPromises);
-        setFavoritePets(petDetailsArray.filter(Boolean));
-      } catch (error) {
-        console.error("Error fetching favorite pets:", error);
-      } finally {
-        setLoading(false);
-      }
-    });
+          const petDetailsArray = await Promise.all(petDetailsPromises);
+          setFavoritePets(petDetailsArray.filter(Boolean));
+        } catch (error) {
+          console.error("Error fetching favorite pets: ", error);
+        } finally {
+          setLoading(false);
+        }
+      });
 
-    return () => unsubscribe();
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -68,18 +82,21 @@ const FavoritesPage = () => {
   }, []);
 
   const handleDelete = async (petId) => {
-    try {
-      const favoritesRef = collection(db, "favorites");
-      const q = query(favoritesRef, where("petId", "==", petId));
-      const querySnapshot = await getDocs(q);
+    const user = auth.currentUser;
 
-      querySnapshot.forEach(async (doc) => {
-        await deleteDoc(doc.ref);
-      });
+    if (user) {
+      const favoritesRef = collection(db, "users", user.uid, "favorites");
+      try {
+        const q = query(favoritesRef, where("petId", "==", petId));
+        const querySnapshot = await getDocs(q);
 
-      setFavoritePets((prevPets) => prevPets.filter((pet) => pet.id !== petId));
-    } catch (error) {
-      console.error("Error deleting favorite pet:", error);
+        querySnapshot.forEach(async (doc) => {
+          await deleteDoc(doc.ref);
+        });
+        setFavoritePets((prevPets) => prevPets.filter((pet) => pet.id !== petId));
+      } catch (error) {
+        console.error("Error deleting favorite pet: ", error);
+      }
     }
   };
 
@@ -93,7 +110,10 @@ const FavoritesPage = () => {
 
   const renderItem = ({ item }) => {
     const renderRightActions = () => (
-      <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => handleDelete(item.id)}
+      >
         <Ionicons style={styles.deleteIcon} name="trash-outline" size={24} />
       </TouchableOpacity>
     );
@@ -133,7 +153,11 @@ const FavoritesPage = () => {
                 </View>
                 <View style={styles.addressContainer}>
                   <View style={styles.iconAddress}>
-                    <Ionicons name="location-outline" size={24} color={COLORS.prim} />
+                    <Ionicons
+                      name="location-outline"
+                      size={24}
+                      color={COLORS.prim}
+                    />
                     <Text style={styles.petAddress}>{item.location}</Text>
                   </View>
                 </View>
@@ -160,7 +184,11 @@ const FavoritesPage = () => {
       ) : (
         <View style={styles.mainContainer}>
           <Text style={styles.pageTitle}>Your Favorite Pets</Text>
-          <FlatList data={favoritePets} renderItem={renderItem} keyExtractor={(item) => item.id} />
+          <FlatList
+            data={favoritePets}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+          />
         </View>
       )}
     </View>

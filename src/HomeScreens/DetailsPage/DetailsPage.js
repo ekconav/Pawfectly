@@ -104,34 +104,30 @@ const DetailsPage = ({ route }) => {
   };
 
   const handleFavorite = async () => {
-    try {
-      const userId = auth.currentUser.uid;
-      const petId = petDetails.id;
+    const user = auth.currentUser;
+    const petId = petDetails.id;
 
-      const favoritesRef = collection(db, "favorites");
+    if (user) {
+      const favoritesRef = collection(db, "users", user.uid, "favorites");
+      try {
+        const q = query(favoritesRef, where("petId", "==", petId));
+        const querySnapshot = await getDocs(q);
 
-      const q = query(
-        favoritesRef,
-        where("userId", "==", userId),
-        where("petId", "==", petId)
-      );
-      const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          Alert.alert("", "This pet is already in your favorites.");
+          return;
+        }
 
-      if (!querySnapshot.empty) {
-        Alert.alert("", "This pet is already in your favorites.");
-        return;
+        await addDoc(favoritesRef, {
+          petId: petId,
+        });
+
+        console.log("Favorite pet added successfully.");
+      } catch (error) {
+        console.error("Error adding favorite: ", error);
       }
-
-      await addDoc(favoritesRef, {
-        userId: userId,
-        petId: petId,
-      });
-
-      console.log("Favorite added successfully");
-    } catch (error) {
-      console.error("Error adding favorite: ", error);
+      navigation.navigate("Favorites");
     }
-    navigation.navigate("Favorites");
   };
 
   const handleCall = async () => {
@@ -164,10 +160,7 @@ const DetailsPage = ({ route }) => {
       if (conversationSnap.exists()) {
         // Check if the message already exists
         const messagesRef = collection(conversationDocRef, "messages");
-        const messageQuery = query(
-          messagesRef,
-          where("text", "==", messageText)
-        );
+        const messageQuery = query(messagesRef, where("text", "==", messageText));
         const messageSnap = await getDocs(messageQuery);
 
         if (!messageSnap.empty) {
@@ -247,11 +240,7 @@ const DetailsPage = ({ route }) => {
           style={styles.overlayButton}
         >
           <View style={styles.arrowContainer}>
-            <Ionicons
-              name="arrow-back-outline"
-              size={24}
-              color={COLORS.title}
-            />
+            <Ionicons name="arrow-back-outline" size={24} color={COLORS.title} />
           </View>
         </TouchableOpacity>
       </View>
