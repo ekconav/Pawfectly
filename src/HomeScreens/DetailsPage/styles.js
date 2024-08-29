@@ -84,14 +84,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   shelterInfo: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 5,
   },
   shelterImage: {
     width: 50,
     height: 50,
     borderRadius: 25,
+  },
+  shelterTextContainer: {
+    flex: 1,
   },
   shelterName: {
     fontFamily: "Poppins_600SemiBold",

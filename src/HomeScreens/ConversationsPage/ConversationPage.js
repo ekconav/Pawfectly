@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import { db, auth } from "../../FirebaseConfig";
 import {
   collection,
@@ -40,7 +47,12 @@ const ConversationPage = ({ navigation }) => {
       try {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
-        const conversationsRef = collection(db, "conversations");
+        const conversationsRef = collection(
+          db,
+          "users",
+          currentUser.uid,
+          "conversations"
+        );
         const q = query(
           conversationsRef,
           where("participants", "array-contains", currentUser.uid),
@@ -84,12 +96,10 @@ const ConversationPage = ({ navigation }) => {
       if (shelterDoc.exists()) {
         return shelterDoc.data().shelterName;
       } else {
-        console.error("Shelter document not found for receiverId:", receiverId);
-        return "Unknown Shelter";
+        return "Pawfectly User";
       }
     } catch (error) {
       console.error("Error fetching shelter name:", error);
-      return "Unknown Shelter";
     }
   };
 
@@ -98,19 +108,23 @@ const ConversationPage = ({ navigation }) => {
       const shelterDoc = await getDoc(doc(db, "shelters", receiverId));
       if (shelterDoc.exists()) {
         return shelterDoc.data().accountPicture;
-      } else {
-        console.error("Shelter document not found for receiverId: ", receiverId);
-        return "Unknown Shelter";
       }
     } catch (error) {
       console.error("Error fetching shelter account picture: ", error);
-      return "Unknown Shelter";
     }
   };
 
   const getLastMessage = async (conversationId) => {
+    const currentUser = auth.currentUser;
     try {
-      const messagesRef = collection(db, "conversations", conversationId, "messages");
+      const messagesRef = collection(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId,
+        "messages"
+      );
       const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
       const snapshot = await new Promise((resolve, reject) => {
         const unsubscribe = onSnapshot(
@@ -128,18 +142,20 @@ const ConversationPage = ({ navigation }) => {
 
       if (!snapshot.empty) {
         return snapshot.docs[0].data();
-      } else {
-        return null;
       }
-    } catch (error) {
-      console.error("Error fetching last message:", error);
-      return null;
-    }
+    } catch (error) {}
   };
 
   const navigateToMessages = async (conversationId, petId, shelterId) => {
+    const currentUser = auth.currentUser;
     try {
-      const conversationRef = doc(db, "conversations", conversationId);
+      const conversationRef = doc(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId
+      );
       await updateDoc(conversationRef, {
         senderRead: true,
       });
@@ -151,8 +167,16 @@ const ConversationPage = ({ navigation }) => {
   };
 
   const handleDeleteConversation = async (conversationId) => {
+    const currentUser = auth.currentUser;
     try {
-      const messagesRef = collection(db, "conversations", conversationId, "messages");
+      const messagesRef = collection(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId,
+        "messages"
+      );
 
       const deleteMessages = (snapshot) => {
         const deletePromises = snapshot.docs.map((msgDoc) =>
@@ -165,7 +189,9 @@ const ConversationPage = ({ navigation }) => {
         messagesRef,
         async (snapshot) => {
           await deleteMessages(snapshot);
-          await deleteDoc(doc(db, "conversations", conversationId));
+          await deleteDoc(
+            doc(db, "users", currentUser.uid, "conversations", conversationId)
+          );
           unsubscribe();
         },
         (error) => {
@@ -257,13 +283,20 @@ const ConversationPage = ({ navigation }) => {
                     }
                   }}
                   renderRightActions={() => (
-                    <DeleteButton onDelete={() => handleDeleteConversation(item.id)} />
+                    <DeleteButton
+                      onDelete={() => handleDeleteConversation(item.id)}
+                    />
                   )}
                   onSwipeableOpen={() => handleSwipeableOpen(item.id)}
                 >
                   <TouchableOpacity
-                    style={[styles.conversationItem, !item.senderRead && styles.unreadConversation]}
-                    onPress={() => navigateToMessages(item.id, item.petId, item.participants[1])}
+                    style={[
+                      styles.conversationItem,
+                      !item.senderRead && styles.unreadConversation,
+                    ]}
+                    onPress={() =>
+                      navigateToMessages(item.id, item.petId, item.participants[1])
+                    }
                   >
                     <View style={styles.shelterInfoContainer}>
                       <Image

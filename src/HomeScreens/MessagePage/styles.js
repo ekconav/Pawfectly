@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: "Poppins_500Medium",
     fontSize: 18,
-    color: COLORS.black,
+    color: COLORS.title,
   },
   messagesContainer: {
     flexGrow: 1,
@@ -134,6 +134,15 @@ const styles = StyleSheet.create({
   },
   mainMessageContainer: {
     paddingHorizontal: 8,
+  },
+  shelterExist: {
+    padding: 15,
+    backgroundColor: COLORS.subtitle,
+    alignItems: "center",
+  },
+  shelterExistText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

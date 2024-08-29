@@ -36,6 +36,7 @@ const MessagePage = ({ route }) => {
   const [userAccountPicture, setUserAccountPicture] = useState("");
   const [shelterAccountPicture, setShelterAccountPicture] = useState("");
   const [loading, setLoading] = useState(true);
+  const [shelterExist, setShelterExist] = useState(true);
   const currentUser = auth.currentUser;
   const navigation = useNavigation();
 
@@ -48,21 +49,20 @@ const MessagePage = ({ route }) => {
         if (userDoc.exists()) {
           setUserAccountPicture(userDoc.data().accountPicture);
         } else {
-          console.error(
-            "User document not found for userId: ",
-            currentUser.uid
-          );
+          console.error("User document not found for userId: ", currentUser.uid);
         }
 
         if (shelterDoc.exists()) {
           setShelterName(shelterDoc.data().shelterName);
           setShelterAccountPicture(shelterDoc.data().accountPicture);
         } else {
-          console.error("Shelter document not found for shelterId:", shelterId);
+          setShelterName("Pawfectly User");
+          setShelterExist(false);
         }
-
         const messagesRef = collection(
           db,
+          "users",
+          currentUser.uid,
           "conversations",
           conversationId,
           "messages"
@@ -93,25 +93,60 @@ const MessagePage = ({ route }) => {
       return;
     }
     try {
-      const messagesRef = collection(
+      const userMessagesRef = collection(
         db,
+        "users",
+        currentUser.uid,
         "conversations",
         conversationId,
         "messages"
       );
-      await addDoc(messagesRef, {
+      const shelterMessagesRef = collection(
+        db,
+        "shelters",
+        shelterId,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+
+      await addDoc(userMessagesRef, {
         text: newMessage,
         senderId: currentUser.uid,
         receiverId: shelterId,
         timestamp: serverTimestamp(),
       });
 
-      const conversationRef = doc(db, "conversations", conversationId);
-      const conversationSnap = await getDoc(conversationRef);
+      setNewMessage("");
 
-      if (!conversationSnap.exists()) {
+      await addDoc(shelterMessagesRef, {
+        text: newMessage,
+        senderId: currentUser.uid,
+        receiverId: shelterId,
+        timestamp: serverTimestamp(),
+      });
+
+      const userConversationRef = doc(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId
+      );
+      const userConversationSnap = await getDoc(userConversationRef);
+
+      const shelterConversationRef = doc(
+        db,
+        "shelters",
+        shelterId,
+        "conversations",
+        conversationId
+      );
+      const shelterConversationSnap = await getDoc(shelterConversationRef);
+
+      if (!userConversationSnap.exists()) {
         // Create the conversation document if it doesn't exist
-        await setDoc(conversationRef, {
+        await setDoc(userConversationRef, {
           lastMessage: newMessage,
           lastTimestamp: serverTimestamp(),
           participants: [currentUser.uid, shelterId],
@@ -121,14 +156,31 @@ const MessagePage = ({ route }) => {
         });
       } else {
         // Update the conversation document with the new lastMessage and lastTimestamp
-        await updateDoc(conversationRef, {
+        await updateDoc(userConversationRef, {
           lastMessage: newMessage,
           lastTimestamp: serverTimestamp(),
           senderRead: true,
           receiverRead: false,
         });
       }
-      setNewMessage("");
+
+      if (!shelterConversationSnap.exists()) {
+        await setDoc(shelterConversationRef, {
+          lastMessage: newMessage,
+          lastTimestamp: serverTimestamp(),
+          participants: [currentUser.uid, shelterId],
+          petId: petId,
+          senderRead: true,
+          receiverRead: false,
+        });
+      } else {
+        await updateDoc(shelterConversationRef, {
+          lastMessage: newMessage,
+          lastTimestamp: serverTimestamp(),
+          senderRead: true,
+          receiverRead: false,
+        });
+      }
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -158,22 +210,63 @@ const MessagePage = ({ route }) => {
       const imageUrl = await getDownloadURL(imageRef);
       console.log("Image uploaded successfully:", imageUrl);
 
-      const messagesRef = collection(
+      const userMessagesRef = collection(
         db,
+        "users",
+        currentUser.uid,
         "conversations",
         conversationId,
         "messages"
       );
-      await addDoc(messagesRef, {
+      const shelterMessagesRef = collection(
+        db,
+        "shelters",
+        shelterId,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+
+      await addDoc(userMessagesRef, {
         text: imageUrl,
         senderId: currentUser.uid,
         receiverId: shelterId,
         timestamp: serverTimestamp(),
       });
+
+      await addDoc(shelterMessagesRef, {
+        text: imageUrl,
+        senderId: currentUser.uid,
+        receiverId: shelterId,
+        timestamp: serverTimestamp(),
+      });
+
       console.log("Image message sent successfully");
 
-      const conversationRef = doc(db, "conversations", conversationId);
-      await updateDoc(conversationRef, {
+      const userConversationRef = doc(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId
+      );
+      const shelterConversationRef = doc(
+        db,
+        "shelters",
+        shelterId,
+        "conversations",
+        conversationId
+      );
+
+      await updateDoc(userConversationRef, {
+        lastMessage: "Image",
+        lastTimestamp: serverTimestamp(),
+        petId: petId,
+        senderRead: true,
+        receiverRead: false,
+      });
+
+      await updateDoc(shelterConversationRef, {
         lastMessage: "Image",
         lastTimestamp: serverTimestamp(),
         petId: petId,
@@ -237,10 +330,7 @@ const MessagePage = ({ route }) => {
             {/* Display message */}
             <View style={styles.messageContent}>
               {isImageMessage ? (
-                <Image
-                  source={{ uri: item.text }}
-                  style={styles.messageImage}
-                />
+                <Image source={{ uri: item.text }} style={styles.messageImage} />
               ) : (
                 <Text
                   style={
@@ -310,21 +400,29 @@ const MessagePage = ({ route }) => {
       />
 
       {/* Input */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Type a message"
-          value={newMessage}
-          onChangeText={setNewMessage}
-          multiline={true}
-        />
-        <TouchableOpacity style={styles.imageIcon} onPress={pickImage}>
-          <Ionicons name="image" size={30} color={COLORS.prim} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Ionicons name="send" size={24} color={COLORS.prim} />
-        </TouchableOpacity>
-      </View>
+      {shelterExist ? (
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Type a message"
+            value={newMessage}
+            onChangeText={setNewMessage}
+            multiline={true}
+          />
+          <TouchableOpacity style={styles.imageIcon} onPress={pickImage}>
+            <Ionicons name="image" size={30} color={COLORS.prim} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+            <Ionicons name="send" size={24} color={COLORS.prim} />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.shelterExist}>
+          <Text style={styles.shelterExistText}>
+            You can't reply to this conversation.
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

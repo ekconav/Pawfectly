@@ -36,7 +36,12 @@ const ConversationPageShelter = ({ navigation }) => {
       try {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
-        const conversationsRef = collection(db, "conversations");
+        const conversationsRef = collection(
+          db,
+          "shelters",
+          currentUser.uid,
+          "conversations"
+        );
         const q = query(
           conversationsRef,
           where("participants", "array-contains", currentUser.uid),
@@ -62,6 +67,7 @@ const ConversationPageShelter = ({ navigation }) => {
           setUserImage(accountPic);
           setLastMessages(messages);
           setConversations(conversationsData);
+
           setLoading(false);
         });
         return unsubscribe;
@@ -80,12 +86,10 @@ const ConversationPageShelter = ({ navigation }) => {
       if (userDoc.exists()) {
         return userDoc.data().firstName;
       } else {
-        console.error("User document not found for userId:", userId);
-        return "Unknown User";
+        return "Pawfectly User";
       }
     } catch (error) {
       console.error("Error fetching user name:", error);
-      return "Unknown User";
     }
   };
 
@@ -94,24 +98,24 @@ const ConversationPageShelter = ({ navigation }) => {
       const userDoc = await getDoc(doc(db, "users", userId));
       if (userDoc.exists()) {
         return userDoc.data().accountPicture;
-      } else {
-        console.error("User document not found for userId: ", userId);
-        return "Unknown User";
       }
     } catch (error) {
       console.error("Error fetching user name:", error);
-      return "Unknown User";
     }
   };
 
   const getLastMessage = async (conversationId) => {
+    const currentUser = auth.currentUser;
     try {
       const messagesRef = collection(
         db,
+        "shelters",
+        currentUser.uid,
         "conversations",
         conversationId,
         "messages"
       );
+
       const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
       const snapshot = await new Promise((resolve, reject) => {
         const unsubscribe = onSnapshot(
@@ -129,20 +133,20 @@ const ConversationPageShelter = ({ navigation }) => {
 
       if (!snapshot.empty) {
         return snapshot.docs[0].data();
-      } else {
-        console.error("No messages found for conversationId:", conversationId);
-        return null;
       }
-    } catch (error) {
-      console.error("Error fetching last message:", error);
-      return null;
-    }
+    } catch (error) {}
   };
 
   const navigateToMessages = async (conversationId, petId, userId) => {
+    const currentUser = auth.currentUser;
     try {
-      const conversationRef = doc(db, "conversations", conversationId);
-      // Update receiverRead to true
+      const conversationRef = doc(
+        db,
+        "shelters",
+        currentUser.uid,
+        "conversations",
+        conversationId
+      );
       await updateDoc(conversationRef, {
         receiverRead: true,
       });
@@ -158,9 +162,12 @@ const ConversationPageShelter = ({ navigation }) => {
   };
 
   const handleDeleteConversation = async (conversationId) => {
+    const currentUser = auth.currentUser;
     try {
       const messagesRef = collection(
         db,
+        "shelters",
+        currentUser.uid,
         "conversations",
         conversationId,
         "messages"
@@ -177,7 +184,9 @@ const ConversationPageShelter = ({ navigation }) => {
         messagesRef,
         async (snapshot) => {
           await deleteMessages(snapshot);
-          await deleteDoc(doc(db, "conversations", conversationId));
+          await deleteDoc(
+            doc(db, "shelters", currentUser.uid, "conversations", conversationId)
+          );
           unsubscribe();
         },
         (error) => {
@@ -190,7 +199,6 @@ const ConversationPageShelter = ({ navigation }) => {
   };
 
   const handleSwipeableOpen = (key) => {
-    // Close any previously open Swipeable component
     Object.keys(swipeableRefs.current).forEach((refKey) => {
       if (refKey !== key && swipeableRefs.current[refKey]) {
         swipeableRefs.current[refKey].close();
@@ -252,9 +260,7 @@ const ConversationPageShelter = ({ navigation }) => {
                 }
               }}
               renderRightActions={() => (
-                <DeleteButton
-                  onDelete={() => handleDeleteConversation(item.id)}
-                />
+                <DeleteButton onDelete={() => handleDeleteConversation(item.id)} />
               )}
               onSwipeableOpen={() => handleSwipeableOpen(item.id)}
             >
