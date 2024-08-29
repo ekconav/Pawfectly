@@ -45,7 +45,6 @@ const DetailsPage = ({ route }) => {
         if (!docSnap.exists()) {
           console.log("No such document!");
         } else {
-          console.log("Document data: ", docSnap.data());
           pet.shelterName = docSnap.data().shelterName;
           pet.location = docSnap.data().address;
           pet.accountPicture = docSnap.data().accountPicture;
@@ -62,7 +61,13 @@ const DetailsPage = ({ route }) => {
           const petId = pet.id;
           const conversationId = `${userId}_${shelterId}_${petId}`;
 
-          const conversationDocRef = doc(db, "conversations", conversationId);
+          const conversationDocRef = doc(
+            db,
+            "users",
+            userId,
+            "conversations",
+            conversationId
+          );
           const conversationSnap = await getDoc(conversationDocRef);
 
           if (conversationSnap.exists()) {
@@ -154,19 +159,34 @@ const DetailsPage = ({ route }) => {
       const conversationId = `${userId}_${shelterId}_${petId}`;
       const messageText = `Hello, I would like to adopt ${petDetails.name}.`;
 
-      const conversationDocRef = doc(db, "conversations", conversationId);
-      const conversationSnap = await getDoc(conversationDocRef);
+      const userConversationDocRef = doc(
+        db,
+        "users",
+        userId,
+        "conversations",
+        conversationId
+      );
+      const userConversationSnap = await getDoc(userConversationDocRef);
 
-      if (conversationSnap.exists()) {
+      const shelterConversationDocRef = doc(
+        db,
+        "shelters",
+        shelterId,
+        "conversations",
+        conversationId
+      );
+      const shelterConversationSnap = await getDoc(shelterConversationDocRef);
+
+      if (userConversationSnap.exists()) {
         // Check if the message already exists
-        const messagesRef = collection(conversationDocRef, "messages");
+        const messagesRef = collection(userConversationDocRef, "messages");
         const messageQuery = query(messagesRef, where("text", "==", messageText));
         const messageSnap = await getDocs(messageQuery);
 
         if (!messageSnap.empty) {
           console.log("Message already exists.");
           setMessageSent(true);
-          return; // Exit the function if the message already exists
+          return; 
         } else {
           // Add the message if it does not exist
           await addDoc(messagesRef, {
@@ -176,7 +196,7 @@ const DetailsPage = ({ route }) => {
             timestamp: Timestamp.now(),
           });
 
-          await updateDoc(conversationDocRef, {
+          await updateDoc(userConversationDocRef, {
             lastMessage: messageText,
             lastTimestamp: Timestamp.now(),
             receiverRead: false,
@@ -187,7 +207,7 @@ const DetailsPage = ({ route }) => {
         }
       } else {
         // If conversation does not exist, create it and then add the message
-        await setDoc(conversationDocRef, {
+        await setDoc(userConversationDocRef, {
           participants: [userId, shelterId],
           petId: petId,
           lastMessage: messageText,
@@ -196,7 +216,55 @@ const DetailsPage = ({ route }) => {
           senderRead: true,
         });
 
-        const messagesRef = collection(conversationDocRef, "messages");
+        const messagesRef = collection(userConversationDocRef, "messages");
+        await addDoc(messagesRef, {
+          text: messageText,
+          senderId: userId,
+          receiverId: shelterId,
+          timestamp: Timestamp.now(),
+        });
+
+        console.log("Conversation created and message sent.");
+        setMessageSent(true);
+      }
+
+      if (shelterConversationSnap.exists()) {
+        const messagesRef = collection(shelterConversationDocRef, "messages");
+        const messageQuery = query(messagesRef, where("text", "==", messageText));
+        const messageSnap = await getDocs(messageQuery);
+
+        if (!messageSnap.empty) {
+          console.log("Message already exists");
+          setMessageSent(true);
+          return;
+        } else {
+          await addDoc(messagesRef, {
+            text: messageText,
+            senderId: userId,
+            receiverId: shelterId,
+            timestamp: Timestamp.now(),
+          });
+
+          await updateDoc(shelterConversationDocRef, {
+            lastMessage: messageText,
+            lastTimestamp: Timestamp.now(),
+            receiverRead: false,
+            senderRead: true,
+          });
+          console.log("Message sent successfully.");
+          setMessageSent(true);
+        }
+      } else {
+        await setDoc(shelterConversationDocRef, {
+          participants: [userId, shelterId],
+          petId: petId,
+          lastMessage: messageText,
+          lastTimestamp: Timestamp.now(),
+          receiverRead: false,
+          senderRead: true,
+        });
+
+        const messagesRef = collection(shelterConversationDocRef, "messages");
         await addDoc(messagesRef, {
           text: messageText,
           senderId: userId,
@@ -270,7 +338,7 @@ const DetailsPage = ({ route }) => {
         <View style={styles.shelterContainer}>
           <View style={styles.shelterInfo}>
             <Image source={shelterImage} style={styles.shelterImage} />
-            <View>
+            <View style={styles.shelterTextContainer}>
               <Text style={styles.midInfoTitle}>Currently In:</Text>
               <Text style={styles.shelterName}>{petDetails.shelterName}</Text>
             </View>

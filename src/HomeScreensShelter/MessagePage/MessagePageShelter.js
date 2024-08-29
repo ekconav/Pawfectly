@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TextInput, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  Image,
+} from "react-native";
 import { db, auth, storage } from "../../FirebaseConfig";
 import {
   collection,
@@ -11,6 +18,7 @@ import {
   doc,
   updateDoc,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
@@ -33,7 +41,15 @@ const MessagePageShelter = ({ route }) => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const messagesRef = collection(db, "conversations", conversationId, "messages");
+        // const messagesRef = collection(db, "conversations", conversationId, "messages");
+        const messagesRef = collection(
+          db,
+          "shelters",
+          currentUser.uid,
+          "conversations",
+          conversationId,
+          "messages"
+        );
         const q = query(messagesRef, orderBy("timestamp", "asc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
           const messagesData = snapshot.docs
@@ -41,7 +57,7 @@ const MessagePageShelter = ({ route }) => {
               id: doc.id,
               ...doc.data(),
             }))
-            .reverse(); // Reverse the array here
+            .reverse();
           setMessages(messagesData);
         });
         return unsubscribe;
@@ -52,14 +68,19 @@ const MessagePageShelter = ({ route }) => {
 
     const fetchConversation = async () => {
       try {
-        const conversationDoc = await getDoc(doc(db, "conversations", conversationId));
+        const conversationDoc = await getDoc(
+          doc(db, "shelters", currentUser.uid, "conversations", conversationId)
+        );
         if (conversationDoc.exists()) {
           const senderId = conversationDoc
             .data()
             .participants.find((participant) => participant !== currentUser.uid);
           fetchSenderName(senderId);
         } else {
-          console.error("Conversation document not found for conversationId:", conversationId);
+          console.error(
+            "Conversation document not found for conversationId:",
+            conversationId
+          );
         }
       } catch (error) {
         console.error("Error fetching conversation:", error);
@@ -95,7 +116,10 @@ const MessagePageShelter = ({ route }) => {
         if (shelterDoc.exists()) {
           setShelterAccountPicture(shelterDoc.data().accountPicture);
         } else {
-          console.error("Shelter document not found for shelterId: ", currentUser.uid);
+          console.error(
+            "Shelter document not found for shelterId: ",
+            currentUser.uid
+          );
         }
       } catch (error) {}
     };
@@ -124,22 +148,94 @@ const MessagePageShelter = ({ route }) => {
       return;
     }
     try {
-      const messagesRef = collection(db, "conversations", conversationId, "messages");
-      await addDoc(messagesRef, {
+      // const messagesRef = collection(db, "conversations", conversationId, "messages");
+      const shelterMessagesRef = collection(
+        db,
+        "shelters",
+        currentUser.uid,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+      const userMessagesRef = collection(
+        db,
+        "users",
+        userId,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+
+      await addDoc(shelterMessagesRef, {
         text: newMessage,
         senderId: currentUser.uid,
         receiverId: userId,
         timestamp: serverTimestamp(),
       });
 
-      const conversationRef = doc(db, "conversations", conversationId);
-      await updateDoc(conversationRef, {
-        lastMessage: newMessage,
-        lastTimestamp: serverTimestamp(),
-        petId: petId,
-        senderRead: false,
-        receiverRead: true,
+      await addDoc(userMessagesRef, {
+        text: newMessage,
+        senderId: currentUser.uid,
+        receiverId: userId,
+        timestamp: serverTimestamp(),
       });
+
+      // const conversationRef = doc(db, "conversations", conversationId);
+      const shelterConversationRef = doc(
+        db,
+        "shelters",
+        currentUser.uid,
+        "conversations",
+        conversationId
+      );
+      const shelterConversationSnap = await getDoc(shelterConversationRef);
+
+      const userConversationRef = doc(
+        db,
+        "users",
+        userId,
+        "conversations",
+        conversationId
+      );
+      const userConversationSnap = await getDoc(userConversationRef);
+
+      if (!shelterConversationSnap.exists()) {
+        await setDoc(shelterConversationRef, {
+          lastMessage: newMessage,
+          lastTimestamp: serverTimestamp(),
+          participants: [userId, currentUser.uid],
+          petId: petId,
+          senderRead: false,
+          receiverRead: true,
+        });
+      } else {
+        await updateDoc(shelterConversationRef, {
+          lastMessage: newMessage,
+          lastTimestamp: serverTimestamp(),
+          petId: petId,
+          senderRead: false,
+          receiverRead: true,
+        });
+      }
+
+      if (!userConversationSnap.exists()) {
+        await setDoc(userConversationRef, {
+          lastMessage: newMessage,
+          lastTimestamp: serverTimestamp(),
+          participants: [userId, currentUser.uid],
+          petId: petId,
+          senderRead: false,
+          receiverRead: true,
+        });
+      } else {
+        await updateDoc(userConversationRef, {
+          lastMessage: newMessage,
+          lastTimestamp: serverTimestamp(),
+          petId: petId,
+          senderRead: false,
+          receiverRead: true,
+        });
+      }
 
       setNewMessage("");
     } catch (error) {
@@ -171,19 +267,67 @@ const MessagePageShelter = ({ route }) => {
       const imageUrl = await getDownloadURL(imageRef);
       console.log("Image uploaded successfully:", imageUrl);
 
-      const messagesRef = collection(db, "conversations", conversationId, "messages");
-      await addDoc(messagesRef, {
+      // const messagesRef = collection(db, "conversations", conversationId, "messages");
+      const shelterMessagesRef = collection(
+        db,
+        "shelters",
+        currentUser.uid,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+      const userMessagesRef = collection(
+        db,
+        "users",
+        userId,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+
+      await addDoc(shelterMessagesRef, {
         text: imageUrl,
         senderId: currentUser.uid,
         receiverId: userId,
         timestamp: serverTimestamp(),
       });
+
+      await addDoc(userMessagesRef, {
+        text: imageUrl,
+        senderId: currentUser.uid,
+        receiverId: userId,
+        timestamp: serverTimestamp(),
+      });
+
       console.log("Image message sent successfully");
 
       // Update the lastMessage field in the conversation document
-      const conversationRef = doc(db, "conversations", conversationId);
-      await updateDoc(conversationRef, {
-        lastMessage: "Image", // Set it to a string indicating an image was sent
+      // const conversationRef = doc(db, "conversations", conversationId);
+      const shelterConversationRef = doc(
+        db,
+        "shelters",
+        currentUser.uid,
+        "conversations",
+        conversationId
+      );
+      const userConversationRef = doc(
+        db,
+        "users",
+        userId,
+        "conversations",
+        conversationId
+      );
+
+      await updateDoc(shelterConversationRef, {
+        lastMessage: "Image",
+        lastTimestamp: serverTimestamp(),
+        petId: petId,
+        senderRead: false,
+        receiverRead: true,
+      });
+
+      await updateDoc(userConversationRef, {
+        lastMessage: "Image",
         lastTimestamp: serverTimestamp(),
         petId: petId,
         senderRead: false,
@@ -235,7 +379,9 @@ const MessagePageShelter = ({ route }) => {
           ) : (
             <Text style={styles.messageText}>{item.text}</Text>
           )}
-          {messageTime ? <Text style={styles.messageTime}>{messageTime}</Text> : null}
+          {messageTime ? (
+            <Text style={styles.messageTime}>{messageTime}</Text>
+          ) : null}
         </View>
       </View>
     );

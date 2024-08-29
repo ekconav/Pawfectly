@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../../../FirebaseConfig";
 import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
-import { deleteDoc, doc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
 import COLORS from "../../../../const/colors";
@@ -15,16 +15,42 @@ const DeleteAccPage = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
   const [password, setPassword] = useState("");
+  const user = auth.currentUser;
 
   const handleDeleteAccount = async () => {
     if (password) {
       try {
-        const user = auth.currentUser;
-
         const credential = EmailAuthProvider.credential(user.email, password);
         await reauthenticateWithCredential(user, credential);
 
         const userDocRef = doc(db, "users", user.uid);
+
+        const deleteSubcollection = async (collectionRef) => {
+          const snapshot = await getDocs(collectionRef);
+
+          for (const doc of snapshot.docs) {
+            const subcollectionRef = collection(doc.ref, "messages");
+            if (subcollectionRef) {
+              await deleteSubcollection(subcollectionRef);
+            }
+            await deleteDoc(doc.ref);
+          }
+        };
+
+        const favoritesRef = collection(db, "users", user.uid, "favorites");
+        const conversationsRef = collection(db, "users", user.uid, "conversations");
+        const furbabiesRef = collection(db, "users", user.uid, "furbabies");
+
+        const conversationsSnapshot = await getDocs(conversationsRef);
+        for (const conversation of conversationsSnapshot.docs) {
+          const messagesRef = collection(conversation.ref, "messages");
+          await deleteSubcollection(messagesRef);
+          await deleteDoc(conversation.ref);
+        }
+
+        await deleteSubcollection(favoritesRef);
+        await deleteSubcollection(furbabiesRef);
+
         await deleteDoc(userDocRef);
 
         setModalMessage("Your account has been deleted successfully.");
@@ -35,7 +61,7 @@ const DeleteAccPage = () => {
           await user.delete();
         }, 10000);
       } catch (error) {
-        if (error.message.includes("auth/invalid-login-credentials")) {
+        if (error.message.includes("auth/invalid-credential")) {
           setModalMessage("Password is invalid.");
         } else {
           setModalMessage("An error occurred. Please try again.");
@@ -64,8 +90,12 @@ const DeleteAccPage = () => {
         <Text style={styles.headerTitle}>Delete Account</Text>
       </View>
       <View style={styles.textContainer}>
-        <Text style={styles.title}>Are you sure you want to delete your account?</Text>
-        <Text style={styles.subtitle}>Enter password to confirm account deletion.</Text>
+        <Text style={styles.title}>
+          Are you sure you want to delete your account?
+        </Text>
+        <Text style={styles.subtitle}>
+          Enter password to confirm account deletion.
+        </Text>
       </View>
       <View style={styles.textInputContainer}>
         <TextInput

@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
   shelterName: {
     fontSize: 16,
     fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
   },
   lastMessage: {
     fontSize: 12,

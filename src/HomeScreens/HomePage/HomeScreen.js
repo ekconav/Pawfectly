@@ -205,7 +205,6 @@ const HomeScreen = () => {
                   <View style={styles.petContainer}>
                     <Image
                       source={{
-                        // uri: `${item.imageUrl}?time=${new Date().getTime()}`,
                         uri: item.imageUrl,
                       }}
                       style={styles.petImage}

@@ -22,7 +22,7 @@ import {
 } from "@expo-google-fonts/poppins";
 import COLORS from "./src/const/colors";
 import * as NavigationBar from "expo-navigation-bar";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 
 const Stack = createStackNavigator();
 
@@ -36,27 +36,37 @@ const App = () => {
   });
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
       if (user) {
         const userDocRef = doc(db, "users", user.uid);
         const shelterDocRef = doc(db, "shelters", user.uid);
 
-        const userDoc = await getDoc(userDocRef);
-        const shelterDoc = await getDoc(shelterDocRef);
+        const unsubscribeUserDoc = onSnapshot(userDocRef, (userDoc) => {
+          if (userDoc.exists()) {
+            setUserType("user");
+          } else {
+            setUserType((prev) => (prev === "shelter" ? "shelter" : ""));
+          }
+        });
 
-        if (userDoc.exists()) {
-          setUserType("user");
-        } else if (shelterDoc.exists()) {
-          setUserType("shelter");
-        } else {
-          setUserType("");
-        }
+        const unsubscribeShelterDoc = onSnapshot(shelterDocRef, (shelterDoc) => {
+          if (shelterDoc.exists()) {
+            setUserType("shelter");
+          } else {
+            setUserType((prev) => (prev === "user" ? "user" : ""));
+          }
+        });
+
+        return () => {
+          unsubscribeUserDoc();
+          unsubscribeShelterDoc();
+        };
       } else {
         setUserType("");
       }
     });
 
-    return unsubscribe;
+    return unsubscribeAuth;
   }, []);
 
   useEffect(() => {
