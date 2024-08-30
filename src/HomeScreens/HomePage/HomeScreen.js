@@ -38,20 +38,17 @@ const HomeScreen = () => {
 
   useEffect(() => {
     fetchPets();
-    const unsubscribe = onSnapshot(
-      doc(db, "users", auth.currentUser.uid),
-      (doc) => {
-        if (doc.exists()) {
-          const userData = doc.data();
-          setProfileImage(
-            userData.accountPicture
-              ? { uri: userData.accountPicture }
-              : require("../../components/user.png")
-          );
-          setFirstName(userData.firstName || "");
-        }
+    const unsubscribe = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        setProfileImage(
+          userData.accountPicture
+            ? { uri: userData.accountPicture }
+            : require("../../components/user.png")
+        );
+        setFirstName(userData.firstName || "");
       }
-    );
+    });
     return () => unsubscribe();
   }, []);
 
@@ -186,9 +183,11 @@ const HomeScreen = () => {
       </View>
 
       {pets.length === 0 ? (
-        <Text style={styles.noResultsText}>
-          Unfortunately, we couldn't find anything.
-        </Text>
+        <View style={styles.noResultsContainer}>
+          <Text style={styles.noResultsText}>
+            Unfortunately, we couldn't find anything.
+          </Text>
+        </View>
       ) : (
         <View style={styles.mainContainer}>
           <FlatList
@@ -198,9 +197,7 @@ const HomeScreen = () => {
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.petButton}
-                  onPress={() =>
-                    navigation.navigate("DetailsPage", { pet: item })
-                  }
+                  onPress={() => navigation.navigate("DetailsPage", { pet: item })}
                 >
                   <View style={styles.petContainer}>
                     <Image

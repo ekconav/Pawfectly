@@ -35,8 +35,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   buttonContainer: {
-    padding: 5,
-    marginBottom: 15,
+    paddingHorizontal: 5,
+    paddingVertical: 10,
     borderRadius: 20,
   },
   petButton: {
@@ -93,9 +93,13 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
   },
+  noResultsContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
   noResultsText: {
-    color: COLORS.black,
-    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
     textAlign: "center",
   },
   categoriesTitle: {
