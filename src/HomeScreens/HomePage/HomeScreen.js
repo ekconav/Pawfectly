@@ -200,12 +200,15 @@ const HomeScreen = () => {
                   onPress={() => navigation.navigate("DetailsPage", { pet: item })}
                 >
                   <View style={styles.petContainer}>
-                    <Image
-                      source={{
-                        uri: item.imageUrl,
-                      }}
-                      style={styles.petImage}
-                    />
+                    <View style={styles.imageContainer}>
+                      <Image
+                        source={{
+                          uri: item.imageUrl,
+                        }}
+                        style={styles.petImage}
+                      />
+                    </View>
+
                     <View style={styles.petDetails}>
                       <View style={styles.petNameGender}>
                         <Text style={styles.petName}>{item.name}</Text>

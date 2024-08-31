@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   petButton: {
     backgroundColor: COLORS.white,
     borderRadius: 10,
-    elevation: 4,
+    elevation: 2,
   },
   petContainer: {
     backgroundColor: COLORS.background,
@@ -55,12 +55,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.title,
   },
-  petImage: {
+  imageContainer: {
     width: "100%",
+    paddingHorizontal: 10,
     height: 230,
-    borderRadius: 10,
     marginBottom: 10,
-    alignItems: "center",
+    marginTop: 10,
+    alignContent: "center",
+    overflow: "hidden",
+  },
+  petImage: {
+    borderRadius: 10,
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   petDetails: {
     paddingHorizontal: 10,
@@ -122,7 +130,7 @@ const styles = StyleSheet.create({
     padding: 7,
     paddingHorizontal: 10,
     borderRadius: 50,
-    elevation: 1,
+    elevation: 2,
   },
   categoryIcon: {
     width: 28,
