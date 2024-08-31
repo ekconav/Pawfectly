@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Image,
   TouchableOpacity,
-  Alert,
   Linking,
 } from "react-native";
 import COLORS from "../../const/colors";
@@ -25,6 +24,7 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
+import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
 
@@ -33,6 +33,8 @@ const DetailsPage = ({ route }) => {
   const [mobileNumber, setMobileNumber] = useState("");
   const [shelterImage, setShelterImage] = useState("");
   const [messageSent, setMessageSent] = useState(false);
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -119,7 +121,8 @@ const DetailsPage = ({ route }) => {
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-          Alert.alert("", "This pet is already in your favorites.");
+          setModalMessage("This pet is already in your favorites.");
+          setAlertModal(true);
           return;
         }
 
@@ -140,14 +143,13 @@ const DetailsPage = ({ route }) => {
       if (mobileNumber) {
         await Linking.openURL(`tel:${mobileNumber}`);
       } else {
-        Alert.alert(
-          "No phone number available",
-          "The shelter's phone number is not available."
-        );
+        setModalMessage("No phone number available.");
+        setAlertModal(true);
       }
     } catch (error) {
       console.error("Error initiating call:", error);
-      Alert.alert("Error", "There was an error trying to make a call.");
+      setModalMessage("There was an error trying to make a call.");
+      setAlertModal(true);
     }
   };
 
@@ -186,7 +188,7 @@ const DetailsPage = ({ route }) => {
         if (!messageSnap.empty) {
           console.log("Message already exists.");
           setMessageSent(true);
-          return; 
+          return;
         } else {
           // Add the message if it does not exist
           await addDoc(messagesRef, {
@@ -227,6 +229,16 @@ const DetailsPage = ({ route }) => {
         console.log("Conversation created and message sent.");
         setMessageSent(true);
       }
+
+      // Adding a small delay to ensure the message is saved
+      setTimeout(() => {
+        navigation.navigate("MessagePage", {
+          conversationId,
+          userId,
+          shelterId,
+          petId,
+        });
+      }, 500);
 
       if (shelterConversationSnap.exists()) {
         const messagesRef = collection(shelterConversationDocRef, "messages");
@@ -275,19 +287,10 @@ const DetailsPage = ({ route }) => {
         console.log("Conversation created and message sent.");
         setMessageSent(true);
       }
-
-      // Adding a small delay to ensure the message is saved
-      setTimeout(() => {
-        navigation.navigate("MessagePage", {
-          conversationId,
-          userId,
-          shelterId,
-          petId,
-        });
-      }, 500);
     } catch (error) {
       console.error("Error during adoption process: ", error);
-      Alert.alert("Error", "There was an error trying to adopt the pet.");
+      setModalMessage("There was an error trying to adopt the pet.");
+      setAlertModal(true);
     }
   };
 
@@ -378,6 +381,19 @@ const DetailsPage = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

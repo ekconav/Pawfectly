@@ -165,6 +165,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.white,
   },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
 });
 
 export default styles;
