@@ -125,7 +125,9 @@ const FavoritesPage = () => {
             onPress={() => navigation.navigate("DetailsPage", { pet: item })}
           >
             <View style={styles.petContainer}>
-              <Image source={{ uri: item.images }} style={styles.petImage} />
+              <View style={styles.imageContainer}>
+                <Image source={{ uri: item.images }} style={styles.petImage} />
+              </View>
               <View style={styles.petDetails}>
                 <View style={styles.petNameGender}>
                   <Text style={styles.petName}>{item.name}</Text>
@@ -183,7 +185,6 @@ const FavoritesPage = () => {
         </View>
       ) : (
         <View style={styles.mainContainer}>
-          <Text style={styles.pageTitle}>Your Favorite Pets</Text>
           <FlatList
             data={favoritePets}
             renderItem={renderItem}

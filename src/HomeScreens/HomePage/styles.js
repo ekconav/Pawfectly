@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   petButton: {
-    backgroundColor: COLORS.white,
     borderRadius: 10,
     elevation: 2,
   },
