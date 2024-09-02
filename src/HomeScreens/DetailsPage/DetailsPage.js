@@ -23,6 +23,7 @@ import {
   Timestamp,
   setDoc,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
@@ -35,6 +36,7 @@ const DetailsPage = ({ route }) => {
   const [messageSent, setMessageSent] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -96,11 +98,44 @@ const DetailsPage = ({ route }) => {
     fetchPetDetails();
   }, [route.params]);
 
+  useEffect(() => {
+    const checkUserVerification = () => {
+      const user = auth.currentUser;
+      if (user) {
+        const usersRef = doc(db, "users", user.uid);
+
+        const unsubscribeDoc = onSnapshot(usersRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setIsVerified(data.verified === true);
+          } else {
+            console.log("User document not found.");
+            setIsVerified(false);
+          }
+        });
+
+        return () => unsubscribeDoc();
+      }
+    };
+
+    const unsubscribe = checkUserVerification();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   const handleOpenMessage = () => {
     const userId = auth.currentUser.uid;
     const shelterId = petDetails.userId;
     const petId = petDetails.id;
     const conversationId = `${userId}_${shelterId}_${petId}`;
+
+    if (!isVerified) {
+      setModalMessage("Your account is not yet verified.");
+      setAlertModal(true);
+      return;
+    }
 
     navigation.navigate("MessagePage", {
       conversationId,
@@ -139,6 +174,12 @@ const DetailsPage = ({ route }) => {
   };
 
   const handleCall = async () => {
+    if (!isVerified) {
+      setModalMessage("Your account is not yet verified.");
+      setAlertModal(true);
+      return;
+    }
+
     try {
       if (mobileNumber) {
         await Linking.openURL(`tel:${mobileNumber}`);
@@ -160,6 +201,12 @@ const DetailsPage = ({ route }) => {
       const petId = petDetails.id;
       const conversationId = `${userId}_${shelterId}_${petId}`;
       const messageText = `Hello, I would like to adopt ${petDetails.name}.`;
+
+      if (!isVerified) {
+        setModalMessage("Your account is not yet verified.");
+        setAlertModal(true);
+        return;
+      }
 
       const userConversationDocRef = doc(
         db,
