@@ -48,9 +48,7 @@ const MessagePage = ({ route }) => {
 
         if (userDoc.exists()) {
           setUserAccountPicture(userDoc.data().accountPicture);
-        } else {
-          console.error("User document not found for userId: ", currentUser.uid);
-        }
+        } 
 
         if (shelterDoc.exists()) {
           setShelterName(shelterDoc.data().shelterName);
@@ -194,7 +192,6 @@ const MessagePage = ({ route }) => {
       quality: 1,
     });
 
-    // Check if result.assets is not null before accessing its properties
     if (result && !result.cancelled && result.assets) {
       console.log("Image selected:", result.assets[0].uri);
       handleSendImage(result.assets[0].uri);
