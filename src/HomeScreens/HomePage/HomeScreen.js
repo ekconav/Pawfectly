@@ -234,7 +234,7 @@ const HomeScreen = () => {
                           )}
                         </Text>
                       </View>
-                      <View style={styles.addressContainer}>
+                      <View>
                         <View style={styles.iconAddress}>
                           <Ionicons
                             name="location-outline"

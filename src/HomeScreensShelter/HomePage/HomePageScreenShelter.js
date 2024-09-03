@@ -1,215 +1,253 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  Dimensions,
-  SafeAreaView,
   View,
   Image,
   Text,
   TouchableOpacity,
   FlatList,
-  StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons"; // or import Ionicons from 'react-native-vector-icons/Ionicons';
-import COLORS from "../../const/colors";
-import ConversationPageShelter from "../ConversationsPage/ConversationPageShelter";
-import { SettingOptionsShelter } from "../SettingsPage/SettingStackShelter";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import Addpet from "../AddPet/AddPet";
-import { collection, onSnapshot } from "firebase/firestore";
+import { Ionicons } from "@expo/vector-icons";
+import { collection, onSnapshot, doc, getDocs } from "firebase/firestore";
 import { db, auth } from "../../FirebaseConfig";
 import { RefreshControl } from "react-native";
-
-const { height } = Dimensions.get("window");
+import { SettingOptionsShelter } from "../SettingsPage/SettingStackShelter";
+import { useNavigation } from "@react-navigation/native";
+import COLORS from "../../const/colors";
+import ConversationPageShelter from "../ConversationsPage/ConversationPageShelter";
+import Addpet from "../AddPet/AddPet";
+import SearchBar from "../../HomeScreens/HomePage/SearchBar/SearchBar";
+import catIcon from "../../components/catIcon.png";
+import dogIcon from "../../components/dogIcon.png";
+import styles from "./styles";
 
 const Tab = createBottomTabNavigator();
 
-const HomeScreenPet = ({ navigation }) => {
+const HomeScreenPet = () => {
   const [pets, setPets] = useState([]);
+  const [allPets, setAllPets] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [profileImage, setProfileImage] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
-  const fetchPets = () => {
+  useEffect(() => {
+    fetchPets();
+    const unsubscribe = onSnapshot(
+      doc(db, "shelters", auth.currentUser.uid),
+      (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          setProfileImage(
+            userData.accountPicture
+              ? { uri: userData.accountPicture }
+              : require("../../components/user.png")
+          );
+        }
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    handleSearch();
+  }, [searchQuery]);
+
+  const fetchPets = async () => {
     const currentUser = auth.currentUser;
     if (!currentUser) {
-      // User not logged in, do nothing
       return;
     }
 
-    const petsCollection = collection(db, "pets");
-    const unsubscribe = onSnapshot(
-      petsCollection,
-      (snapshot) => {
-        const petsData = snapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() }))
-          .filter((pet) => pet.userId === currentUser.uid);
-        setPets(petsData);
-      },
-      (error) => {
-        console.error("Error fetching pets: ", error);
-      }
-    );
+    setLoading(true);
+    try {
+      const petsCollection = collection(db, "pets");
+      const querySnapshot = await getDocs(petsCollection);
 
-    // Return the unsubscribe function
-    return unsubscribe;
-  };
+      const petsData = querySnapshot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .filter((pet) => pet.userId === currentUser.uid);
 
-  useEffect(() => {
-    // fetchPets now returns the unsubscribe function
-    const unsubscribe = fetchPets();
-
-    // Cleanup function
-    return () => {
-      // Call the unsubscribe function to remove the listener
-      unsubscribe();
-    };
-  }, []);
-
-  const getAgeCategory = (rawAge) => {
-    if (rawAge >= 0 && rawAge <= 3) {
-      return "0 - 3 Months";
-    } else if (rawAge >= 4 && rawAge <= 6) {
-      return "4 - 6 Months";
-    } else if (rawAge >= 7 && rawAge <= 9) {
-      return "7 - 9 Months";
-    } else if (rawAge >= 10 && rawAge <= 12) {
-      return "10 - 12 Months";
-    } else if (rawAge >= 12 && rawAge <= 36) {
-      return "1 - 3 Years Old";
-    } else if (rawAge >= 36 && rawAge <= 72) {
-      return "4 - 6 Years Old";
-    } else {
-      return "7 Years Old and Above";
+      setPets(petsData);
+      setAllPets(petsData);
+    } catch (error) {
+      console.error("Error fetching pet data: ", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const onRefresh = () => {
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      setPets(allPets);
+      return;
+    }
+
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+
+    const filteredPets = allPets.filter((pet) => {
+      const { name, type, gender, age, breed, description } = pet;
+      return (
+        gender.toLowerCase() === lowerCaseSearchQuery ||
+        name.toLowerCase().includes(lowerCaseSearchQuery) ||
+        type.toLowerCase().includes(lowerCaseSearchQuery) ||
+        age.toLowerCase().includes(lowerCaseSearchQuery) ||
+        breed.toLowerCase().includes(lowerCaseSearchQuery) ||
+        description.toLowerCase().includes(lowerCaseSearchQuery)
+      );
+    });
+
+    setPets(filteredPets);
+  };
+
+  const handleCategoryFilter = (category) => {
+    if (activeCategory === category) {
+      setActiveCategory(null);
+      setPets(allPets);
+    } else {
+      setActiveCategory(category);
+      setPets(allPets.filter((pet) => pet.type.toLowerCase() === category));
+    }
+  };
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchPets();
     setRefreshing(false);
-  };
+  }, []);
 
-  const handleDelete = async (petId) => {
-    try {
-      const updatedPets = pets.filter((pet) => pet.id !== petId);
-      setPets(updatedPets);
-    } catch (error) {
-      console.error("Error handling delete:", error);
-    }
-  };
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.prim} />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
-      <View style={styles.mainContainer}>
-        <Text style={{ textAlign: "center", fontSize: 20 }}>LIST OF PETS</Text>
-        <View style={{ marginTop: 20 }}>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.accountName}>Home</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Set")}>
+          <Image source={profileImage} style={styles.profileImage} />
+        </TouchableOpacity>
+      </View>
+
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onSearch={handleSearch}
+      />
+
+      <View style={styles.categoryContainer}>
+        <Text style={styles.categoriesTitle}>Pets for Adoption</Text>
+        <View style={styles.categoryButtonContainer}>
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "cat" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("cat")}
+          >
+            <Image style={styles.categoryIcon} source={catIcon} />
+            <Text
+              style={[
+                styles.categoryName,
+                activeCategory === "cat" && { color: COLORS.white },
+              ]}
+            >
+              {" "}
+              Cat
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "dog" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("dog")}
+          >
+            <Image style={styles.categoryIcon} source={dogIcon} />
+            <Text
+              style={[
+                styles.categoryName,
+                activeCategory === "dog" && { color: COLORS.white },
+              ]}
+            >
+              {" "}
+              Dog
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {pets.length === 0 ? (
+        <View style={styles.noResultsContainer}>
+          <Text style={styles.noResultsText}>
+            Unfortunately, we couldn't find anything.
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.mainContainer}>
           <FlatList
-            showsVerticalScrollIndicator={false}
             data={pets}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("PetDetails", { pet: item, handleDelete })
-                }
-              >
-                <View style={styles.petContainer}>
-                  <Image
-                    source={{ uri: item.images }}
-                    style={styles.petImage}
-                  />
-                  <Text style={styles.petName}>Name: {item.name}</Text>
-                  <Text style={styles.petType}>Type: {item.type}</Text>
-                  <Text style={styles.petAge}>
-                    Age: {getAgeCategory(item.age)}
-                  </Text>
-                  <View style={styles.genderContainer}>
-                    <Icon
-                      name={
-                        item.gender === "Male" ? "gender-male" : "gender-female"
-                      }
-                      size={22}
-                      color={COLORS.grey}
-                      style={styles.genderIcon}
-                    />
-                    <Text style={styles.genderText}>{item.gender}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
             keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.petButton}
+                  onPress={() => navigation.navigate("PetDetails", { pet: item })}
+                >
+                  <View style={styles.petContainer}>
+                    <View style={styles.imageContainer}>
+                      <Image source={{ uri: item.images }} style={styles.petImage} />
+                    </View>
+
+                    <View style={styles.petDetails}>
+                      <View style={styles.petNameGender}>
+                        <Text style={styles.petName}>{item.name}</Text>
+
+                        {item.gender.toLowerCase() === "male" ? (
+                          <View style={styles.genderIconContainer}>
+                            <Ionicons
+                              style={styles.petGenderIconMale}
+                              name="male"
+                              size={24}
+                              color={COLORS.male}
+                            />
+                          </View>
+                        ) : (
+                          <View style={styles.genderIconContainer}>
+                            <Ionicons
+                              style={styles.petGenderIconFemale}
+                              name="female"
+                              size={24}
+                              color={COLORS.female}
+                            />
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.ageContainer}>
+                        <Text style={styles.ageText}>Age: {item.age}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           />
         </View>
-      </View>
-    </SafeAreaView>
+      )}
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: COLORS.light,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-    minHeight: height,
-  },
-  petContainer: {
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: COLORS.grey,
-    borderRadius: 20,
-    padding: 10,
-  },
-  petImage: {
-    width: "100%",
-    height: 200,
-    resizeMode: "cover",
-    borderRadius: 20,
-    marginBottom: 10,
-  },
-  petName: {
-    fontWeight: "bold",
-    color: COLORS.dark,
-    fontSize: 20,
-  },
-  genderContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 5,
-  },
-  genderIcon: {
-    marginRight: 5,
-  },
-  genderText: {
-    fontSize: 12,
-    color: COLORS.dark,
-  },
-  petType: {
-    fontSize: 12,
-    marginTop: 5,
-    color: COLORS.dark,
-  },
-  petAge: {
-    fontSize: 10,
-    marginTop: 5,
-    color: COLORS.grey,
-  },
-  distanceContainer: {
-    marginTop: 5,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  distanceIcon: {
-    marginRight: 5,
-  },
-  distanceText: {
-    fontSize: 12,
-    color: COLORS.grey,
-  },
-});
 
 const HomePageScreenShelter = () => (
   <Tab.Navigator>
@@ -218,8 +256,9 @@ const HomePageScreenShelter = () => (
       component={HomeScreenPet}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <Ionicons name="paw-outline" color={color} size={size} />
+          <Ionicons name="home-outline" color={color} size={size} />
         ),
+        tabBarActiveTintColor: COLORS.prim,
         headerShown: false,
         tabBarLabel: "Home",
       }}
@@ -231,6 +270,7 @@ const HomePageScreenShelter = () => (
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="add-circle-outline" color={color} size={size} />
         ),
+        tabBarActiveTintColor: COLORS.prim,
         headerShown: false,
         tabBarLabel: "Add Pet",
       }}
@@ -243,6 +283,7 @@ const HomePageScreenShelter = () => (
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="chatbubble-outline" color={color} size={size} />
         ),
+        tabBarActiveTintColor: COLORS.prim,
         headerShown: false,
         tabBarLabel: "Message",
       }}
@@ -253,10 +294,11 @@ const HomePageScreenShelter = () => (
       component={SettingOptionsShelter}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <Ionicons name="settings-outline" color={color} size={size} />
+          <Ionicons name="person-outline" color={color} size={size} />
         ),
+        tabBarActiveTintColor: COLORS.prim,
         headerShown: false,
-        tabBarLabel: "Settings",
+        tabBarLabel: "Profile",
       }}
     />
   </Tab.Navigator>
