@@ -8,21 +8,22 @@ const styles = StyleSheet.create({
     gap: '10px', // Space between columns
     padding: '10px',
   },
-  userListContainer: {
+  userListContainer: {                      
     display: "flex",
     gap: 250,
     paddingLeft: 50,
     paddingRight: 50,
     marginLeft: 50,
-    marginRight: 10,
+    marginRight: 10,  
     border: "5px solid #5F5B5B",
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
     height: "60vh",  
     width:"100vh",
+    backgroundColor: "#FFF9E3",
   },
   userInfoContainer: {
-    display: "flex",
+    // display: "flex",
     gap: 250,
     paddingLeft: 50,
     paddingRight: 50,
@@ -41,6 +42,12 @@ const styles = StyleSheet.create({
     display: "grid",
     gridTemplateColumns: "20vh 40vh 20vh", 
     gridTemplateRows: 'repeat(6, 1fr)', 
+    gap: "20",
+  },
+  userInfoDetails: {
+    display: "grid",
+    gridTemplateColumns: "25vh 40vh", 
+    gridTemplateRows: 'repeat(4, 1fr)', 
     gap: "20",
   },
   userCard: {

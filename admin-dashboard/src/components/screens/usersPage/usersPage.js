@@ -14,9 +14,8 @@ import LoadingSpinner from "../loadingPage/loadingSpinner";
 
 // Number of items per page
 
-
 const UsersPage = () => {
-  const itemsPerPage = 5; 
+  const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState([]);
   const [sortedUsers, setSortedUsers] = useState([]);
@@ -27,13 +26,12 @@ const UsersPage = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = sortedUsers.slice(startIndex, startIndex + itemsPerPage);
 
-   // Function to change page
+  // Function to change page
   const changePage = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
-  }
-
+  };
 
   useEffect(() => {
     // Define the function to handle real-time updates
@@ -74,15 +72,19 @@ const UsersPage = () => {
   const isPreviousDisabled = currentPage === 1;
   const isNextDisabled = currentPage === totalPages;
 
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const handleRowClick = (user) => {
+    setSelectedUser(user);
+  };
+
   const getVerificationStatus = (isVerified) => {
-    return isVerified ? 'Verified' : 'Not Verified';
+    return isVerified ? "Verified" : "Not Verified";
   };
 
   const getStatusColor = (isVerified) => {
-    return isVerified ? 'green' : 'red';
+    return isVerified ? "green" : "red";
   };
-
-
 
   if (loading) {
     return <LoadingSpinner />;
@@ -93,74 +95,111 @@ const UsersPage = () => {
       <Header />
       <h1>Users Page</h1>
       <div style={styles.container}>
-      <div style={styles.userListContainer}>
-        <div style={styles.userDetails}>
-          <div style={styles.line}>
-            <p style={styles.title}>Image</p>
+        <div style={styles.userListContainer}>
+          <div style={styles.userDetails}>
+            <div style={styles.line}>
+              <p style={styles.title}>Image</p>
+            </div>
+            <div style={styles.line}>
+              <p style={styles.title}>Name</p>
+            </div>
+            <div style={styles.line}>
+              <p style={styles.title}>Status</p>
+            </div>
+            {currentItems.map((users) => (
+              <React.Fragment key={users.id}>
+                <div
+                  style={{ ...styles.line, cursor: "pointer" }}
+                  onClick={() => handleRowClick(users)}
+                >
+                  <img
+                    src={
+                      users.accountPicture || require("../../../const/user.png")
+                    }
+                    alt="Profile"
+                    style={styles.userPicture}
+                  />
+                </div>
+                <div
+                  style={{ ...styles.line, cursor: "pointer" }}
+                  onClick={() => handleRowClick(users)}
+                >
+                  <p>
+                    {users.lastName} , {users.firstName}
+                  </p>
+                </div>
+                <div
+                  style={{ ...styles.line, cursor: "pointer" }}
+                  onClick={() => handleRowClick(users)}
+                >
+                  <p style={{ color: getStatusColor(users.verified) }}>
+                    {getVerificationStatus(users.verified)}
+                  </p>
+                </div>
+              </React.Fragment>
+            ))}
           </div>
-          <div style={styles.line}>
-            <p style={styles.title}>Name</p>
-          </div>
-          <div style={styles.line}>
-            <p style={styles.title}>Status</p>
-          </div>
-          
-          {currentItems.map((users) => (
-            <React.Fragment key={users.id}>
-              <div style={styles.line}>
-                <img
-                  src={
-                    users.accountPicture || require("../../../const/user.png")
-                  }
-                  alt="Profile"
-                  style={styles.userPicture}
-                />
-              </div>
-              <div style={styles.line}>
-                <p>
-                  {users.lastName} , {users.firstName} 
-                </p>
-              </div>
-              <div style={styles.line}>
-                <p style={{ color: getStatusColor(users.verified) }}>
-                  {getVerificationStatus(users.verified)}
-                </p>
-              </div>
-
-            </React.Fragment>
-          ))}
         </div>
-        
-      </div>
-      <div style={styles.userInfoContainer}>
-      </div>
+        {selectedUser && (
+          <div style={styles.userInfoContainer}>
+            <h3>User Information</h3>
+            <div style={styles.userInfoDetails}>
+              <div style={styles.line}>
+                <p p style={styles.title}>Name:</p>
+              </div>
+              <div style={styles.line}>
+                <p>{selectedUser.firstName} {selectedUser.lastName}</p>
+              </div>
+              <div style={styles.line}>
+                <p style={styles.title}>Email:</p>
+              </div>
+              <div style={styles.line}>
+                <p>{selectedUser.email}</p>
+              </div>
+              <div style={styles.line}>
+                <p style={styles.title}>Mobile Number:</p>
+              </div>
+              <div style={styles.line}>
+                <p>{selectedUser.mobileNumber}</p>
+              </div>
+              <div style={styles.line}>
+                <p style={styles.title}>Status:</p>
+              </div>
+              <div style={styles.line}>
+                <p>{getVerificationStatus(selectedUser.verified)}</p>
+              </div>
+              {/* Add any other user details you want to display here */}
+            </div>
+          </div>
+        )}
       </div>
 
-    {/* Pagination */}
+      {/* Pagination */}
       <div style={styles.pagination}>
-        <span>{currentPage} / {totalPages}</span>
+        <span>
+          {currentPage} / {totalPages}
+        </span>
         <button
-            style={{
-              ...styles.paginationButton,
-              ...(isPreviousDisabled ? styles.disabledButton : {}),
-            }}
-            onClick={() => changePage(currentPage - 1)}
-            disabled={isPreviousDisabled}
-          >
-            Previous
-          </button>
-          <button
-            style={{
-              ...styles.paginationButton,
-              ...(isNextDisabled ? styles.disabledButton : {}),
-            }}
-            onClick={() => changePage(currentPage + 1)}
-            disabled={isNextDisabled}
-          >
-            Next
-          </button>
+          style={{
+            ...styles.paginationButton,
+            ...(isPreviousDisabled ? styles.disabledButton : {}),
+          }}
+          onClick={() => changePage(currentPage - 1)}
+          disabled={isPreviousDisabled}
+        >
+          Previous
+        </button>
+        <button
+          style={{
+            ...styles.paginationButton,
+            ...(isNextDisabled ? styles.disabledButton : {}),
+          }}
+          onClick={() => changePage(currentPage + 1)}
+          disabled={isNextDisabled}
+        >
+          Next
+        </button>
       </div>
-
     </div>
   );
 };
