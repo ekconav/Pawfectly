@@ -14,7 +14,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { storage, db } from "../../FirebaseConfig"; // Import db from FirebaseConfig
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage"; // Import storage functions
 import * as FileSystem from "expo-file-system";
-import { collection, addDoc, getDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDoc,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { auth } from "../../FirebaseConfig";
 import { useNavigation } from "@react-navigation/native";
 import styles from "../AddPet/styles";
@@ -33,8 +39,7 @@ const AddPet = () => {
   const navigation = useNavigation();
   const [breedModalVisible, setBreedModalVisible] = useState(false);
   const [ageModalVisible, setAgeModalVisible] = useState(false);
-  const [specifyBreedModalVisible, setSpecifyBreedModalVisible] =
-    useState(false);
+  const [specifyBreedModalVisible, setSpecifyBreedModalVisible] = useState(false);
 
   const petAges = [
     "0-3 Months",
@@ -45,11 +50,7 @@ const AddPet = () => {
     "4-6 Years Old",
     "7 Years Old and Above",
   ];
-  const dogBreeds = [
-    "Labrador Retriever",
-    "German Shepherd",
-    "Golden Retriever",
-  ];
+  const dogBreeds = ["Labrador Retriever", "German Shepherd", "Golden Retriever"];
   const catBreeds = ["Persian", "Maine Coon", "Siamese"];
 
   useEffect(() => {
@@ -116,8 +117,7 @@ const AddPet = () => {
   };
 
   const handleChooseImage = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
       alert("Permission to access camera roll is required!");
       return;
@@ -191,6 +191,7 @@ const AddPet = () => {
         age: ageRange,
         breed,
         adopted: false,
+        petPosted: serverTimestamp(),
       });
 
       // Reset form fields
@@ -216,10 +217,7 @@ const AddPet = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity
-        style={styles.imageContainer}
-        onPress={handleChooseImage}
-      >
+      <TouchableOpacity style={styles.imageContainer} onPress={handleChooseImage}>
         {image ? (
           <Image source={{ uri: image }} style={styles.image} />
         ) : (
@@ -285,9 +283,7 @@ const AddPet = () => {
           style={styles.dropdownButton}
           onPress={() => setBreedModalVisible(true)}
         >
-          <Text style={styles.dropdownButtonText}>
-            {breed || "Select Breed"}
-          </Text>
+          <Text style={styles.dropdownButtonText}>{breed || "Select Breed"}</Text>
           <Ionicons name="chevron-down-outline" size={24} color="black" />
         </TouchableOpacity>
 

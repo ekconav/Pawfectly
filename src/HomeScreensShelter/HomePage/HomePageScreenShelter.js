@@ -69,7 +69,7 @@ const HomeScreenPet = () => {
 
       const petsData = querySnapshot.docs
         .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((pet) => pet.userId === currentUser.uid);
+        .filter((pet) => pet.userId === currentUser.uid && pet.adopted === false);
 
       setPets(petsData);
       setAllPets(petsData);

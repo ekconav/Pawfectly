@@ -28,13 +28,18 @@ const styles = StyleSheet.create({
     top: 20,
     left: 20,
   },
-  petDetails: {
+  petStyles: {
     flex: 1,
-    padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    backgroundColor: COLORS.white,
     marginTop: -20,
+    backgroundColor: COLORS.white,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 7,
+  },
+  petDetails: {
+    flexGrow: 1,
   },
   petName: {
     fontFamily: "Poppins_600SemiBold",

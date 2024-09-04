@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { collection, getDocs, doc, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, doc, onSnapshot, query, where } from "firebase/firestore";
 import { auth, db, storage } from "../../FirebaseConfig";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
@@ -60,7 +60,8 @@ const HomeScreen = () => {
     setLoading(true);
     try {
       const petsCollectionRef = collection(db, "pets");
-      const querySnapshot = await getDocs(petsCollectionRef);
+      const petsQuery = query(petsCollectionRef, where("adopted", "==", false));
+      const querySnapshot = await getDocs(petsQuery);
       const petsData = await Promise.all(
         querySnapshot.docs.map(async (doc) => {
           const petData = doc.data();
