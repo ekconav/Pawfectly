@@ -74,6 +74,7 @@ const SettingsPageShelter = () => {
     try {
       await signOut(auth);
       console.log("Shelter signed out successfully");
+      navigation.replace("LoginPage");
     } catch (error) {
       console.error("Error signing out:", error.message);
     }

@@ -362,54 +362,53 @@ const DetailsPage = ({ route }) => {
           </View>
         </TouchableOpacity>
       </View>
-      <ScrollView
-        style={styles.petDetails}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
-      >
-        <Text style={styles.petName}>{petDetails.name}</Text>
-        <View style={styles.addressInformation}>
-          <Ionicons name="location-outline" size={24} color={COLORS.prim} />
-          <Text style={styles.textAddress}>{petDetails.location}</Text>
-        </View>
-        <View style={styles.midInfoContainer}>
-          <View style={styles.midInfo}>
-            <Text style={styles.midInfoDetail}>{petDetails.gender}</Text>
-            <Text style={styles.midInfoTitle}>Sex</Text>
+      <View style={styles.petStyles}>
+        <ScrollView contentContainerStyle={styles.petDetails}>
+          <Text style={styles.petName}>{petDetails.name}</Text>
+          <View style={styles.addressInformation}>
+            <Ionicons name="location-outline" size={24} color={COLORS.prim} />
+            <Text style={styles.textAddress}>{petDetails.location}</Text>
           </View>
-          <View style={styles.midInfo}>
-            <Text style={styles.midInfoDetail}>{petDetails.breed}</Text>
-            <Text style={styles.midInfoTitle}>Breed</Text>
-          </View>
-          <View style={styles.midInfo}>
-            <Text style={styles.midInfoDetail}>{petDetails.age}</Text>
-            <Text style={styles.midInfoTitle}>Age</Text>
-          </View>
-        </View>
-        <View style={styles.shelterContainer}>
-          <View style={styles.shelterInfo}>
-            <Image source={shelterImage} style={styles.shelterImage} />
-            <View style={styles.shelterTextContainer}>
-              <Text style={styles.midInfoTitle}>Currently In:</Text>
-              <Text style={styles.shelterName}>{petDetails.shelterName}</Text>
+          <View style={styles.midInfoContainer}>
+            <View style={styles.midInfo}>
+              <Text style={styles.midInfoDetail}>{petDetails.gender}</Text>
+              <Text style={styles.midInfoTitle}>Sex</Text>
+            </View>
+            <View style={styles.midInfo}>
+              <Text style={styles.midInfoDetail}>{petDetails.breed}</Text>
+              <Text style={styles.midInfoTitle}>Breed</Text>
+            </View>
+            <View style={styles.midInfo}>
+              <Text style={styles.midInfoDetail}>{petDetails.age}</Text>
+              <Text style={styles.midInfoTitle}>Age</Text>
             </View>
           </View>
-          <View style={styles.callMessage}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
-              <Ionicons name="call-outline" size={24} color={COLORS.white} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleOpenMessage}
-            >
-              <Ionicons name="chatbox-outline" size={24} color={COLORS.white} />
-            </TouchableOpacity>
+          <View style={styles.shelterContainer}>
+            <View style={styles.shelterInfo}>
+              <Image source={shelterImage} style={styles.shelterImage} />
+              <View style={styles.shelterTextContainer}>
+                <Text style={styles.midInfoTitle}>Currently In:</Text>
+                <Text style={styles.shelterName}>{petDetails.shelterName}</Text>
+              </View>
+            </View>
+            <View style={styles.callMessage}>
+              <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
+                <Ionicons name="call-outline" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleOpenMessage}
+              >
+                <Ionicons name="chatbox-outline" size={24} color={COLORS.white} />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-        <View style={styles.aboutContainer}>
-          <Text style={styles.aboutTitle}>About {petDetails.name}</Text>
-          <Text style={styles.aboutDescription}>{petDetails.description}</Text>
-        </View>
-      </ScrollView>
+          <View style={styles.aboutContainer}>
+            <Text style={styles.aboutTitle}>About {petDetails.name}</Text>
+            <Text style={styles.aboutDescription}>{petDetails.description}</Text>
+          </View>
+        </ScrollView>
+      </View>
       <View style={styles.buttonContainer}>
         <View style={styles.favoriteContainer}>
           <TouchableOpacity style={styles.button} onPress={handleFavorite}>

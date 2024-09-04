@@ -144,6 +144,15 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
+  petAdoptedContainer: {
+    padding: 15,
+    backgroundColor: COLORS.input,
+    alignItems: "left",
+  },
+  petAdoptedText: {
+    color: COLORS.prim,
+    fontFamily: "Poppins_400Regular",
+  },
 });
 
 export default styles;

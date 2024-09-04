@@ -37,6 +37,10 @@ const MessagePage = ({ route }) => {
   const [shelterAccountPicture, setShelterAccountPicture] = useState("");
   const [loading, setLoading] = useState(true);
   const [shelterExist, setShelterExist] = useState(true);
+  const [petExist, setPetExist] = useState(true);
+  const [petAdoptedByYou, setPetAdoptedByYou] = useState(false);
+  const [petAdoptedByAnotherUser, setPetAdoptedByAnotherUser] = useState(false);
+  const [petName, setPetName] = useState("");
   const currentUser = auth.currentUser;
   const navigation = useNavigation();
 
@@ -45,10 +49,11 @@ const MessagePage = ({ route }) => {
       try {
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         const shelterDoc = await getDoc(doc(db, "shelters", shelterId));
+        const petDoc = await getDoc(doc(db, "pets", petId));
 
         if (userDoc.exists()) {
           setUserAccountPicture(userDoc.data().accountPicture);
-        } 
+        }
 
         if (shelterDoc.exists()) {
           setShelterName(shelterDoc.data().shelterName);
@@ -57,6 +62,29 @@ const MessagePage = ({ route }) => {
           setShelterName("Pawfectly User");
           setShelterExist(false);
         }
+
+        if (!petDoc.exists()) {
+          setPetExist(false);
+        } else {
+          setPetName(petDoc.data().name);
+        }
+
+        if (
+          petDoc.exists() &&
+          petDoc.data().adopted === true &&
+          petDoc.data().adoptedBy === currentUser.uid
+        ) {
+          setPetAdoptedByYou(true);
+        }
+
+        if (
+          petDoc.exists() &&
+          petDoc.data().adopted === true &&
+          petDoc.data().adoptedBy !== currentUser.uid
+        ) {
+          setPetAdoptedByAnotherUser(true);
+        }
+
         const messagesRef = collection(
           db,
           "users",
@@ -386,6 +414,15 @@ const MessagePage = ({ route }) => {
           <Text style={styles.headerTitle}>{shelterName}</Text>
         </View>
       </View>
+      {petAdoptedByYou ? (
+        <View style={styles.petAdoptedContainer}>
+          <Text style={styles.petAdoptedText}>
+            Congratulations, you adopted {petName}!
+          </Text>
+        </View>
+      ) : (
+        <View></View>
+      )}
 
       {/* Messages */}
       <FlatList
@@ -397,7 +434,23 @@ const MessagePage = ({ route }) => {
       />
 
       {/* Input */}
-      {shelterExist ? (
+      {!shelterExist ? (
+        <View style={styles.shelterExist}>
+          <Text style={styles.shelterExistText}>
+            You can't reply to this conversation.
+          </Text>
+        </View>
+      ) : !petExist ? (
+        <View style={styles.shelterExist}>
+          <Text style={styles.shelterExistText}>
+            Pet data has been deleted by the shelter.
+          </Text>
+        </View>
+      ) : petAdoptedByAnotherUser ? (
+        <View style={styles.shelterExist}>
+          <Text style={styles.shelterExistText}>Pet is already adopted.</Text>
+        </View>
+      ) : (
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -412,12 +465,6 @@ const MessagePage = ({ route }) => {
           <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
             <Ionicons name="send" size={24} color={COLORS.prim} />
           </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.shelterExist}>
-          <Text style={styles.shelterExistText}>
-            You can't reply to this conversation.
-          </Text>
         </View>
       )}
     </View>
