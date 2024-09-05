@@ -9,7 +9,14 @@ import {
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { collection, onSnapshot, doc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { db, auth } from "../../FirebaseConfig";
 import { RefreshControl } from "react-native";
 import { SettingOptionsShelter } from "../SettingsPage/SettingStackShelter";
@@ -35,8 +42,9 @@ const HomeScreenPet = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    fetchPets();
-    const unsubscribe = onSnapshot(
+    const unsubscribePets = fetchPets();
+
+    const unsubscribeShelter = onSnapshot(
       doc(db, "shelters", auth.currentUser.uid),
       (doc) => {
         if (doc.exists()) {
@@ -49,14 +57,18 @@ const HomeScreenPet = () => {
         }
       }
     );
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribePets && unsubscribePets();
+      unsubscribeShelter();
+    };
   }, []);
 
   useEffect(() => {
     handleSearch();
   }, [searchQuery]);
 
-  const fetchPets = async () => {
+  const fetchPets = () => {
     const currentUser = auth.currentUser;
     if (!currentUser) {
       return;
@@ -65,17 +77,26 @@ const HomeScreenPet = () => {
     setLoading(true);
     try {
       const petsCollection = collection(db, "pets");
-      const querySnapshot = await getDocs(petsCollection);
+      const petsQuery = query(
+        petsCollection,
+        where("userId", "==", currentUser.uid),
+        where("adopted", "==", false)
+      );
 
-      const petsData = querySnapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((pet) => pet.userId === currentUser.uid && pet.adopted === false);
+      const unsubscribe = onSnapshot(petsQuery, (querySnapshot) => {
+        const petsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-      setPets(petsData);
-      setAllPets(petsData);
+        setPets(petsData);
+        setAllPets(petsData);
+        setLoading(false);
+      });
+
+      return unsubscribe;
     } catch (error) {
       console.error("Error fetching pet data: ", error);
-    } finally {
       setLoading(false);
     }
   };

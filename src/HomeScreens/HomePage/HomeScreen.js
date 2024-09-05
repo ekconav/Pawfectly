@@ -8,7 +8,14 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { collection, getDocs, doc, onSnapshot, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import { auth, db, storage } from "../../FirebaseConfig";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
@@ -37,43 +44,55 @@ const HomeScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    fetchPets();
-    const unsubscribe = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
-      if (doc.exists()) {
-        const userData = doc.data();
-        setProfileImage(
-          userData.accountPicture
-            ? { uri: userData.accountPicture }
-            : require("../../components/user.png")
-        );
-        setFirstName(userData.firstName || "");
+    const unsubscribePets = fetchPets();
+
+    const unsubscribeUser = onSnapshot(
+      doc(db, "users", auth.currentUser.uid),
+      (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          setProfileImage(
+            userData.accountPicture
+              ? { uri: userData.accountPicture }
+              : require("../../components/user.png")
+          );
+          setFirstName(userData.firstName || "");
+        }
       }
-    });
-    return () => unsubscribe();
+    );
+
+    return () => {
+      unsubscribePets && unsubscribePets();
+      unsubscribeUser();
+    };
   }, []);
 
   useEffect(() => {
     handleSearch();
   }, [searchQuery]);
 
-  const fetchPets = async () => {
+  const fetchPets = () => {
     setLoading(true);
     try {
       const petsCollectionRef = collection(db, "pets");
       const petsQuery = query(petsCollectionRef, where("adopted", "==", false));
-      const querySnapshot = await getDocs(petsQuery);
-      const petsData = await Promise.all(
-        querySnapshot.docs.map(async (doc) => {
-          const petData = doc.data();
-          const imageUrl = await getDownloadURL(ref(storage, petData.images));
-          return { id: doc.id, ...petData, imageUrl };
-        })
-      );
-      setPets(petsData);
-      setAllPets(petsData);
+
+      const unsubscribe = onSnapshot(petsQuery, async (querySnapshot) => {
+        const petsData = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const petData = doc.data();
+            const imageUrl = await getDownloadURL(ref(storage, petData.images));
+            return { id: doc.id, ...petData, imageUrl };
+          })
+        );
+        setPets(petsData);
+        setAllPets(petsData);
+        setLoading(false);
+      });
+
+      return unsubscribe;
     } catch (error) {
       console.error("Error fetching pet data: ", error);
-    } finally {
       setLoading(false);
     }
   };
