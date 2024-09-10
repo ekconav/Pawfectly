@@ -216,7 +216,7 @@ const AddPet = () => {
     <KeyboardAvoidingView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.accountName}>Add Pet</Text>
+          <Text style={styles.headerTitle}>Add Pet</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Set")}>
             <Image source={profileImage} style={styles.profileImage} />
           </TouchableOpacity>

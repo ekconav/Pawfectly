@@ -264,6 +264,7 @@ const SignupPage = () => {
             onChangeText={(value) => setEmail(value)}
             value={email}
             keyboardType="email-address"
+            autoCapitalize="none"
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
@@ -273,6 +274,7 @@ const SignupPage = () => {
             onChangeText={(value) => setPassword(value)}
             value={password}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
@@ -282,6 +284,7 @@ const SignupPage = () => {
             onChangeText={(text) => setConfirmPassword(text)}
             value={confirmPassword}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
         <View style={styles.signUpPageInputContainer}>

@@ -17,10 +17,12 @@ import {
   query,
   where,
   getDocs,
+  onSnapshot,
 } from "firebase/firestore";
 import { auth, db } from "../../FirebaseConfig";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import Modal from "react-native-modal";
 import styles from "./styles";
 import COLORS from "../../const/colors";
 
@@ -29,31 +31,34 @@ const PetDetails = ({ route }) => {
   const [conversations, setConversations] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const { pet } = route.params;
 
   useEffect(() => {
-    const fetchPetDetails = async () => {
-      setLoading(true);
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          const petRef = doc(db, "pets", pet.id);
-          const petSnap = await getDoc(petRef);
-
-          if (petSnap.exists()) {
-            setPetDetails(petSnap.data());
-          } else {
-            console.log("No such document!");
-          }
+    const user = auth.currentUser;
+    if (!user) return;
+    setLoading(true);
+    const petRef = doc(db, "pets", pet.id);
+    const unsubscribe = onSnapshot(
+      petRef,
+      (petSnap) => {
+        if (petSnap.exists()) {
+          setPetDetails(petSnap.data());
+        } else {
+          console.log("No such document!");
         }
-      } catch (error) {
+
+        setLoading(false);
+      },
+      (error) => {
         console.error("Error fetching pet details: ", error);
-      } finally {
         setLoading(false);
       }
-    };
-    fetchPetDetails();
+    );
+
+    return () => unsubscribe();
   }, [pet.id]);
 
   useEffect(() => {
@@ -158,6 +163,11 @@ const PetDetails = ({ route }) => {
     navigation.navigate("EditPet", { pet });
   };
 
+  const handleConfirmDelete = () => {
+    setAlertModal(true);
+    setModalMessage("Are you sure you want to delete this pet?");
+  };
+
   const handleDeletePress = async () => {
     const { id } = pet; // Assuming the identifier for the pet document is stored in the 'id' field
     try {
@@ -259,7 +269,10 @@ const PetDetails = ({ route }) => {
       </View>
       <View style={styles.buttonContainer}>
         <View style={styles.deleteContainer}>
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDeletePress}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleConfirmDelete}
+          >
             <Ionicons name="trash-outline" size={20} color={COLORS.white} />
             <Text style={styles.buttonText}>Delete</Text>
           </TouchableOpacity>
@@ -271,6 +284,25 @@ const PetDetails = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setAlertModal(false)}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalDeleteButton}
+              onPress={handleDeletePress}
+            >
+              <Text style={styles.deleteText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

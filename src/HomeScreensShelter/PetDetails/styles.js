@@ -170,4 +170,37 @@ export default StyleSheet.create({
     padding: 10,
     borderRadius: 10,
   },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButtonContainer: {
+    marginTop: 15,
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  modalCancelButton: {
+    backgroundColor: COLORS.outline,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalDeleteButton: {
+    backgroundColor: COLORS.delete,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  cancelText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  deleteText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
 });

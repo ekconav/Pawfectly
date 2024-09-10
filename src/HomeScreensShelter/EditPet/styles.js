@@ -1,84 +1,188 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
+import COLORS from "../../const/colors";
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    flexGrow: 1,
+    backgroundColor: COLORS.white,
+    paddingVertical: 20,
+    paddingHorizontal: 25,
   },
-  imageContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingBottom: 20,
   },
-  image: {
-    width: 200,
-    height: 200,
-    resizeMode: 'cover',
-    borderRadius: 10,
+  headerTitle: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 17,
+    marginTop: 5,
+    color: COLORS.title,
   },
-  addPhoto: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
-  addPhotoText: {
-    marginLeft: 10,
+  addImageContainer: {
+    alignItems: "center",
+    marginTop: 20,
   },
-  form: {
-    marginBottom: 20,
-  },
-  inputField: {
+  imageButton: {
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
+    borderColor: COLORS.outline,
+    borderRadius: 20,
+    width: "50%",
+    height: 130,
+    alignItems: "center",
+    overflow: "hidden",
   },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
+  iconAndText: {
+    flexDirection: "row",
+    gap: 8,
   },
-  checkboxLabel: {
-    marginLeft: 5,
+  addPetText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
   },
-  dropdownButton: {
+  petPreviewImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  addPetInputContainer: {
+    marginTop: 20,
+    flexDirection: "column",
+    gap: 13,
+  },
+  inputContainer: {
+    justifyContent: "space-between",
+  },
+  addPetInput: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  dropdownButtonText: {
-    flex: 1,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
+    borderColor: COLORS.outline,
     borderRadius: 10,
+    padding: 5,
+    paddingHorizontal: 10,
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.black,
   },
-  breedOption: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+  inputCheckboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  checkBoxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  typeText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    marginRight: 45,
+  },
+  checkBoxType: {
+    flexDirection: "row",
+    gap: 50,
+  },
+  typeGender: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    marginRight: 26,
+  },
+  checkboxGender: {
+    flexDirection: "row",
+    gap: 45,
+  },
+  addPetDescriptionInput: {
+    borderWidth: 1,
+    borderColor: COLORS.outline,
+    height: 100,
+    borderRadius: 10,
+    padding: 5,
+    paddingHorizontal: 10,
+    fontFamily: "Poppins_400Regular",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-end",
+    marginTop: 15,
+  },
+  clearButton: {
+    backgroundColor: COLORS.subtitle,
+    padding: 10,
+    borderRadius: 10,
+    width: 80,
+    alignItems: "center",
+    justifyContent: "center",
   },
   uploadButton: {
-    backgroundColor: '#007bff',
-    padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    borderRadius: 10,
+    width: 80,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  uploadButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  buttonText: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.white,
+  },
+
+  // Age Modal
+  modalOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  ageOptions: {
+    width: 185,
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    elevation: 5,
+    height: 280,
+  },
+  ageDropdown: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.outline,
+  },
+  ageDropdownText: {
+    fontSize: 12,
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
+  },
+
+  // Alert Modal
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

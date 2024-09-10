@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 20,
   },
-  accountName: {
+  headerTitle: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 17,
     marginTop: 5,
@@ -58,14 +58,11 @@ const styles = StyleSheet.create({
     gap: 13,
   },
   inputContainer: {
-    // flexDirection: "row",
     justifyContent: "space-between",
-    // alignItems: "center",
   },
   addPetInput: {
     borderWidth: 1,
     borderColor: COLORS.outline,
-    // width: "75%",
     borderRadius: 10,
     padding: 5,
     paddingHorizontal: 10,
@@ -75,7 +72,6 @@ const styles = StyleSheet.create({
   addPetDescriptionInput: {
     borderWidth: 1,
     borderColor: COLORS.outline,
-    // width: "75%",
     height: 100,
     borderRadius: 10,
     padding: 5,
@@ -84,10 +80,8 @@ const styles = StyleSheet.create({
   },
   inputCheckboxContainer: {
     flexDirection: "row",
-    // justifyContent: "space-between",
     alignItems: "center",
     marginRight: 8,
-    // gap: 50,
   },
   checkBoxContainer: {
     flexDirection: "row",
@@ -112,6 +106,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 45,
   },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-end",
+    marginTop: 15,
+  },
   clearButton: {
     backgroundColor: COLORS.subtitle,
     padding: 10,
@@ -119,12 +119,6 @@ const styles = StyleSheet.create({
     width: 80,
     alignItems: "center",
     justifyContent: "center",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    gap: 10,
-    justifyContent: "flex-end",
-    marginTop: 15,
   },
   uploadButton: {
     backgroundColor: COLORS.prim,
@@ -143,7 +137,6 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     flexDirection: "row",
-    // justifyContent: "flex-end",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -151,14 +144,13 @@ const styles = StyleSheet.create({
     width: 185,
     backgroundColor: "white",
     borderRadius: 8,
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 10,
     elevation: 5,
-    height: 250,
-    // top: 180,
+    height: 280,
   },
   ageDropdown: {
-    paddingVertical: 5,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.outline,
   },
@@ -192,98 +184,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
-  //   container: {
-  //     flexGrow: 1,
-  //     padding: 20,
-  //     backgroundColor: "#fff",
-  //   },
-  //   imageContainer: {
-  //     alignItems: "center",
-  //     marginBottom: 20,
-  //   },
-  //   addPhoto: {
-  //     alignItems: "center",
-  //     justifyContent: "center",
-  //     width: 120,
-  //     height: 120,
-  //     borderWidth: 1,
-  //     borderColor: "black",
-  //     borderRadius: 10,
-  //     marginBottom: 10,
-  //   },
-  //   addPhotoText: {
-  //     marginTop: 5,
-  //   },
-  //   image: {
-  //     width: 120,
-  //     height: 120,
-  //     resizeMode: "cover",
-  //     borderRadius: 10,
-  //     marginBottom: 10,
-  //   },
-  //   form: {
-  //     marginBottom: 20,
-  //   },
-  //   inputField: {
-  //     borderWidth: 1,
-  //     borderColor: "gray",
-  //     borderRadius: 5,
-  //     paddingHorizontal: 10,
-  //     paddingVertical: 8,
-  //     marginBottom: 15,
-  //   },
-  //   checkboxContainer: {
-  //     flexDirection: "row",
-  //     alignItems: "center",
-  //     marginBottom: 15,
-  //   },
-  //   checkboxLabel: {
-  //     marginLeft: 8,
-  //   },
-  //   dropdownButton: {
-  //     flexDirection: "row",
-  //     alignItems: "center",
-  //     justifyContent: "space-between",
-  //     borderWidth: 1,
-  //     borderColor: "#ccc",
-  //     borderRadius: 5,
-  //     paddingHorizontal: 10,
-  //     paddingVertical: 8,
-  //     marginBottom: 10,
-  //   },
-  //   dropdownButtonText: {
-  //     fontSize: 16,
-  //   },
-  //   modalContainer: {
-  //     flex: 1,
-  //     justifyContent: "center",
-  //     alignItems: "center",
-  //     backgroundColor: "rgba(0, 0, 0, 0.5)",
-  //   },
-  //   modalContent: {
-  //     backgroundColor: "white",
-  //     borderRadius: 10,
-  //     padding: 20,
-  //     maxHeight: "80%",
-  //     width: "80%",
-  //   },
-  //   breedOption: {
-  //     paddingVertical: 10,
-  //     borderBottomWidth: 1,
-  //     borderBottomColor: "#ccc",
-  //   },
-  //   uploadButton: {
-  //     backgroundColor: "blue",
-  //     paddingVertical: 12,
-  //     borderRadius: 20,
-  //     alignItems: "center",
-  //     width: "50%",
-  //     alignSelf: "center",
-  //   },
-  //   uploadButtonText: {
-  //     color: "white",
-  //     fontSize: 16,
-  //   },
 });
 
 export default styles;
