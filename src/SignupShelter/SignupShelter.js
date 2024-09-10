@@ -287,6 +287,7 @@ const SignupShelter = () => {
             onChangeText={(value) => setEmail(value)}
             value={email}
             keyboardType="email-address"
+            autoCapitalize="none"
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
@@ -296,6 +297,7 @@ const SignupShelter = () => {
             onChangeText={(value) => setPassword(value)}
             value={password}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
@@ -305,6 +307,7 @@ const SignupShelter = () => {
             onChangeText={(text) => setConfirmPassword(text)}
             value={confirmPassword}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>

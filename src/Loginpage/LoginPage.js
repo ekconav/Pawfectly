@@ -90,6 +90,7 @@ const LoginPage = () => {
         onChangeText={(value) => setEmail(value)}
         value={email}
         keyboardType="email-address"
+        autoCapitalize="none"
       />
       <Text style={styles.loginPageInputLabel}>Password</Text>
       <TextInput
@@ -97,6 +98,7 @@ const LoginPage = () => {
         onChangeText={(value) => setPassword(value)}
         value={password}
         secureTextEntry
+        autoCapitalize="none"
       />
       <TouchableOpacity style={styles.loginPageButton} onPress={handleLogin}>
         <Text style={styles.loginPageButtonText}>Login</Text>
