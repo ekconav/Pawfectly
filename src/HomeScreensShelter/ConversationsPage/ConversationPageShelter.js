@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import { db, auth } from "../../FirebaseConfig";
 import {
   collection,
@@ -15,11 +22,13 @@ import {
 } from "firebase/firestore";
 import { Swipeable } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
+import COLORS from "../../const/colors";
+import { Ionicons } from "@expo/vector-icons";
 import styles from "./styles";
 
 const DeleteButton = ({ onDelete }) => (
   <TouchableOpacity style={styles.slideDeleteButton} onPress={onDelete}>
-    <Text style={styles.slideDeleteButtonText}>Delete</Text>
+    <Ionicons name="trash-outline" size={24} color={COLORS.white} />
   </TouchableOpacity>
 );
 
@@ -28,6 +37,7 @@ const ConversationPageShelter = ({ navigation }) => {
   const [userNames, setUserNames] = useState({});
   const [userImage, setUserImage] = useState({});
   const [lastMessages, setLastMessages] = useState({});
+  const [profileImage, setProfileImage] = useState("");
   const [loading, setLoading] = useState(true);
   const swipeableRefs = useRef({});
 
@@ -67,7 +77,6 @@ const ConversationPageShelter = ({ navigation }) => {
           setUserImage(accountPic);
           setLastMessages(messages);
           setConversations(conversationsData);
-
           setLoading(false);
         });
         return unsubscribe;
@@ -214,6 +223,23 @@ const ConversationPageShelter = ({ navigation }) => {
     });
   };
 
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      doc(db, "shelters", auth.currentUser.uid),
+      (doc) => {
+        if (doc.exists()) {
+          const userData = doc.data();
+          setProfileImage(
+            userData.accountPicture
+              ? { uri: userData.accountPicture }
+              : require("../../components/user.png")
+          );
+        }
+      }
+    );
+    return () => unsubscribe();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       closeAllSwipeables();
@@ -223,90 +249,96 @@ const ConversationPageShelter = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
-  if (conversations.length === 0) {
-    return (
-      <View style={styles.noConversationsContainer}>
-        <Text>No conversations</Text>
+        <ActivityIndicator size="large" color={COLORS.prim} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Chats</Text>
-      <FlatList
-        data={conversations}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          let lastMessageText = item.lastMessage;
-          if (item.lastMessage === "Image") {
-            lastMessageText =
-              item.participants[1] === lastMessages[item.id]?.senderId
-                ? "You sent a photo"
-                : `${userNames[item.id]} sent a photo`;
-          }
-          return (
-            <Swipeable
-              ref={(ref) => {
-                if (ref) {
-                  swipeableRefs.current[item.id] = ref;
-                } else {
-                  delete swipeableRefs.current[item.id];
-                }
-              }}
-              renderRightActions={() => (
-                <DeleteButton onDelete={() => handleDeleteConversation(item.id)} />
-              )}
-              onSwipeableOpen={() => handleSwipeableOpen(item.id)}
-            >
-              <TouchableOpacity
-                style={[
-                  styles.conversationItem,
-                  !item.receiverRead && styles.unreadConversation,
-                ]}
-                onPress={() =>
-                  navigateToMessages(item.id, item.petId, item.participants[0])
-                }
-                onLongPress={() => handleLongPress(item.id)}
-              >
-                <View style={styles.userInfoContainer}>
-                  <Image
-                    source={
-                      userImage[item.id]
-                        ? { uri: userImage[item.id] }
-                        : require("../../components/user.png")
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Chats</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Set")}>
+          <Image source={profileImage} style={styles.profileImage} />
+        </TouchableOpacity>
+      </View>
+      {conversations.length === 0 ? (
+        <View style={styles.noConversationsContainer}>
+          <Text style={styles.noConversationsText}>You have no conversations.</Text>
+        </View>
+      ) : (
+        <View>
+          <FlatList
+            data={conversations}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              let lastMessageText = item.lastMessage;
+              if (item.lastMessage === "Image") {
+                lastMessageText =
+                  item.participants[1] === lastMessages[item.id]?.senderId
+                    ? "You sent a photo"
+                    : `${userNames[item.id]} sent a photo`;
+              }
+              return (
+                <Swipeable
+                  ref={(ref) => {
+                    if (ref) {
+                      swipeableRefs.current[item.id] = ref;
+                    } else {
+                      delete swipeableRefs.current[item.id];
                     }
-                    style={styles.userImage}
-                  />
-                  <View style={styles.textContainer}>
-                    <Text
-                      style={[
-                        styles.userName,
-                        !item.receiverRead && styles.unreadConversation,
-                      ]}
-                    >
-                      {userNames[item.id]}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.lastMessage,
-                        !item.receiverRead && styles.unreadConversation,
-                      ]}
-                    >
-                      {lastMessageText}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </Swipeable>
-          );
-        }}
-      />
+                  }}
+                  renderRightActions={() => (
+                    <DeleteButton
+                      onDelete={() => handleDeleteConversation(item.id)}
+                    />
+                  )}
+                  onSwipeableOpen={() => handleSwipeableOpen(item.id)}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.conversationItem,
+                      !item.receiverRead && styles.unreadConversation,
+                    ]}
+                    onPress={() =>
+                      navigateToMessages(item.id, item.petId, item.participants[0])
+                    }
+                  >
+                    <View style={styles.userInfoContainer}>
+                      <Image
+                        source={
+                          userImage[item.id]
+                            ? { uri: userImage[item.id] }
+                            : require("../../components/user.png")
+                        }
+                        style={styles.userImage}
+                      />
+                      <View style={styles.textContainer}>
+                        <Text
+                          style={[
+                            styles.userName,
+                            !item.receiverRead && styles.unreadConversation,
+                          ]}
+                        >
+                          {userNames[item.id]}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.lastMessage,
+                            !item.receiverRead && styles.unreadConversation,
+                          ]}
+                        >
+                          {lastMessageText}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </Swipeable>
+              );
+            }}
+          />
+        </View>
+      )}
     </View>
   );
 };
