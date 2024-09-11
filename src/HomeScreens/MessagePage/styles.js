@@ -20,6 +20,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: COLORS.title,
   },
+  callButton: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
   messagesContainer: {
     flexGrow: 1,
   },
@@ -145,13 +149,19 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
   },
   petAdoptedContainer: {
-    padding: 15,
-    backgroundColor: COLORS.input,
-    alignItems: "left",
+    padding: 8,
+    borderBottomColor: COLORS.outline,
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
   },
   petAdoptedText: {
-    color: COLORS.prim,
+    flex: 1,
     fontFamily: "Poppins_400Regular",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    color: COLORS.title,
+    flexWrap: "wrap",
   },
 });
 

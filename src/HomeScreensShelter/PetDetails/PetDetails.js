@@ -227,7 +227,11 @@ const PetDetails = ({ route }) => {
                   <View key={index} style={styles.conversationList}>
                     <View style={styles.userInfo}>
                       <Image
-                        source={{ uri: user.accountPicture }}
+                        source={
+                          user.accountPicture
+                            ? { uri: user.accountPicture }
+                            : require("../../components/user.png")
+                        }
                         style={styles.userAccountPicture}
                       />
                       <Text key={index} style={styles.userName}>
