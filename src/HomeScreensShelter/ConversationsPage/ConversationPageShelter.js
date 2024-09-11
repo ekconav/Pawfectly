@@ -19,6 +19,7 @@ import {
   updateDoc,
   limit,
   deleteDoc,
+  getDocs,
 } from "firebase/firestore";
 import { Swipeable } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
@@ -46,6 +47,7 @@ const ConversationPageShelter = ({ navigation }) => {
       try {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
+
         const conversationsRef = collection(
           db,
           "shelters",
@@ -57,21 +59,38 @@ const ConversationPageShelter = ({ navigation }) => {
           where("participants", "array-contains", currentUser.uid),
           orderBy("lastTimestamp", "desc")
         );
+
         const unsubscribe = onSnapshot(q, async (snapshot) => {
           const conversationsData = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }));
 
+          const fetchUserData = conversationsData.map(async (conversation) => {
+            const userId = conversation.participants[0];
+            const [userName, userImage, lastMessage] = await Promise.all([
+              getUserName(userId),
+              getUserImage(userId),
+              getLastMessage(conversation.id),
+            ]);
+            return {
+              userName,
+              userImage,
+              lastMessage,
+              conversationId: conversation.id,
+            };
+          });
+
+          const fetchedUserData = await Promise.all(fetchUserData);
+
           const names = {};
           const accountPic = {};
           const messages = {};
-          for (const conversation of conversationsData) {
-            const userId = conversation.participants[0]; // Assuming the userId is the first participant
-            names[conversation.id] = await getUserName(userId);
-            accountPic[conversation.id] = await getUserImage(userId);
-            messages[conversation.id] = await getLastMessage(conversation.id);
-          }
+          fetchedUserData.forEach((data) => {
+            names[data.conversationId] = data.userName;
+            accountPic[data.conversationId] = data.userImage;
+            messages[data.conversationId] = data.lastMessage;
+          });
 
           setUserNames(names);
           setUserImage(accountPic);
@@ -79,7 +98,7 @@ const ConversationPageShelter = ({ navigation }) => {
           setConversations(conversationsData);
           setLoading(false);
         });
-        return unsubscribe;
+        return () => unsubscribe();
       } catch (error) {
         console.error("Error fetching conversations:", error);
         setLoading(false);
@@ -126,24 +145,15 @@ const ConversationPageShelter = ({ navigation }) => {
       );
 
       const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
-      const snapshot = await new Promise((resolve, reject) => {
-        const unsubscribe = onSnapshot(
-          q,
-          (snapshot) => {
-            resolve(snapshot);
-            unsubscribe();
-          },
-          (error) => {
-            reject(error);
-            unsubscribe();
-          }
-        );
-      });
+      const snapshot = await getDocs(q);
 
       if (!snapshot.empty) {
         return snapshot.docs[0].data();
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error fetching last message:", error);
+    }
+    return null;
   };
 
   const navigateToMessages = async (conversationId, petId, userId) => {
@@ -182,29 +192,25 @@ const ConversationPageShelter = ({ navigation }) => {
         "messages"
       );
 
-      const deleteMessages = (snapshot) => {
-        const deletePromises = snapshot.docs.map((msgDoc) =>
-          deleteDoc(doc(messagesRef, msgDoc.id))
-        );
-        return Promise.all(deletePromises);
-      };
+      const messageSnapshot = await getDocs(messagesRef);
+      const deletePromises = messageSnapshot.docs.map((msgDoc) =>
+        deleteDoc(doc(messagesRef, msgDoc.id))
+      );
+      await Promise.all(deletePromises);
 
-      const unsubscribe = onSnapshot(
-        messagesRef,
-        async (snapshot) => {
-          await deleteMessages(snapshot);
-          await deleteDoc(
-            doc(db, "shelters", currentUser.uid, "conversations", conversationId)
-          );
-          unsubscribe();
-        },
-        (error) => {
-          console.error("Error fetching messages: ", error);
-        }
+      await deleteDoc(
+        doc(db, "shelters", currentUser.uid, "conversations", conversationId)
       );
     } catch (error) {
       console.error("Error deleting conversation: ", error);
     }
+  };
+
+  const truncateMessage = (message, length) => {
+    if (message.length > length) {
+      return message.slice(0, length) + "...";
+    }
+    return message;
   };
 
   const handleSwipeableOpen = (key) => {
@@ -278,6 +284,8 @@ const ConversationPageShelter = ({ navigation }) => {
                   item.participants[1] === lastMessages[item.id]?.senderId
                     ? "You sent a photo"
                     : `${userNames[item.id]} sent a photo`;
+              } else {
+                lastMessageText = truncateMessage(item.lastMessage, 28);
               }
               return (
                 <Swipeable
@@ -327,6 +335,7 @@ const ConversationPageShelter = ({ navigation }) => {
                             styles.lastMessage,
                             !item.receiverRead && styles.unreadConversation,
                           ]}
+                          numberOfLines={1}
                         >
                           {lastMessageText}
                         </Text>

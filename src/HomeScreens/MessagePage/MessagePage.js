@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { db, auth, storage } from "../../FirebaseConfig";
 import {
@@ -41,6 +42,7 @@ const MessagePage = ({ route }) => {
   const [petAdoptedByYou, setPetAdoptedByYou] = useState(false);
   const [petAdoptedByAnotherUser, setPetAdoptedByAnotherUser] = useState(false);
   const [petName, setPetName] = useState("");
+  const [shelterMobileNumber, setShelterMobileNumber] = useState("");
   const currentUser = auth.currentUser;
   const navigation = useNavigation();
 
@@ -58,6 +60,7 @@ const MessagePage = ({ route }) => {
         if (shelterDoc.exists()) {
           setShelterName(shelterDoc.data().shelterName);
           setShelterAccountPicture(shelterDoc.data().accountPicture);
+          setShelterMobileNumber(shelterDoc.data().mobileNumber);
         } else {
           setShelterName("Pawfectly User");
           setShelterExist(false);
@@ -104,7 +107,7 @@ const MessagePage = ({ route }) => {
           setMessages(messagesData);
         });
         setLoading(false);
-        return unsubscribe;
+        return () => unsubscribe();
       } catch (error) {
         console.error("Error fetching data:", error);
         setLoading(false);
@@ -143,8 +146,6 @@ const MessagePage = ({ route }) => {
         timestamp: serverTimestamp(),
       });
 
-      setNewMessage("");
-
       await addDoc(shelterMessagesRef, {
         text: newMessage,
         senderId: currentUser.uid,
@@ -171,7 +172,6 @@ const MessagePage = ({ route }) => {
       const shelterConversationSnap = await getDoc(shelterConversationRef);
 
       if (!userConversationSnap.exists()) {
-        // Create the conversation document if it doesn't exist
         await setDoc(userConversationRef, {
           lastMessage: newMessage,
           lastTimestamp: serverTimestamp(),
@@ -181,7 +181,6 @@ const MessagePage = ({ route }) => {
           receiverRead: false,
         });
       } else {
-        // Update the conversation document with the new lastMessage and lastTimestamp
         await updateDoc(userConversationRef, {
           lastMessage: newMessage,
           lastTimestamp: serverTimestamp(),
@@ -207,6 +206,7 @@ const MessagePage = ({ route }) => {
           receiverRead: false,
         });
       }
+      setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -303,6 +303,16 @@ const MessagePage = ({ route }) => {
     }
   };
 
+  const handleCall = async () => {
+    try {
+      if (shelterMobileNumber) {
+        await Linking.openURL(`tel:${shelterMobileNumber}`);
+      }
+    } catch (error) {
+      console.error("Error initiating call: ", error);
+    }
+  };
+
   const renderItem = ({ item }) => {
     const isCurrentUser = item.senderId === currentUser.uid;
     const messageTime = item.timestamp
@@ -352,8 +362,7 @@ const MessagePage = ({ route }) => {
               isCurrentUser ? styles.sentMessage : styles.receivedMessage,
             ]}
           >
-            {/* Display message */}
-            <View style={styles.messageContent}>
+            <View>
               {isImageMessage ? (
                 <Image source={{ uri: item.text }} style={styles.messageImage} />
               ) : (
@@ -395,13 +404,11 @@ const MessagePage = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.prim} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          {/* Display shelter account picture in header */}
           <Image
             source={
               shelterAccountPicture
@@ -410,9 +417,11 @@ const MessagePage = ({ route }) => {
             }
             style={styles.shelterAccountPictureHeader}
           />
-          {/* Display shelter name */}
           <Text style={styles.headerTitle}>{shelterName}</Text>
         </View>
+        <TouchableOpacity style={styles.callButton} onPress={handleCall}>
+          <Ionicons name="call" size={24} color={COLORS.prim} />
+        </TouchableOpacity>
       </View>
       {petAdoptedByYou ? (
         <View style={styles.petAdoptedContainer}>
