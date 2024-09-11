@@ -250,7 +250,7 @@ const ConversationPage = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.accountName}>Chats</Text>
+        <Text style={styles.headerTitle}>Chats</Text>
         <TouchableOpacity onPress={() => navigation.navigate("Set")}>
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
