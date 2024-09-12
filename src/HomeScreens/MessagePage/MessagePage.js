@@ -25,6 +25,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import Modal from "react-native-modal";
 import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
 import COLORS from "../../const/colors";
@@ -43,24 +44,36 @@ const MessagePage = ({ route }) => {
   const [petAdoptedByAnotherUser, setPetAdoptedByAnotherUser] = useState(false);
   const [petName, setPetName] = useState("");
   const [shelterMobileNumber, setShelterMobileNumber] = useState("");
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [sendLoading, setSendLoading] = useState(false);
+
   const currentUser = auth.currentUser;
   const navigation = useNavigation();
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        const shelterDoc = await getDoc(doc(db, "shelters", shelterId));
-        const petDoc = await getDoc(doc(db, "pets", petId));
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const shelterDocRef = doc(db, "shelters", shelterId);
+        const petDocRef = doc(db, "pets", petId);
+
+        const [userDoc, shelterDoc, petDoc] = await Promise.all([
+          getDoc(userDocRef),
+          getDoc(shelterDocRef),
+          getDoc(petDocRef),
+        ]);
 
         if (userDoc.exists()) {
           setUserAccountPicture(userDoc.data().accountPicture);
         }
 
         if (shelterDoc.exists()) {
-          setShelterName(shelterDoc.data().shelterName);
-          setShelterAccountPicture(shelterDoc.data().accountPicture);
-          setShelterMobileNumber(shelterDoc.data().mobileNumber);
+          const shelterData = shelterDoc.data();
+          setShelterName(shelterData.shelterName);
+          setShelterAccountPicture(shelterData.accountPicture);
+          setShelterMobileNumber(shelterData.mobileNumber);
         } else {
           setShelterName("Pawfectly User");
           setShelterExist(false);
@@ -69,23 +82,13 @@ const MessagePage = ({ route }) => {
         if (!petDoc.exists()) {
           setPetExist(false);
         } else {
-          setPetName(petDoc.data().name);
-        }
-
-        if (
-          petDoc.exists() &&
-          petDoc.data().adopted === true &&
-          petDoc.data().adoptedBy === currentUser.uid
-        ) {
-          setPetAdoptedByYou(true);
-        }
-
-        if (
-          petDoc.exists() &&
-          petDoc.data().adopted === true &&
-          petDoc.data().adoptedBy !== currentUser.uid
-        ) {
-          setPetAdoptedByAnotherUser(true);
+          const petData = petDoc.data();
+          setPetName(petData.name);
+          if (petData.adopted && petData.adoptedBy === currentUser.uid) {
+            setPetAdoptedByYou(true);
+          } else if (petData.adopted && petData.adoptedBy !== currentUser.uid) {
+            setPetAdoptedByAnotherUser(true);
+          }
         }
 
         const messagesRef = collection(
@@ -117,10 +120,30 @@ const MessagePage = ({ route }) => {
     fetchData();
   }, [conversationId, petId, shelterId]);
 
-  const handleSendMessage = async () => {
-    if (newMessage.trim() === "") {
-      return;
+  const updateConversation = async (ref, lastMessage) => {
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        lastMessage,
+        lastTimestamp: serverTimestamp(),
+        participants: [currentUser.uid, shelterId],
+        petId: petId,
+        senderRead: true,
+        receiverRead: false,
+      });
+    } else {
+      await updateDoc(ref, {
+        lastMessage,
+        lastTimestamp: serverTimestamp(),
+        senderRead: true,
+        receiverRead: false,
+      });
     }
+  };
+
+  const handleSendMessage = async () => {
+    if (newMessage.trim() === "") return;
+    setSendLoading(true);
     try {
       const userMessagesRef = collection(
         db,
@@ -139,76 +162,37 @@ const MessagePage = ({ route }) => {
         "messages"
       );
 
-      await addDoc(userMessagesRef, {
-        text: newMessage,
-        senderId: currentUser.uid,
-        receiverId: shelterId,
-        timestamp: serverTimestamp(),
-      });
+      await Promise.all([
+        addDoc(userMessagesRef, {
+          text: newMessage,
+          senderId: currentUser.uid,
+          receiverId: shelterId,
+          timestamp: serverTimestamp(),
+        }),
+        addDoc(shelterMessagesRef, {
+          text: newMessage,
+          senderId: currentUser.uid,
+          receiverId: shelterId,
+          timestamp: serverTimestamp(),
+        }),
+      ]);
 
-      await addDoc(shelterMessagesRef, {
-        text: newMessage,
-        senderId: currentUser.uid,
-        receiverId: shelterId,
-        timestamp: serverTimestamp(),
-      });
+      await Promise.all([
+        updateConversation(
+          doc(db, "users", currentUser.uid, "conversations", conversationId),
+          newMessage
+        ),
+        updateConversation(
+          doc(db, "shelters", shelterId, "conversations", conversationId),
+          newMessage
+        ),
+      ]);
 
-      const userConversationRef = doc(
-        db,
-        "users",
-        currentUser.uid,
-        "conversations",
-        conversationId
-      );
-      const userConversationSnap = await getDoc(userConversationRef);
-
-      const shelterConversationRef = doc(
-        db,
-        "shelters",
-        shelterId,
-        "conversations",
-        conversationId
-      );
-      const shelterConversationSnap = await getDoc(shelterConversationRef);
-
-      if (!userConversationSnap.exists()) {
-        await setDoc(userConversationRef, {
-          lastMessage: newMessage,
-          lastTimestamp: serverTimestamp(),
-          participants: [currentUser.uid, shelterId],
-          petId: petId,
-          senderRead: true,
-          receiverRead: false,
-        });
-      } else {
-        await updateDoc(userConversationRef, {
-          lastMessage: newMessage,
-          lastTimestamp: serverTimestamp(),
-          senderRead: true,
-          receiverRead: false,
-        });
-      }
-
-      if (!shelterConversationSnap.exists()) {
-        await setDoc(shelterConversationRef, {
-          lastMessage: newMessage,
-          lastTimestamp: serverTimestamp(),
-          participants: [currentUser.uid, shelterId],
-          petId: petId,
-          senderRead: true,
-          receiverRead: false,
-        });
-      } else {
-        await updateDoc(shelterConversationRef, {
-          lastMessage: newMessage,
-          lastTimestamp: serverTimestamp(),
-          senderRead: true,
-          receiverRead: false,
-        });
-      }
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
+    } finally {
+      setSendLoading(false);
     }
   };
 
@@ -227,13 +211,14 @@ const MessagePage = ({ route }) => {
   };
 
   const handleSendImage = async (imageUri) => {
+    setSendLoading(true);
     try {
       const imageRef = ref(storage, `images/${Date.now()}_${currentUser.uid}`);
       const img = await fetch(imageUri);
       const bytes = await img.blob();
-      await uploadBytes(imageRef, bytes);
-      const imageUrl = await getDownloadURL(imageRef);
-      console.log("Image uploaded successfully:", imageUrl);
+      const imageUrl = await uploadBytes(imageRef, bytes).then(() =>
+        getDownloadURL(imageRef)
+      );
 
       const userMessagesRef = collection(
         db,
@@ -252,54 +237,35 @@ const MessagePage = ({ route }) => {
         "messages"
       );
 
-      await addDoc(userMessagesRef, {
-        text: imageUrl,
-        senderId: currentUser.uid,
-        receiverId: shelterId,
-        timestamp: serverTimestamp(),
-      });
+      await Promise.all([
+        addDoc(userMessagesRef, {
+          text: imageUrl,
+          senderId: currentUser.uid,
+          receiverId: shelterId,
+          timestamp: serverTimestamp(),
+        }),
+        addDoc(shelterMessagesRef, {
+          text: imageUrl,
+          senderId: currentUser.uid,
+          receiverId: shelterId,
+          timestamp: serverTimestamp(),
+        }),
+      ]);
 
-      await addDoc(shelterMessagesRef, {
-        text: imageUrl,
-        senderId: currentUser.uid,
-        receiverId: shelterId,
-        timestamp: serverTimestamp(),
-      });
-
-      console.log("Image message sent successfully");
-
-      const userConversationRef = doc(
-        db,
-        "users",
-        currentUser.uid,
-        "conversations",
-        conversationId
-      );
-      const shelterConversationRef = doc(
-        db,
-        "shelters",
-        shelterId,
-        "conversations",
-        conversationId
-      );
-
-      await updateDoc(userConversationRef, {
-        lastMessage: "Image",
-        lastTimestamp: serverTimestamp(),
-        petId: petId,
-        senderRead: true,
-        receiverRead: false,
-      });
-
-      await updateDoc(shelterConversationRef, {
-        lastMessage: "Image",
-        lastTimestamp: serverTimestamp(),
-        petId: petId,
-        senderRead: true,
-        receiverRead: false,
-      });
+      await Promise.all([
+        updateConversation(
+          doc(db, "users", currentUser.uid, "conversations", conversationId),
+          "Image"
+        ),
+        updateConversation(
+          doc(db, "shelters", shelterId, "conversations", conversationId),
+          "Image"
+        ),
+      ]);
     } catch (error) {
       console.error("Error sending image message:", error);
+    } finally {
+      setSendLoading(false);
     }
   };
 
@@ -307,6 +273,9 @@ const MessagePage = ({ route }) => {
     try {
       if (shelterMobileNumber) {
         await Linking.openURL(`tel:${shelterMobileNumber}`);
+      } else {
+        setModalMessage("Sorry, we couldn't find the shelter you're looking for.");
+        setAlertModal(true);
       }
     } catch (error) {
       console.error("Error initiating call: ", error);
@@ -417,7 +386,9 @@ const MessagePage = ({ route }) => {
             }
             style={styles.shelterAccountPictureHeader}
           />
-          <Text style={styles.headerTitle}>{shelterName}</Text>
+          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+            {shelterName}
+          </Text>
         </View>
         <TouchableOpacity style={styles.callButton} onPress={handleCall}>
           <Ionicons name="call" size={24} color={COLORS.prim} />
@@ -471,11 +442,32 @@ const MessagePage = ({ route }) => {
           <TouchableOpacity style={styles.imageIcon} onPress={pickImage}>
             <Ionicons name="image" size={30} color={COLORS.prim} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-            <Ionicons name="send" size={24} color={COLORS.prim} />
-          </TouchableOpacity>
+          {sendLoading ? (
+            <ActivityIndicator
+              style={{ paddingHorizontal: 4 }}
+              size="large"
+              color={COLORS.prim}
+            />
+          ) : (
+            <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+              <Ionicons name="send" size={24} color={COLORS.prim} />
+            </TouchableOpacity>
+          )}
         </View>
       )}
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

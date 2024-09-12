@@ -286,8 +286,9 @@ const ConversationPageShelter = ({ navigation }) => {
                     ? "You sent a photo"
                     : `${userNames[item.id]} sent a photo`;
               } else {
-                lastMessageText = truncateMessage(item.lastMessage, 28);
+                lastMessageText = item.lastMessage;
               }
+
               return (
                 <Swipeable
                   ref={(ref) => {
@@ -328,6 +329,8 @@ const ConversationPageShelter = ({ navigation }) => {
                             styles.userName,
                             !item.receiverRead && styles.unreadConversation,
                           ]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
                         >
                           {userNames[item.id]}
                         </Text>
@@ -337,6 +340,7 @@ const ConversationPageShelter = ({ navigation }) => {
                             !item.receiverRead && styles.unreadConversation,
                           ]}
                           numberOfLines={1}
+                          ellipsizeMode="tail"
                         >
                           {lastMessageText}
                         </Text>
