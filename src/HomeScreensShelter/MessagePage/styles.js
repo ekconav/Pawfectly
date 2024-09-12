@@ -22,17 +22,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerContent: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
   },
   headerTitle: {
+    flex: 1,
     fontFamily: "Poppins_500Medium",
     fontSize: 18,
     color: COLORS.title,
   },
   callButton: {
-    flex: 1,
     alignItems: "flex-end",
   },
   userAccountPictureHeader: {
@@ -180,6 +181,28 @@ const styles = StyleSheet.create({
   approveText: {
     fontFamily: "Poppins_500Medium",
     color: COLORS.white,
+  },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

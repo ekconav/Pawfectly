@@ -206,13 +206,6 @@ const ConversationPage = ({ navigation }) => {
     }
   };
 
-  const truncateMessage = (message, length) => {
-    if (message.length > length) {
-      return message.slice(0, length) + "...";
-    }
-    return message;
-  };
-
   const handleSwipeableOpen = (key) => {
     Object.keys(swipeableRefs.current).forEach((refKey) => {
       if (refKey !== key && swipeableRefs.current[refKey]) {
@@ -282,7 +275,7 @@ const ConversationPage = ({ navigation }) => {
                     ? "You sent a photo"
                     : `${shelterNames[item.id]} sent a photo`;
               } else {
-                lastMessageText = truncateMessage(item.lastMessage, 28);
+                lastMessageText = item.lastMessage;
               }
 
               return (
@@ -325,6 +318,8 @@ const ConversationPage = ({ navigation }) => {
                             styles.shelterName,
                             !item.senderRead && styles.unreadConversation,
                           ]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
                         >
                           {shelterNames[item.id]}
                         </Text>
@@ -334,6 +329,7 @@ const ConversationPage = ({ navigation }) => {
                             !item.senderRead && styles.unreadConversation,
                           ]}
                           numberOfLines={1}
+                          ellipsizeMode="tail"
                         >
                           {lastMessageText}
                         </Text>

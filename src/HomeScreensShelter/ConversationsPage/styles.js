@@ -64,6 +64,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   textContainer: {
+    flex: 1,
     justifyContent: "center",
   },
   userName: {
