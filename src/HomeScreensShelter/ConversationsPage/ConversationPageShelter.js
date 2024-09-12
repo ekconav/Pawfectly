@@ -14,7 +14,6 @@ import {
   orderBy,
   onSnapshot,
   where,
-  getDoc,
   doc,
   updateDoc,
   limit,
@@ -44,6 +43,7 @@ const ConversationPageShelter = ({ navigation }) => {
 
   useEffect(() => {
     const fetchConversations = async () => {
+      setLoading(true);
       try {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
@@ -60,75 +60,77 @@ const ConversationPageShelter = ({ navigation }) => {
           orderBy("lastTimestamp", "desc")
         );
 
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const unsubscribeConversations = onSnapshot(q, async (snapshot) => {
           const conversationsData = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }));
 
-          const fetchUserData = conversationsData.map(async (conversation) => {
+          const userListeners = conversationsData.map((conversation) => {
             const userId = conversation.participants[0];
-            const [userName, userImage, lastMessage] = await Promise.all([
-              getUserName(userId),
-              getUserImage(userId),
-              getLastMessage(conversation.id),
-            ]);
-            return {
-              userName,
-              userImage,
-              lastMessage,
-              conversationId: conversation.id,
-            };
+
+            return listenToUserData(userId, (userData) => {
+              setUserNames((prev) => ({
+                ...prev,
+                [conversation.id]: userData.userName,
+              }));
+              setUserImage((prev) => ({
+                ...prev,
+                [conversation.id]: userData.accountPicture,
+              }));
+            });
           });
 
-          const fetchedUserData = await Promise.all(fetchUserData);
+          const lastMessagesPromises = conversationsData.map((conversation) =>
+            getLastMessage(conversation.id)
+          );
+          const lastMessagesData = await Promise.all(lastMessagesPromises);
 
-          const names = {};
-          const accountPic = {};
           const messages = {};
-          fetchedUserData.forEach((data) => {
-            names[data.conversationId] = data.userName;
-            accountPic[data.conversationId] = data.userImage;
-            messages[data.conversationId] = data.lastMessage;
+          lastMessagesData.forEach((messageData, index) => {
+            messages[conversationsData[index].id] = messageData;
           });
 
-          setUserNames(names);
-          setUserImage(accountPic);
           setLastMessages(messages);
           setConversations(conversationsData);
           setLoading(false);
+
+          return () => {
+            userListeners.forEach((unsubscribe) => unsubscribe());
+          };
         });
-        return () => unsubscribe();
+        return () => unsubscribeConversations();
       } catch (error) {
-        console.error("Error fetching conversations:", error);
+        console.error("Error fetching conversations: ", error);
         setLoading(false);
       }
     };
-
     fetchConversations();
   }, []);
 
-  const getUserName = async (userId) => {
+  const listenToUserData = (receiverId, onDataChange) => {
     try {
-      const userDoc = await getDoc(doc(db, "users", userId));
-      if (userDoc.exists()) {
-        return userDoc.data().firstName;
-      } else {
-        return "Pawfectly User";
-      }
-    } catch (error) {
-      console.error("Error fetching user name:", error);
-    }
-  };
+      const userRef = doc(db, "users", receiverId);
 
-  const getUserImage = async (userId) => {
-    try {
-      const userDoc = await getDoc(doc(db, "users", userId));
-      if (userDoc.exists()) {
-        return userDoc.data().accountPicture;
-      }
+      const unsubscribe = onSnapshot(userRef, (userDoc) => {
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          onDataChange({
+            userName: data.firstName || "Pawfectly User",
+            accountPicture: data.accountPicture,
+          });
+        } else {
+          onDataChange({
+            userName: "Pawfectly User",
+          });
+        }
+      });
+      return unsubscribe;
     } catch (error) {
-      console.error("Error fetching user name:", error);
+      console.error("Error listening to user data: ", error);
+      onDataChange({
+        userName: "Pawfectly User",
+      });
     }
   };
 
@@ -153,7 +155,6 @@ const ConversationPageShelter = ({ navigation }) => {
     } catch (error) {
       console.error("Error fetching last message:", error);
     }
-    return null;
   };
 
   const navigateToMessages = async (conversationId, petId, userId) => {
