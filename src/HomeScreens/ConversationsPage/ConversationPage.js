@@ -14,7 +14,6 @@ import {
   orderBy,
   onSnapshot,
   where,
-  getDoc,
   doc,
   updateDoc,
   limit,
@@ -61,45 +60,47 @@ const ConversationPage = ({ navigation }) => {
           orderBy("lastTimestamp", "desc")
         );
 
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
+        const unsubscribeConversations = onSnapshot(q, async (snapshot) => {
           const conversationsData = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }));
 
-          const fetchShelterData = conversationsData.map(async (conversation) => {
+          const shelterListeners = conversationsData.map((conversation) => {
             const shelterId = conversation.participants[1];
-            const [shelterName, shelterImage, lastMessage] = await Promise.all([
-              getShelterName(shelterId),
-              getShelterImage(shelterId),
-              getLastMessage(conversation.id),
-            ]);
-            return {
-              shelterName,
-              shelterImage,
-              lastMessage,
-              conversationId: conversation.id,
-            };
+
+            return listenToShelterData(shelterId, (shelterData) => {
+              setShelterNames((prev) => ({
+                ...prev,
+                [conversation.id]: shelterData.shelterName,
+              }));
+              setShelterImage((prev) => ({
+                ...prev,
+                [conversation.id]: shelterData.accountPicture,
+              }));
+            });
           });
 
-          const fetchedShelterData = await Promise.all(fetchShelterData);
+          const lastMessagesPromises = conversationsData.map((conversation) =>
+            getLastMessage(conversation.id)
+          );
+          const lastMessagesData = await Promise.all(lastMessagesPromises);
 
-          const names = {};
-          const accountPic = {};
           const messages = {};
-          fetchedShelterData.forEach((data) => {
-            names[data.conversationId] = data.shelterName;
-            accountPic[data.conversationId] = data.shelterImage;
-            messages[data.conversationId] = data.lastMessage;
+          lastMessagesData.forEach((messageData, index) => {
+            messages[conversationsData[index].id] = messageData;
           });
 
-          setShelterNames(names);
-          setShelterImage(accountPic);
           setLastMessages(messages);
           setConversations(conversationsData);
           setLoading(false);
+
+          return () => {
+            shelterListeners.forEach((unsubscribe) => unsubscribe());
+          };
         });
-        return () => unsubscribe();
+
+        return () => unsubscribeConversations();
       } catch (error) {
         console.error("Error fetching conversations:", error);
         setLoading(false);
@@ -109,27 +110,30 @@ const ConversationPage = ({ navigation }) => {
     fetchConversations();
   }, []);
 
-  const getShelterName = async (receiverId) => {
+  const listenToShelterData = (receiverId, onDataChange) => {
     try {
-      const shelterDoc = await getDoc(doc(db, "shelters", receiverId));
-      if (shelterDoc.exists()) {
-        return shelterDoc.data().shelterName;
-      } else {
-        return "Pawfectly User";
-      }
-    } catch (error) {
-      console.error("Error fetching shelter name:", error);
-    }
-  };
+      const shelterRef = doc(db, "shelters", receiverId);
 
-  const getShelterImage = async (receiverId) => {
-    try {
-      const shelterDoc = await getDoc(doc(db, "shelters", receiverId));
-      if (shelterDoc.exists()) {
-        return shelterDoc.data().accountPicture;
-      }
+      const unsubscribe = onSnapshot(shelterRef, (shelterDoc) => {
+        if (shelterDoc.exists()) {
+          const data = shelterDoc.data();
+          onDataChange({
+            shelterName: data.shelterName || "Pawfectly User",
+            accountPicture: data.accountPicture,
+          });
+        } else {
+          onDataChange({
+            shelterName: "Pawfectly User",
+          });
+        }
+      });
+
+      return unsubscribe;
     } catch (error) {
-      console.error("Error fetching shelter account picture: ", error);
+      console.error("Error listening to shelter data:", error);
+      onDataChange({
+        shelterName: "Pawfectly User",
+      });
     }
   };
 
