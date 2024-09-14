@@ -1,7 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import SettingsScreen from "./SettingsPageShelter";
-import AboutScreen from "./SettingOptionsShelter/AboutShelterPage";
+import AboutScreen from "./SettingOptionsShelter/AboutPage/AboutShelterPage";
 import AccountScreen from "./SettingOptionsShelter/AccountPage/AccountShelterPage";
 import ChangePassScreen from "./SettingOptionsShelter/Change Password/ChangePassPageShelter";
 import TOSPage from "./SettingOptionsShelter/TOSPageShelter";

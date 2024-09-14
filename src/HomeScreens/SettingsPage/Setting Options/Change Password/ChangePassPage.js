@@ -89,6 +89,7 @@ const ChangePassPage = () => {
             onChangeText={setCurrentPassword}
             value={currentPassword}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
         <View>
@@ -98,6 +99,7 @@ const ChangePassPage = () => {
             onChangeText={setNewPassword}
             value={newPassword}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
         <View>
@@ -107,6 +109,7 @@ const ChangePassPage = () => {
             onChangeText={setConfirmNewPassword}
             value={confirmNewPassword}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
       </View>
