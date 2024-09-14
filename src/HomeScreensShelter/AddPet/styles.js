@@ -27,7 +27,6 @@ const styles = StyleSheet.create({
   },
   addImageContainer: {
     alignItems: "center",
-    marginTop: 20,
   },
   imageButton: {
     justifyContent: "center",
@@ -106,11 +105,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 45,
   },
+  inputRescuedCheckboxContainer: {
+    flexDirection: "row",
+    gap: 101,
+  },
   buttonContainer: {
     flexDirection: "row",
     gap: 10,
     justifyContent: "flex-end",
-    marginTop: 15,
+    marginTop: 10,
   },
   clearButton: {
     backgroundColor: COLORS.subtitle,

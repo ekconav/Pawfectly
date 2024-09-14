@@ -248,8 +248,7 @@ const styles = StyleSheet.create({
   petNameGender: {
     flexDirection: "row",
     justifyContent: "space-between",
-    // alignItems: "center",
-    alignContent: "center",
+    alignItems: "center",
     paddingHorizontal: 7,
   },
   petName: {
@@ -325,6 +324,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   petDetailsDeleteText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+  alertModalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  alertModalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  alertModalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  alertModalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  alertModalButtonText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },

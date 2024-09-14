@@ -1,72 +1,262 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  FlatList,
+} from "react-native";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db, storage } from "../../FirebaseConfig";
 import { styles } from "./styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  onSnapshot,
+  query,
+  updateDoc,
+  where,
+  collection,
+} from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import Modal from "react-native-modal";
+import COLORS from "../../const/colors";
 
 const SettingsPageShelter = () => {
-  const navigation = useNavigation();
   const [shelterDetails, setShelterDetails] = useState({});
   const [shelterImage, setShelterImage] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+  const [checkVerify, setCheckVerify] = useState(false);
+  const [petsForAdoption, setPetsForAdoption] = useState([]);
+  const [petsAdopted, setPetsAdopted] = useState([]);
+  const [petsRescued, setPetsRescued] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Setting Modal
+  const [isSettingModalVisible, setIsSettingModalVisible] = useState(false);
+
+  // Choices Modal
+  const [choicesModal, setChoicesModal] = useState(false);
+
+  // Choices
+  const [selectedOption, setSelectedOption] = useState("Pets for Adoption");
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (shelter) => {
       if (shelter) {
+        setLoading(true);
         const docRef = doc(db, "shelters", shelter.uid);
+
         const unsubscribeDoc = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
             setShelterDetails(data);
+
             if (data.accountPicture) {
               setShelterImage({ uri: data.accountPicture });
             } else {
               setShelterImage(require("../../components/user.png"));
             }
+
+            if (data.coverPhoto) {
+              setCoverImage({ uri: data.coverPhoto });
+            } else {
+              setCoverImage(require("../../components/landingpage.png"));
+            }
+
+            setCheckVerify(data.verified === true);
           } else {
             console.log("No such document");
           }
+          setLoading(false);
         });
-
         return () => unsubscribeDoc();
       } else {
         console.log("No shelter is signed in.");
         setShelterDetails({});
+        setLoading(false);
       }
     });
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
-  const handlePickImage = async () => {
+  useEffect(() => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    setLoading(true);
+    try {
+      const petsCollection = collection(db, "pets");
+
+      const petsForAdoptionQuery = query(
+        petsCollection,
+        where("userId", "==", currentUser.uid),
+        where("adopted", "==", false)
+      );
+
+      const petsAdoptedQuery = query(
+        petsCollection,
+        where("userId", "==", currentUser.uid),
+        where("adopted", "==", true)
+      );
+
+      const petsRescuedQuery = query(
+        petsCollection,
+        where("userId", "==", currentUser.uid),
+        where("rescued", "==", true)
+      );
+
+      const unsubscribePetsForAdoption = onSnapshot(
+        petsForAdoptionQuery,
+        async (snapshot) => {
+          try {
+            const petsData = snapshot.docs.map((doc) => {
+              const petData = doc.data();
+              return { id: doc.id, ...petData, imageUrl: null };
+            });
+            setPetsForAdoption(petsData);
+
+            await Promise.all(
+              petsData.map(async (pet, index) => {
+                const imageUrl = await getDownloadURL(ref(storage, pet.images));
+                setPetsForAdoption((prevPets) => {
+                  const newPets = [...prevPets];
+                  newPets[index].imageUrl = imageUrl;
+                  return newPets;
+                });
+              })
+            );
+          } catch (error) {
+            console.error("Error fetching pets data: ", error);
+          } finally {
+            setLoading(false);
+          }
+        }
+      );
+
+      const unsubscribePetsAdopted = onSnapshot(
+        petsAdoptedQuery,
+        async (snapshot) => {
+          try {
+            const petsData = snapshot.docs.map((doc) => {
+              const petData = doc.data();
+              return { id: doc.id, ...petData, imageUrl: null };
+            });
+            setPetsAdopted(petsData);
+
+            await Promise.all(
+              petsData.map(async (pet, index) => {
+                const imageUrl = await getDownloadURL(ref(storage, pet.images));
+                setPetsAdopted((prevPets) => {
+                  const newPets = [...prevPets];
+                  newPets[index].imageUrl = imageUrl;
+                  return newPets;
+                });
+              })
+            );
+          } catch (error) {
+            console.error("Error fetching pets data: ", error);
+          } finally {
+            setLoading(false);
+          }
+        }
+      );
+
+      const unsubscribePetsRescued = onSnapshot(
+        petsRescuedQuery,
+        async (snapshot) => {
+          try {
+            const petsData = snapshot.docs.map((doc) => {
+              const petData = doc.data();
+              return { id: doc.id, ...petData, imageUrl: null };
+            });
+            setPetsRescued(petsData);
+
+            await Promise.all(
+              petsData.map(async (pet, index) => {
+                const imageUrl = await getDownloadURL(ref(storage, pet.images));
+                setPetsRescued((prevPets) => {
+                  const newPets = [...prevPets];
+                  newPets[index].imageUrl = imageUrl;
+                  return newPets;
+                });
+              })
+            );
+          } catch (error) {
+            console.error("Error fetching pets data: ", error);
+          } finally {
+            setLoading(false);
+          }
+        }
+      );
+
+      return () => {
+        unsubscribePetsForAdoption();
+        unsubscribePetsAdopted();
+        unsubscribePetsRescued();
+      };
+    } catch (error) {
+      console.error("Error fetching pet data: ", error);
+      setLoading(false);
+    }
+  }, []);
+
+  const handlePickCover = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],
+      aspect: [4, 3],
       quality: 1,
     });
     if (!result.canceled) {
       const { uri } = result.assets[0];
-      const user = auth.currentUser;
+      const shelter = auth.currentUser;
 
-      if (user) {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const storageRef = ref(storage, `profilePictures/${user.uid}`);
-        await uploadBytes(storageRef, blob);
+      if (shelter) {
+        try {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          const storageRef = ref(storage, `coverPictures/${shelter.uid}`);
+          await uploadBytes(storageRef, blob);
 
-        const downloadURL = await getDownloadURL(storageRef);
+          const downloadURL = await getDownloadURL(storageRef);
 
-        const docRef = doc(db, "shelters", user.uid);
-        await updateDoc(docRef, {
-          accountPicture: downloadURL,
-        });
-        setShelterImage({ uri: downloadURL });
-        Alert.alert("Success", "Profile picture updated");
+          const docRef = doc(db, "shelters", shelter.uid);
+          await updateDoc(docRef, {
+            coverPhoto: downloadURL,
+          });
+          setCoverImage({ uri: downloadURL });
+        } catch (error) {
+          console.error("Error uploading cover photo: ", error);
+        }
       }
+    }
+  };
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+    setChoicesModal(false);
+  };
+
+  const handleSettingsOptionSelect = (option) => {
+    setIsSettingModalVisible(false);
+    if (option === "Logout") {
+      handleLogout();
+    } else if (option === "About Pawfectly") {
+      navigation.navigate("About");
+    } else if (option === "Change Password") {
+      navigation.navigate("Change Password");
+    } else if (option === "Terms of Service") {
+      navigation.navigate("Terms of Service");
+    } else if (option === "Privacy Policy") {
+      navigation.navigate("Privacy Policy");
+    } else if (option === "Delete Account") {
+      navigation.navigate("Request Account Deletion");
     }
   };
 
@@ -80,67 +270,197 @@ const SettingsPageShelter = () => {
     }
   };
 
-  const size = 18;
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.prim} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <TouchableOpacity onPress={handlePickImage}>
+      <View>
+        <TouchableOpacity onPress={handlePickCover}>
+          <Image source={coverImage} style={styles.coverPhoto} />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.profileImageContainer}>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => navigation.navigate("Account")}
+        >
           <Image source={shelterImage} style={styles.shelterImage} />
         </TouchableOpacity>
-        <View>
-          <Text>{shelterDetails.shelterName}</Text>
-          <Text>{shelterDetails.address}</Text>
-          <Text>+63{shelterDetails.mobileNumber}</Text>
+        <TouchableOpacity
+          style={styles.settingsIcon}
+          onPress={() => setIsSettingModalVisible(true)}
+        >
+          <Ionicons name="settings-outline" size={26} color={COLORS.title} />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.shelterDetails}>
+        <View style={styles.shelterInfoContainer}>
+          <Text style={styles.shelterName}>{shelterDetails.shelterName}</Text>
+          <Ionicons
+            style={!checkVerify ? styles.iconNotVerified : styles.iconVerified}
+            name="checkmark-circle-outline"
+            size={20}
+          />
+        </View>
+        <Text style={styles.shelterOwnerText}>
+          Owner: {shelterDetails.shelterOwner}
+        </Text>
+      </View>
+
+      <View style={styles.shelterDetailsContainer}>
+        <View style={styles.iconTextContainer}>
+          <Ionicons name="mail-outline" size={20} color={COLORS.prim} />
+          <Text style={styles.shelterDetailsText}>{shelterDetails.email}</Text>
+        </View>
+        <View style={styles.iconTextContainer}>
+          <Ionicons name="call-outline" size={20} color={COLORS.prim} />
+          <Text style={styles.shelterDetailsText}>
+            {shelterDetails.mobileNumber}
+          </Text>
+        </View>
+        <View style={styles.iconTextContainer}>
+          <Ionicons name="location-outline" size={20} color={COLORS.prim} />
+          <Text style={styles.shelterDetailsText}>{shelterDetails.address}</Text>
         </View>
       </View>
-      <TouchableOpacity onPress={() => navigation.navigate("Account")}>
-        <Text style={styles.settingTitle}>
-          <Ionicons name="person-outline" size={size} />
-          {"  "}
-          Account
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate("About")}>
-        <Text style={styles.settingTitle}>
-          <Ionicons name="help-circle-outline" size={size} />
-          {"  "}
-          About
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate("Change Password")}>
-        <Text style={styles.settingTitle}>
-          <Ionicons name="lock-closed-outline" size={size} />
-          {"  "}
-          Change Password
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate("Terms of Service")}>
-        <Text style={styles.settingTitle}>
-          <Ionicons name="book-outline" size={size} />
-          {"  "}
-          Terms of Service
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate("Privacy Policy")}>
-        <Text style={styles.settingTitle}>
-          <Ionicons name="shield-outline" size={size} />
-          {"  "}
-          Privacy Policy
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Request Account Deletion")}
+      <View style={styles.furbabiesContainer}>
+        <View style={styles.titleButton}>
+          <Text style={styles.furbabiesText}>{selectedOption}</Text>
+          <TouchableOpacity
+            style={styles.choicesButton}
+            onPress={() => setChoicesModal(true)}
+          >
+            <Ionicons name="reorder-three-outline" size={20} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Get the data based on selected option */}
+        {selectedOption === "Pets for Adoption" && petsForAdoption.length === 0 ? (
+          <View style={styles.noResultContainer}>
+            <Text style={styles.noResultsText}>No pets for adoption.</Text>
+          </View>
+        ) : selectedOption === "Pets Adopted" && petsAdopted.length === 0 ? (
+          <View style={styles.noResultContainer}>
+            <Text style={styles.noResultsText}>No pets adopted.</Text>
+          </View>
+        ) : selectedOption === "Pets Rescued" && petsRescued.length === 0 ? (
+          <View style={styles.noResultContainer}>
+            <Text style={styles.noResultsText}>No pets rescued.</Text>
+          </View>
+        ) : (
+          <View style={styles.showPetsContainer}>
+            <FlatList
+              data={
+                selectedOption === "Pets for Adoption"
+                  ? petsForAdoption
+                  : selectedOption === "Pets Adopted"
+                  ? petsAdopted
+                  : petsRescued
+              }
+              numColumns={2}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.petButton}
+                    onPress={() => navigation.navigate("Pet Details", { pet: item })}
+                  >
+                    <View style={styles.imageContainer}>
+                      <Image
+                        source={{ uri: item.imageUrl }}
+                        style={styles.petImage}
+                      />
+                    </View>
+                    <View style={styles.petDetails}>
+                      <View style={styles.petNameGender}>
+                        <Text style={styles.petName}>{item.name}</Text>
+                        <Ionicons
+                          style={
+                            item.gender.toLowerCase() === "male"
+                              ? styles.petGenderIconMale
+                              : styles.petGenderIconFemale
+                          }
+                          name={
+                            item.gender.toLowerCase() === "male" ? "male" : "female"
+                          }
+                          size={12}
+                          color={
+                            item.gender.toLowerCase() === "male"
+                              ? COLORS.male
+                              : COLORS.female
+                          }
+                        />
+                      </View>
+                      <Text style={styles.petBreedText}>{item.breed}</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+          </View>
+        )}
+      </View>
+
+      {/* Choices Modal */}
+      <Modal isVisible={choicesModal} onRequestClose={() => setChoicesModal(false)}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setChoicesModal(false)}
+        >
+          <View style={styles.choicesOptions}>
+            {["Pets for Adoption", "Pets Adopted", "Pets Rescued"].map(
+              (option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleOptionSelect(option)}
+                  style={styles.choicesDropdown}
+                >
+                  <Text style={styles.choicesDropdownText}>{option}</Text>
+                </TouchableOpacity>
+              )
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Settings Dropdown Modal */}
+      <Modal
+        visible={isSettingModalVisible}
+        animationType="fade"
+        onRequestClose={() => setIsSettingModalVisible(false)}
       >
-        <Text style={styles.settingTitle}>
-          <Ionicons name="person-remove-outline" size={size} />
-          {"  "}
-          Request Account Deletion
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Logout</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsModalOverlay}
+          activeOpacity={1}
+          onPress={() => setIsSettingModalVisible(false)}
+        >
+          <View style={styles.dropdownMenu}>
+            {[
+              "About Pawfectly",
+              "Change Password",
+              "Terms of Service",
+              "Privacy Policy",
+              "Delete Account",
+              "Logout",
+            ].map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => handleSettingsOptionSelect(option)}
+                style={styles.dropdownItem}
+              >
+                <Text style={styles.dropdownText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };

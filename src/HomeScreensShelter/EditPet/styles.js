@@ -27,7 +27,6 @@ const styles = StyleSheet.create({
   },
   addImageContainer: {
     alignItems: "center",
-    marginTop: 20,
   },
   imageButton: {
     justifyContent: "center",
@@ -78,6 +77,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  inputRescuedCheckboxContainer: {
+    flexDirection: "row",
+    gap: 101,
   },
   typeText: {
     fontFamily: "Poppins_400Regular",
