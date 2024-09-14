@@ -4,7 +4,7 @@ import SettingsScreen from "./SettingsPageShelter";
 import AboutScreen from "./SettingOptionsShelter/AboutPage/AboutShelterPage";
 import AccountScreen from "./SettingOptionsShelter/AccountPage/AccountShelterPage";
 import ChangePassScreen from "./SettingOptionsShelter/Change Password/ChangePassPageShelter";
-import TOSPage from "./SettingOptionsShelter/TOSPageShelter";
+import TOSPage from "./SettingOptionsShelter/TOSPage/TOSPageShelter";
 import PrivacyPolicyScreen from "./SettingOptionsShelter/PrivacyPolicyPageShelter";
 import DeleteAccScreen from "./SettingOptionsShelter/DeleteAccPageShelter";
 import EditAccountScreen from "./SettingOptionsShelter/EditAccountPageShelter";
