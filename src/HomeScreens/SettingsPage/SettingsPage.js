@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Alert,
   TouchableWithoutFeedback,
   ActivityIndicator,
   FlatList,
@@ -40,6 +39,8 @@ const SettingsPage = () => {
   const [isAddPetModalVisible, setIsAddPetModalVisible] = useState(false);
   const [pets, setPets] = useState([]);
   const [petDocumentId, setPetDocumentId] = useState("");
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   // For Modal
@@ -222,7 +223,8 @@ const SettingsPage = () => {
 
   const handleSubmitPet = async () => {
     if (!petImage || !petName || !petBreed || (!maleChecked && !femaleChecked)) {
-      Alert.alert("Error", "Please fill in all fields and add an image.");
+      setModalMessage("Please fill in all fields and add an image.");
+      setAlertModal(true);
       return;
     }
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
@@ -712,6 +714,19 @@ const SettingsPage = () => {
             </View>
           </TouchableWithoutFeedback>
         </TouchableOpacity>
+      </Modal>
+      <Modal isVisible={alertModal}>
+        <View style={styles.alertModalContainer}>
+          <Text style={styles.alertModalText}>{modalMessage}</Text>
+          <View style={styles.alertModalButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.alertModalButton}
+            >
+              <Text style={styles.alertModalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </View>
   );

@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Alert,
   ActivityIndicator,
   ScrollView,
   Linking,
@@ -33,8 +32,51 @@ const PetDetails = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [adopted, setAdopted] = useState(false);
+  const [adoptedByUser, setAdoptedByUser] = useState(null);
   const navigation = useNavigation();
   const { pet } = route.params;
+
+  useEffect(() => {
+    const checkAdoptionStatus = async () => {
+      setLoading(true);
+      try {
+        const petRef = doc(db, "pets", pet.id);
+        const petSnap = await getDoc(petRef);
+
+        if (petSnap.exists()) {
+          const petData = petSnap.data();
+          if (petData.adopted) {
+            setAdopted(true);
+
+            if (petData.adoptedBy) {
+              const adopterRef = doc(db, "users", petData.adoptedBy);
+              const adopterSnap = await getDoc(adopterRef);
+
+              if (adopterSnap.exists()) {
+                const adopterData = adopterSnap.data();
+                setAdoptedByUser({
+                  firstName: adopterData.firstName,
+                  lastName: adopterData.lastName,
+                  accountPicture: adopterData.accountPicture,
+                  uid: petData.adoptedBy,
+                  mobileNumber: adopterData.mobileNumber,
+                });
+              }
+            }
+          }
+        } else {
+          console.log("No such pet document!");
+        }
+      } catch (error) {
+        console.error("Error checking adoption status: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdoptionStatus();
+  }, [pet.id]);
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -65,24 +107,33 @@ const PetDetails = ({ route }) => {
     const fetchConversations = async () => {
       setLoading(true);
       try {
-        const user = auth.currentUser;
+        const shelter = auth.currentUser;
 
-        if (user) {
+        if (shelter) {
           const conversationsRef = collection(
             db,
             "shelters",
-            user.uid,
+            shelter.uid,
             "conversations"
           );
           const q = query(conversationsRef, where("petId", "==", pet.id));
           const querySnapshot = await getDocs(q);
 
-          const convoList = [];
-          querySnapshot.forEach((doc) => {
-            convoList.push(doc.data());
-          });
+          const conversationPromises = querySnapshot.docs.map(
+            async (docSnapshot) => {
+              const conversationData = docSnapshot.data();
+              const userId = conversationData.participants[0]; // Assuming participants[0] is the user
 
-          setConversations(convoList);
+              const userDocRef = doc(db, "users", userId);
+              const userDocSnapshot = await getDoc(userDocRef);
+
+              return userDocSnapshot.exists() ? conversationData : null;
+            }
+          );
+
+          const conversations = await Promise.all(conversationPromises);
+
+          setConversations(conversations.filter((convo) => convo !== null));
         }
       } catch (error) {
         console.error("Error fetching conversations: ", error);
@@ -106,24 +157,24 @@ const PetDetails = ({ route }) => {
           const userDocSnap = await getDoc(userDocRef);
           if (userDocSnap.exists()) {
             const userData = userDocSnap.data();
-            return { ...userData, uid: userId }; // Ensure uid is included
+            return { ...userData, uid: userId };
           }
           return null;
         });
 
         const usersDetails = await Promise.all(userDetailsPromises);
-        setUsers(usersDetails.filter(Boolean)); // Filter out null values
+        setUsers(usersDetails.filter(Boolean));
       } catch (error) {
         console.error("Error fetching user details: ", error);
       } finally {
-        setLoading(false); // Set loading to false after all data is fetched
+        setLoading(false);
       }
     };
 
     if (conversations.length > 0) {
       fetchUsers();
     } else {
-      setLoading(false); // Set loading to false if no conversations
+      setLoading(false);
     }
   }, [conversations]);
 
@@ -164,19 +215,20 @@ const PetDetails = ({ route }) => {
   };
 
   const handleConfirmDelete = () => {
-    setAlertModal(true);
     setModalMessage("Are you sure you want to delete this pet?");
+    setAlertModal(true);
   };
 
   const handleDeletePress = async () => {
-    const { id } = pet; // Assuming the identifier for the pet document is stored in the 'id' field
+    const { id } = pet;
     try {
       await deleteDoc(doc(db, "pets", id));
       navigation.goBack();
       console.log("Pet deleted successfully!");
     } catch (error) {
       console.error("Error deleting pet:", error);
-      Alert.alert("Failed to delete pet. Please try again.");
+      setModalMessage("Failed to delete pet. Please try again.");
+      setAlertModal(true);
     }
   };
 
@@ -197,6 +249,44 @@ const PetDetails = ({ route }) => {
         <ScrollView>
           <Text style={styles.petName}>{petDetails.name}</Text>
           <Text style={styles.petPostedDate}>Pet Posted: {formattedDate}</Text>
+          {adopted && adoptedByUser && (
+            <View style={styles.adoptedContainer}>
+              <Text style={styles.adoptedText}>Adopted By:</Text>
+              <View style={styles.adoptedByContainer}>
+                <View style={styles.adoptedByUserInfo}>
+                  <Image
+                    source={
+                      adoptedByUser.accountPicture
+                        ? { uri: adoptedByUser.accountPicture }
+                        : require("../../components/user.png")
+                    }
+                    style={styles.adopterImage}
+                  />
+                  <Text style={styles.userFullName}>
+                    {adoptedByUser.firstName} {adoptedByUser.lastName}
+                  </Text>
+                </View>
+                <View style={styles.callMessage}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleCall(adoptedByUser.mobileNumber)}
+                  >
+                    <Ionicons name="call-outline" size={24} color={COLORS.white} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleMessage(adoptedByUser.uid)}
+                  >
+                    <Ionicons
+                      name="chatbox-outline"
+                      size={24}
+                      color={COLORS.white}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
           <View style={styles.midInfoContainer}>
             <View style={styles.midInfo}>
               <Text style={styles.midInfoDetail}>{petDetails.gender}</Text>

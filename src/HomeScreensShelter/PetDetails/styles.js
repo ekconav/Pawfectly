@@ -203,4 +203,27 @@ export default StyleSheet.create({
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
+  adoptedText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
+  },
+  adoptedByContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  adopterImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  adoptedByUserInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  userFullName: {
+    fontFamily: "Poppins_600SemiBold",
+    color: COLORS.title,
+  },
 });
