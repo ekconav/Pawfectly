@@ -2,17 +2,17 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  Image,
   TextInput,
   TouchableOpacity,
-  Image,
-  KeyboardAvoidingView,
-  ScrollView,
-  ActivityIndicator,
 } from "react-native";
-import { db, auth, storage } from "../../../../FirebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { auth, db, storage } from "../../../../FirebaseConfig";
 import { useNavigation } from "@react-navigation/native";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
 import * as ImagePicker from "expo-image-picker";
@@ -21,10 +21,10 @@ import styles from "./styles";
 
 const AccountPage = () => {
   const [accountPicture, setAccountPicture] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [address, setAddress] = useState("");
-  const [mobileNumber, setMobileNumber] = useState("");
+  const [shelterName, setShelterName] = useState("");
+  const [shelterOwnerName, setShelterOwnerName] = useState("");
+  const [shelterAddress, setShelterAddress] = useState("");
+  const [shelterMobileNumber, setShelterMobileNumber] = useState("");
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -32,19 +32,19 @@ const AccountPage = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const shelter = auth.currentUser;
 
-    if (user) {
-      const userDocRef = doc(db, "users", user.uid);
-      getDoc(userDocRef).then((docSnap) => {
+    if (shelter) {
+      const shelterDocRef = doc(db, "shelters", shelter.uid);
+      getDoc(shelterDocRef).then((docSnap) => {
         if (docSnap.exists()) {
-          const userData = docSnap.data();
-          setFirstName(userData.firstName);
-          setLastName(userData.lastName);
-          setAddress(userData.address);
-          setMobileNumber(userData.mobileNumber);
-          if (userData.accountPicture) {
-            setAccountPicture({ uri: userData.accountPicture });
+          const shelterData = docSnap.data();
+          setShelterName(shelterData.shelterName);
+          setShelterOwnerName(shelterData.shelterOwner);
+          setShelterAddress(shelterData.address);
+          setShelterMobileNumber(shelterData.mobileNumber);
+          if (shelterData.accountPicture) {
+            setAccountPicture({ uri: shelterData.accountPicture });
           } else {
             setAccountPicture(require("../../../../components/user.png"));
           }
@@ -54,31 +54,6 @@ const AccountPage = () => {
       });
     }
   }, []);
-
-  const updateDetails = () => {
-    if (!firstName || !lastName || !address || !mobileNumber) {
-      setModalMessage("Please fill in all required fields.");
-      setAlertModal(true);
-      return;
-    }
-
-    const user = auth.currentUser;
-    if (user) {
-      const userDocRef = doc(db, "users", user.uid);
-      updateDoc(userDocRef, {
-        firstName,
-        lastName,
-        address,
-        mobileNumber,
-      })
-        .then(() => {
-          navigation.goBack();
-        })
-        .catch((error) => {
-          console.error("Error updating document: ", error);
-        });
-    }
-  };
 
   const handlePickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -95,19 +70,19 @@ const AccountPage = () => {
     });
     if (!result.canceled) {
       const { uri } = result.assets[0];
-      const user = auth.currentUser;
+      const shelter = auth.currentUser;
 
-      if (user) {
+      if (shelter) {
         setLoading(true);
         try {
           const response = await fetch(uri);
           const blob = await response.blob();
-          const storageRef = ref(storage, `profilePictures/${user.uid}`);
+          const storageRef = ref(storage, `profilePictures/${shelter.uid}`);
           await uploadBytes(storageRef, blob);
 
           const downloadURL = await getDownloadURL(storageRef);
 
-          const docRef = doc(db, "users", user.uid);
+          const docRef = doc(db, "shelters", shelter.uid);
           await updateDoc(docRef, {
             accountPicture: downloadURL,
           });
@@ -118,6 +93,36 @@ const AccountPage = () => {
           setLoading(false);
         }
       }
+    }
+  };
+
+  const updateDetails = () => {
+    if (
+      !shelterName ||
+      !shelterOwnerName ||
+      !shelterAddress ||
+      !shelterMobileNumber
+    ) {
+      setModalMessage("Please fill in all required fields.");
+      setAlertModal(true);
+      return;
+    }
+
+    const shelter = auth.currentUser;
+    if (shelter) {
+      const shelterDocRef = doc(db, "shelters", shelter.uid);
+      updateDoc(shelterDocRef, {
+        shelterName: shelterName,
+        shelterOwner: shelterOwnerName,
+        address: shelterAddress,
+        mobileNumber: shelterMobileNumber,
+      })
+        .then(() => {
+          navigation.goBack();
+        })
+        .catch((error) => {
+          console.error("Error updating document: ", error);
+        });
     }
   };
 
@@ -155,39 +160,37 @@ const AccountPage = () => {
               <Ionicons name="image-outline" size={24} color={COLORS.white} />
             </TouchableOpacity>
           </View>
-          <View style={styles.textInputContainers}>
-            <View style={styles.firstLastName}>
-              <View>
-                <Text style={styles.text}>First Name</Text>
-                <TextInput
-                  style={styles.firstLastInput}
-                  value={firstName}
-                  onChangeText={setFirstName}
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.text}>Last Name</Text>
-                <TextInput
-                  style={styles.firstLastInput}
-                  value={lastName}
-                  onChangeText={setLastName}
-                />
-              </View>
+          <View style={styles.textInputContainer}>
+            <View>
+              <Text style={styles.text}>Shelter Name</Text>
+              <TextInput
+                style={styles.input}
+                value={shelterName}
+                onChangeText={setShelterName}
+              />
+            </View>
+            <View>
+              <Text style={styles.text}>Shelter Owner</Text>
+              <TextInput
+                style={styles.input}
+                value={shelterOwnerName}
+                onChangeText={setShelterOwnerName}
+              />
             </View>
             <View>
               <Text style={styles.text}>Address</Text>
               <TextInput
                 style={styles.input}
-                value={address}
-                onChangeText={setAddress}
+                value={shelterAddress}
+                onChangeText={setShelterAddress}
               />
             </View>
             <View>
               <Text style={styles.text}>Mobile Number</Text>
               <TextInput
                 style={styles.input}
-                value={mobileNumber}
-                onChangeText={setMobileNumber}
+                value={shelterMobileNumber}
+                onChangeText={setShelterMobileNumber}
                 keyboardType="phone-pad"
                 maxLength={13}
               />
