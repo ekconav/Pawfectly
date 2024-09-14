@@ -5,9 +5,8 @@ import AboutScreen from "./SettingOptionsShelter/AboutPage/AboutShelterPage";
 import AccountScreen from "./SettingOptionsShelter/AccountPage/AccountShelterPage";
 import ChangePassScreen from "./SettingOptionsShelter/Change Password/ChangePassPageShelter";
 import TOSPage from "./SettingOptionsShelter/TOSPage/TOSPageShelter";
-import PrivacyPolicyScreen from "./SettingOptionsShelter/PrivacyPolicyPageShelter";
+import PrivacyPolicyScreen from "./SettingOptionsShelter/PrivacyPolicyPage/PrivacyPolicyPageShelter";
 import DeleteAccScreen from "./SettingOptionsShelter/DeleteAccPageShelter";
-import EditAccountScreen from "./SettingOptionsShelter/EditAccountPageShelter";
 import PetDetailsScreen from "../PetDetails/PetDetails";
 
 const Stack = createStackNavigator();
@@ -48,11 +47,6 @@ export const SettingOptionsShelter = () => {
       <Stack.Screen
         name="Request Account Deletion"
         component={DeleteAccScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Edit Account"
-        component={EditAccountScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
