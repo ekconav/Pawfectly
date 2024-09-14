@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
+  View,
   ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -14,8 +14,8 @@ import {
   updatePassword,
 } from "firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
-import COLORS from "../../../../const/colors";
 import Modal from "react-native-modal";
+import COLORS from "../../../../const/colors";
 import styles from "./styles";
 
 const ChangePassPage = () => {
@@ -37,11 +37,14 @@ const ChangePassPage = () => {
       }
       setLoading(true);
       try {
-        const user = auth.currentUser;
-        const credential = EmailAuthProvider.credential(user.email, currentPassword);
-        await reauthenticateWithCredential(user, credential);
+        const shelter = auth.currentUser;
+        const credential = EmailAuthProvider.credential(
+          shelter.email,
+          currentPassword
+        );
+        await reauthenticateWithCredential(shelter, credential);
 
-        await updatePassword(user, newPassword);
+        await updatePassword(shelter, newPassword);
 
         setModalMessage("Password changed successfully.");
         setIsModalVisible(true);
@@ -109,18 +112,18 @@ const ChangePassPage = () => {
             secureTextEntry
           />
         </View>
-      </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.changePasswordButton}
-          onPress={handleChangePassword}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
-          ) : (
-            <Text style={styles.buttonText}>Change Password</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.changePasswordButton}
+            onPress={handleChangePassword}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <Text style={styles.buttonText}>Change Password</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
       <Modal isVisible={isModalVisible}>
         <View style={styles.modalContainer}>

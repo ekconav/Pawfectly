@@ -3,13 +3,9 @@ import COLORS from "../../../../const/colors";
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: COLORS.white,
     padding: 20,
-  },
-  inputContainer: {
-    gap: 10,
-    marginTop: 20,
   },
   header: {
     flexDirection: "row",
@@ -21,6 +17,10 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     fontSize: 17,
     color: COLORS.title,
+  },
+  inputContainer: {
+    gap: 10,
+    marginTop: 20,
   },
   text: {
     fontFamily: "Poppins_500Medium",
