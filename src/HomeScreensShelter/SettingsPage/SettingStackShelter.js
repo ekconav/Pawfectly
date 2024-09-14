@@ -2,7 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import SettingsScreen from "./SettingsPageShelter";
 import AboutScreen from "./SettingOptionsShelter/AboutShelterPage";
-import AccountScreen from "./SettingOptionsShelter/AccountShelterPage";
+import AccountScreen from "./SettingOptionsShelter/AccountPage/AccountShelterPage";
 import ChangePassScreen from "./SettingOptionsShelter/ChangePassPageShelter";
 import TOSPage from "./SettingOptionsShelter/TOSPageShelter";
 import PrivacyPolicyScreen from "./SettingOptionsShelter/PrivacyPolicyPageShelter";

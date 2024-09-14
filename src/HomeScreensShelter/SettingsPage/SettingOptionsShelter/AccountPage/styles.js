@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
   },
   loading: {
     flex: 1,
-    justifyContent: "center"
+    justifyContent: "center",
   },
   header: {
     flexDirection: "row",
@@ -47,26 +47,13 @@ const styles = StyleSheet.create({
     left: 50,
     elevation: 1,
   },
-  textInputContainers: {
+  textInputContainer: {
     flexDirection: "column",
     gap: 15,
   },
   text: {
     fontFamily: "Poppins_500Medium",
     color: COLORS.title,
-  },
-  firstLastName: {
-    flexDirection: "row",
-    gap: 20,
-    alignItems: "center",
-  },
-  firstLastInput: {
-    fontFamily: "Poppins_400Regular",
-    borderWidth: 1,
-    borderColor: COLORS.outline,
-    borderRadius: 10,
-    padding: 10,
-    width: 140,
   },
   input: {
     fontFamily: "Poppins_400Regular",
@@ -75,16 +62,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
   },
+  buttonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
   saveButton: {
     backgroundColor: COLORS.prim,
     padding: 10,
     width: 100,
     borderRadius: 10,
     elevation: 1,
-  },
-  buttonContainer: {
-    marginTop: 20,
-    alignItems: "flex-end",
   },
   saveText: {
     fontFamily: "Poppins_400Regular",
