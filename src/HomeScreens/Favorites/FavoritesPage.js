@@ -44,8 +44,10 @@ const FavoritesPage = () => {
             const petDoc = await getDoc(petRef);
             if (petDoc.exists()) {
               return { id: petId, ...petDoc.data() };
+            } else {
+              await deleteDoc(favoriteDoc.ref);
+              return null;
             }
-            return null;
           });
 
           const petDetailsArray = await Promise.all(petDetailsPromises);

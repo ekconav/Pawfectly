@@ -1,50 +1,60 @@
 import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import {
-  View,
+  ActivityIndicator,
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
+  View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../../../FirebaseConfig";
 import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import {
+  deleteDoc,
+  doc,
+  getDocs,
+  collection,
+  query,
+  where,
+} from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
 import COLORS from "../../../../const/colors";
 import styles from "./styles";
 
-const DeleteAccPage = () => {
+const DeleteAccountPage = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const user = auth.currentUser;
+  const shelter = auth.currentUser;
   const navigation = useNavigation();
 
   const handleDeleteAccount = async () => {
     if (password) {
       setLoading(true);
       try {
-        const credential = EmailAuthProvider.credential(user.email, password);
-        await reauthenticateWithCredential(user, credential);
+        const credential = EmailAuthProvider.credential(shelter.email, password);
+        await reauthenticateWithCredential(shelter, credential);
+
+        const shelterDocRef = doc(db, "shelters", shelter.uid);
+        const petsRef = collection(db, "pets");
+        const conversationsRef = collection(
+          db,
+          "shelters",
+          shelter.uid,
+          "conversations"
+        );
 
         const deleteSubcollection = async (collectionRef) => {
           const snapshot = await getDocs(collectionRef);
-
           for (const doc of snapshot.docs) {
             const subcollectionRef = collection(doc.ref, "messages");
-            if (!subcollectionRef) continue;
             await deleteSubcollection(subcollectionRef);
             await deleteDoc(doc.ref);
           }
         };
-
-        const favoritesRef = collection(db, "users", user.uid, "favorites");
-        const conversationsRef = collection(db, "users", user.uid, "conversations");
-        const furbabiesRef = collection(db, "users", user.uid, "furbabies");
 
         const conversationsSnapshot = await getDocs(conversationsRef);
         for (const conversation of conversationsSnapshot.docs) {
@@ -53,17 +63,20 @@ const DeleteAccPage = () => {
           await deleteDoc(conversation.ref);
         }
 
-        await deleteSubcollection(favoritesRef);
-        await deleteSubcollection(furbabiesRef);
+        const q = query(petsRef, where("userId", "==", shelter.uid));
+        const querySnapshot = await getDocs(q);
+        for (const petDoc of querySnapshot.docs) {
+          await deleteDoc(petDoc.ref);
+        }
 
-        await deleteDoc(doc(db, "users", user.uid));
+        await deleteDoc(shelterDocRef);
 
         setModalMessage("Your account has been deleted successfully.");
         setIsModalVisible(true);
         setShouldNavigateBack(true);
 
         setTimeout(async () => {
-          await user.delete();
+          await shelter.delete();
         }, 10000);
       } catch (error) {
         if (error.message.includes("auth/invalid-credential")) {
@@ -110,6 +123,7 @@ const DeleteAccPage = () => {
           onChangeText={setPassword}
           value={password}
           secureTextEntry
+          autoCapitalize="none"
         />
       </View>
       <View style={styles.buttonContainer}>
@@ -135,4 +149,4 @@ const DeleteAccPage = () => {
   );
 };
 
-export default DeleteAccPage;
+export default DeleteAccountPage;

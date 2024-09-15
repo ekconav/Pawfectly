@@ -6,7 +6,6 @@ import { auth, db } from "./src/FirebaseConfig";
 import UserStack from "./src/UserStack";
 import ShelterStack from "./src/ShelterStack";
 import LandingPage from "./src/LandingPage/LandingPage";
-import ChooseLogin from "./src/ChooseLogin/ChooseLogin";
 import LoginPage from "./src/Loginpage/LoginPage";
 import SignupPage from "./src/SignupPage/signuppage";
 import SignupShelter from "./src/SignupShelter/SignupShelter";
@@ -84,11 +83,6 @@ const App = () => {
             <Stack.Screen
               name="LandingPage"
               component={LandingPage}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="ChooseLogin"
-              component={ChooseLogin}
               options={{ headerShown: false }}
             />
             <Stack.Screen

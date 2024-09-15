@@ -354,12 +354,10 @@ const DetailsPage = ({ route }) => {
       <View style={styles.imageContainer}>
         <Image source={{ uri: petDetails.images }} style={styles.petImage} />
         <TouchableOpacity
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => navigation.goBack()}
           style={styles.overlayButton}
         >
-          <View style={styles.arrowContainer}>
-            <Ionicons name="arrow-back-outline" size={24} color={COLORS.title} />
-          </View>
+          <Ionicons name="arrow-back-outline" size={24} color={COLORS.title} />
         </TouchableOpacity>
       </View>
       <View style={styles.petStyles}>

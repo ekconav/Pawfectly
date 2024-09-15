@@ -43,7 +43,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: 150,
     height: 45,
-    justifyContent: "center"
+    justifyContent: "center",
+    elevation: 1,
   },
   buttonText: {
     fontFamily: "Poppins_400Regular",

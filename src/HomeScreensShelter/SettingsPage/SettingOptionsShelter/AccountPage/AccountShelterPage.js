@@ -28,6 +28,7 @@ const AccountPage = () => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [imageLoading, setImageLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
@@ -73,7 +74,7 @@ const AccountPage = () => {
       const shelter = auth.currentUser;
 
       if (shelter) {
-        setLoading(true);
+        setImageLoading(true);
         try {
           const response = await fetch(uri);
           const blob = await response.blob();
@@ -90,13 +91,13 @@ const AccountPage = () => {
         } catch (error) {
           console.error("Error uploading profile picture: ", error);
         } finally {
-          setLoading(false);
+          setImageLoading(false);
         }
       }
     }
   };
 
-  const updateDetails = () => {
+  const updateDetails = async () => {
     if (
       !shelterName ||
       !shelterOwnerName ||
@@ -109,20 +110,27 @@ const AccountPage = () => {
     }
 
     const shelter = auth.currentUser;
+
     if (shelter) {
       const shelterDocRef = doc(db, "shelters", shelter.uid);
-      updateDoc(shelterDocRef, {
-        shelterName: shelterName,
-        shelterOwner: shelterOwnerName,
-        address: shelterAddress,
-        mobileNumber: shelterMobileNumber,
-      })
-        .then(() => {
-          navigation.goBack();
-        })
-        .catch((error) => {
-          console.error("Error updating document: ", error);
+      setLoading(true);
+      try {
+        await updateDoc(shelterDocRef, {
+          shelterName: shelterName,
+          shelterOwner: shelterOwnerName,
+          address: shelterAddress,
+          mobileNumber: shelterMobileNumber,
         });
+        navigation.goBack();
+      } catch (error) {
+        console.error("Error updating document: ", error);
+        setModalMessage(
+          "An error occurred while updating your details. Please try again."
+        );
+        setAlertModal(true);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -143,7 +151,7 @@ const AccountPage = () => {
               style={styles.pictureButton}
               onPress={() => setImageModalVisible(true)}
             >
-              {loading ? (
+              {imageLoading ? (
                 <ActivityIndicator
                   style={styles.loading}
                   size="large"
@@ -197,7 +205,11 @@ const AccountPage = () => {
             </View>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.saveButton} onPress={updateDetails}>
-                <Text style={styles.saveText}>Save</Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Text style={styles.saveText}>Save</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

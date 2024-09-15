@@ -28,6 +28,7 @@ const AccountPage = () => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [imageLoading, setImageLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
@@ -55,31 +56,6 @@ const AccountPage = () => {
     }
   }, []);
 
-  const updateDetails = () => {
-    if (!firstName || !lastName || !address || !mobileNumber) {
-      setModalMessage("Please fill in all required fields.");
-      setAlertModal(true);
-      return;
-    }
-
-    const user = auth.currentUser;
-    if (user) {
-      const userDocRef = doc(db, "users", user.uid);
-      updateDoc(userDocRef, {
-        firstName,
-        lastName,
-        address,
-        mobileNumber,
-      })
-        .then(() => {
-          navigation.goBack();
-        })
-        .catch((error) => {
-          console.error("Error updating document: ", error);
-        });
-    }
-  };
-
   const handlePickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
@@ -98,7 +74,7 @@ const AccountPage = () => {
       const user = auth.currentUser;
 
       if (user) {
-        setLoading(true);
+        setImageLoading(true);
         try {
           const response = await fetch(uri);
           const blob = await response.blob();
@@ -115,8 +91,40 @@ const AccountPage = () => {
         } catch (error) {
           console.error("Error uploading profile picture: ", error);
         } finally {
-          setLoading(false);
+          setImageLoading(false);
         }
+      }
+    }
+  };
+
+  const updateDetails = async () => {
+    if (!firstName || !lastName || !address || !mobileNumber) {
+      setModalMessage("Please fill in all required fields.");
+      setAlertModal(true);
+      return;
+    }
+
+    const user = auth.currentUser;
+
+    if (user) {
+      const userDocRef = doc(db, "users", user.uid);
+      setLoading(true);
+      try {
+        await updateDoc(userDocRef, {
+          firstName,
+          lastName,
+          address,
+          mobileNumber,
+        });
+        navigation.goBack();
+      } catch (error) {
+        console.error("Error updating document: ", error);
+        setModalMessage(
+          "An error occurred while updating your details. Please try again."
+        );
+        setAlertModal(true);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -138,7 +146,7 @@ const AccountPage = () => {
               style={styles.pictureButton}
               onPress={() => setImageModalVisible(true)}
             >
-              {loading ? (
+              {imageLoading ? (
                 <ActivityIndicator
                   style={styles.loading}
                   size="large"
@@ -194,7 +202,11 @@ const AccountPage = () => {
             </View>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.saveButton} onPress={updateDetails}>
-                <Text style={styles.saveText}>Save</Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Text style={styles.saveText}>Save</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

@@ -6,7 +6,7 @@ import AccountScreen from "./SettingOptionsShelter/AccountPage/AccountShelterPag
 import ChangePassScreen from "./SettingOptionsShelter/Change Password/ChangePassPageShelter";
 import TOSPage from "./SettingOptionsShelter/TOSPage/TOSPageShelter";
 import PrivacyPolicyScreen from "./SettingOptionsShelter/PrivacyPolicyPage/PrivacyPolicyPageShelter";
-import DeleteAccScreen from "./SettingOptionsShelter/DeleteAccPageShelter";
+import DeleteAccScreen from "./SettingOptionsShelter/DeleteAccPage/DeleteAccPageShelter";
 import PetDetailsScreen from "../PetDetails/PetDetails";
 
 const Stack = createStackNavigator();

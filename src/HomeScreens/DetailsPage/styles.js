@@ -18,15 +18,14 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
   },
-  arrowContainer: {
-    backgroundColor: COLORS.white,
-    padding: 7,
-    borderRadius: 10,
-  },
   overlayButton: {
     position: "absolute",
     top: 20,
     left: 20,
+    backgroundColor: COLORS.white,
+    padding: 7,
+    borderRadius: 10,
+    elevation: 1,
   },
   petStyles: {
     flex: 1,
@@ -115,6 +114,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.prim,
     padding: 8,
     borderRadius: 50,
+    elevation: 1,
   },
   aboutContainer: {
     marginTop: 20,
@@ -147,12 +147,14 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
+    elevation: 1,
   },
   adoptButton: {
     backgroundColor: COLORS.prim,
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
+    elevation: 1,
   },
   adoptButtonSent: {
     backgroundColor: "rgba(130, 115, 151, 0.5)",
