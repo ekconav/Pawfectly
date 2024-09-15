@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  Alert,
   TouchableWithoutFeedback,
   ActivityIndicator,
   FlatList,
@@ -40,6 +39,8 @@ const SettingsPage = () => {
   const [isAddPetModalVisible, setIsAddPetModalVisible] = useState(false);
   const [pets, setPets] = useState([]);
   const [petDocumentId, setPetDocumentId] = useState("");
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   // For Modal
@@ -124,7 +125,6 @@ const SettingsPage = () => {
 
             setPets(furbabiesData);
 
-            setLoading(true);
             await Promise.all(
               furbabiesData.map(async (pet, index) => {
                 const imageUrl = await getDownloadURL(ref(storage, pet.image));
@@ -135,7 +135,6 @@ const SettingsPage = () => {
                 });
               })
             );
-            setLoading(false);
           } catch (error) {
             console.error("Error fetching furbabies data: ", error);
           } finally {
@@ -152,42 +151,6 @@ const SettingsPage = () => {
 
     return () => unsubscribeAuth();
   }, []);
-
-  // For profile account picture
-  const handlePickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      const { uri } = result.assets[0];
-      const user = auth.currentUser;
-
-      if (user) {
-        setLoading(true);
-        try {
-          const response = await fetch(uri);
-          const blob = await response.blob();
-          const storageRef = ref(storage, `profilePictures/${user.uid}`);
-          await uploadBytes(storageRef, blob);
-
-          const downloadURL = await getDownloadURL(storageRef);
-
-          const docRef = doc(db, "users", user.uid);
-          await updateDoc(docRef, {
-            accountPicture: downloadURL,
-          });
-          setProfileImage({ uri: downloadURL });
-        } catch (error) {
-          console.error("Error uploading profile picture: ", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    }
-  };
 
   // For profile cover photo
   const handlePickCover = async () => {
@@ -260,7 +223,8 @@ const SettingsPage = () => {
 
   const handleSubmitPet = async () => {
     if (!petImage || !petName || !petBreed || (!maleChecked && !femaleChecked)) {
-      Alert.alert("Error", "Please fill in all fields and add an image.");
+      setModalMessage("Please fill in all fields and add an image.");
+      setAlertModal(true);
       return;
     }
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
@@ -404,9 +368,7 @@ const SettingsPage = () => {
     setIsSettingModalVisible(false);
     if (option === "Logout") {
       handleLogout();
-    } else if (option === "Account") {
-      navigation.navigate("Account");
-    } else if (option === "About") {
+    } else if (option === "About Pawfectly") {
       navigation.navigate("About");
     } else if (option === "Change Password") {
       navigation.navigate("Change Password");
@@ -414,10 +376,9 @@ const SettingsPage = () => {
       navigation.navigate("Terms of Service");
     } else if (option === "Privacy Policy") {
       navigation.navigate("Privacy Policy");
-    } else if (option === "Request Account Deletion") {
+    } else if (option === "Delete Account") {
       navigation.navigate("Request Account Deletion");
     }
-    console.log(option);
   };
 
   const handleOverlayPress = () => {
@@ -443,15 +404,26 @@ const SettingsPage = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.prim} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.coverPhotoContainer}>
+      <View>
         <TouchableOpacity onPress={handlePickCover}>
           <Image source={coverImage} style={styles.coverPhoto} />
         </TouchableOpacity>
       </View>
       <View style={styles.profileImageContainer}>
-        <TouchableOpacity style={styles.profileButton} onPress={handlePickImage}>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => navigation.navigate("Account")}
+        >
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
         <TouchableOpacity
@@ -649,12 +621,11 @@ const SettingsPage = () => {
         >
           <View style={styles.dropdownMenu}>
             {[
-              "Account",
-              "About",
+              "About Pawfectly",
               "Change Password",
               "Terms of Service",
               "Privacy Policy",
-              "Request Account Deletion",
+              "Delete Account",
               "Logout",
             ].map((option, index) => (
               <TouchableOpacity
@@ -743,6 +714,19 @@ const SettingsPage = () => {
             </View>
           </TouchableWithoutFeedback>
         </TouchableOpacity>
+      </Modal>
+      <Modal isVisible={alertModal}>
+        <View style={styles.alertModalContainer}>
+          <Text style={styles.alertModalText}>{modalMessage}</Text>
+          <View style={styles.alertModalButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.alertModalButton}
+            >
+              <Text style={styles.alertModalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </View>
   );

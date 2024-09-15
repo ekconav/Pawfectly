@@ -6,6 +6,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: COLORS.white,
   },
+  loadingContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    backgroundColor: COLORS.white,
+  },
   coverPhoto: {
     height: 160,
     width: "100%",
@@ -24,6 +29,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: "center",
     overflow: "hidden",
+    elevation: 1,
   },
   profileImage: {
     width: "100%",
@@ -32,6 +38,7 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     marginTop: 50,
+    elevation: 1,
   },
   userInfoContainer: {
     paddingHorizontal: 20,
@@ -94,6 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.prim,
     borderRadius: 10,
     padding: 8,
+    elevation: 1,
   },
   addPetButtonText: {
     color: COLORS.white,
@@ -243,8 +251,7 @@ const styles = StyleSheet.create({
   petNameGender: {
     flexDirection: "row",
     justifyContent: "space-between",
-    // alignItems: "center",
-    alignContent: "center",
+    alignItems: "center",
     paddingHorizontal: 7,
   },
   petName: {
@@ -279,13 +286,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   dropdownMenu: {
-    width: 180,
+    width: 135,
     backgroundColor: "white",
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 10,
     elevation: 5,
-    height: 275,
+    height: 235,
     top: 180,
   },
   dropdownItem: {
@@ -320,6 +327,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   petDetailsDeleteText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+  alertModalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  alertModalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  alertModalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  alertModalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  alertModalButtonText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },

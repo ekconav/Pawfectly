@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import { db, auth } from "../../FirebaseConfig";
 import {
   collection,
@@ -7,11 +14,11 @@ import {
   orderBy,
   onSnapshot,
   where,
-  getDoc,
   doc,
   updateDoc,
   limit,
   deleteDoc,
+  getDocs,
 } from "firebase/firestore";
 import { Swipeable } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
@@ -40,35 +47,60 @@ const ConversationPage = ({ navigation }) => {
       try {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
-        const conversationsRef = collection(db, "conversations");
+
+        const conversationsRef = collection(
+          db,
+          "users",
+          currentUser.uid,
+          "conversations"
+        );
         const q = query(
           conversationsRef,
           where("participants", "array-contains", currentUser.uid),
           orderBy("lastTimestamp", "desc")
         );
-        const unsubscribe = onSnapshot(q, async (snapshot) => {
+
+        const unsubscribeConversations = onSnapshot(q, async (snapshot) => {
           const conversationsData = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }));
 
-          const names = {};
-          const accountPic = {};
-          const messages = {};
-          for (const conversation of conversationsData) {
-            const shelterId = conversation.participants[1]; // Assuming the shelterId is the second participant
-            names[conversation.id] = await getShelterName(shelterId);
-            accountPic[conversation.id] = await getShelterImage(shelterId);
-            messages[conversation.id] = await getLastMessage(conversation.id);
-          }
+          const shelterListeners = conversationsData.map((conversation) => {
+            const shelterId = conversation.participants[1];
 
-          setShelterNames(names);
-          setShelterImage(accountPic);
+            return listenToShelterData(shelterId, (shelterData) => {
+              setShelterNames((prev) => ({
+                ...prev,
+                [conversation.id]: shelterData.shelterName,
+              }));
+              setShelterImage((prev) => ({
+                ...prev,
+                [conversation.id]: shelterData.accountPicture,
+              }));
+            });
+          });
+
+          const lastMessagesPromises = conversationsData.map((conversation) =>
+            getLastMessage(conversation.id)
+          );
+          const lastMessagesData = await Promise.all(lastMessagesPromises);
+
+          const messages = {};
+          lastMessagesData.forEach((messageData, index) => {
+            messages[conversationsData[index].id] = messageData;
+          });
+
           setLastMessages(messages);
           setConversations(conversationsData);
           setLoading(false);
+
+          return () => {
+            shelterListeners.forEach((unsubscribe) => unsubscribe());
+          };
         });
-        return unsubscribe;
+
+        return () => unsubscribeConversations();
       } catch (error) {
         console.error("Error fetching conversations:", error);
         setLoading(false);
@@ -78,68 +110,65 @@ const ConversationPage = ({ navigation }) => {
     fetchConversations();
   }, []);
 
-  const getShelterName = async (receiverId) => {
+  const listenToShelterData = (receiverId, onDataChange) => {
     try {
-      const shelterDoc = await getDoc(doc(db, "shelters", receiverId));
-      if (shelterDoc.exists()) {
-        return shelterDoc.data().shelterName;
-      } else {
-        console.error("Shelter document not found for receiverId:", receiverId);
-        return "Unknown Shelter";
-      }
-    } catch (error) {
-      console.error("Error fetching shelter name:", error);
-      return "Unknown Shelter";
-    }
-  };
+      const shelterRef = doc(db, "shelters", receiverId);
 
-  const getShelterImage = async (receiverId) => {
-    try {
-      const shelterDoc = await getDoc(doc(db, "shelters", receiverId));
-      if (shelterDoc.exists()) {
-        return shelterDoc.data().accountPicture;
-      } else {
-        console.error("Shelter document not found for receiverId: ", receiverId);
-        return "Unknown Shelter";
-      }
+      const unsubscribe = onSnapshot(shelterRef, (shelterDoc) => {
+        if (shelterDoc.exists()) {
+          const data = shelterDoc.data();
+          onDataChange({
+            shelterName: data.shelterName || "Pawfectly User",
+            accountPicture: data.accountPicture,
+          });
+        } else {
+          onDataChange({
+            shelterName: "Pawfectly User",
+          });
+        }
+      });
+
+      return unsubscribe;
     } catch (error) {
-      console.error("Error fetching shelter account picture: ", error);
-      return "Unknown Shelter";
+      console.error("Error listening to shelter data:", error);
+      onDataChange({
+        shelterName: "Pawfectly User",
+      });
     }
   };
 
   const getLastMessage = async (conversationId) => {
+    const currentUser = auth.currentUser;
     try {
-      const messagesRef = collection(db, "conversations", conversationId, "messages");
+      const messagesRef = collection(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId,
+        "messages"
+      );
       const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
-      const snapshot = await new Promise((resolve, reject) => {
-        const unsubscribe = onSnapshot(
-          q,
-          (snapshot) => {
-            resolve(snapshot);
-            unsubscribe();
-          },
-          (error) => {
-            reject(error);
-            unsubscribe();
-          }
-        );
-      });
+      const snapshot = await getDocs(q);
 
       if (!snapshot.empty) {
         return snapshot.docs[0].data();
-      } else {
-        return null;
       }
     } catch (error) {
       console.error("Error fetching last message:", error);
-      return null;
     }
   };
 
   const navigateToMessages = async (conversationId, petId, shelterId) => {
+    const currentUser = auth.currentUser;
     try {
-      const conversationRef = doc(db, "conversations", conversationId);
+      const conversationRef = doc(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId
+      );
       await updateDoc(conversationRef, {
         senderRead: true,
       });
@@ -151,26 +180,26 @@ const ConversationPage = ({ navigation }) => {
   };
 
   const handleDeleteConversation = async (conversationId) => {
+    const currentUser = auth.currentUser;
     try {
-      const messagesRef = collection(db, "conversations", conversationId, "messages");
+      const messagesRef = collection(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId,
+        "messages"
+      );
 
-      const deleteMessages = (snapshot) => {
-        const deletePromises = snapshot.docs.map((msgDoc) =>
-          deleteDoc(doc(messagesRef, msgDoc.id))
-        );
-        return Promise.all(deletePromises);
-      };
+      const messagesSnapshot = await getDocs(messagesRef);
+      const deletePromises = messagesSnapshot.docs.map((msgDoc) =>
+        deleteDoc(doc(messagesRef, msgDoc.id))
+      );
 
-      const unsubscribe = onSnapshot(
-        messagesRef,
-        async (snapshot) => {
-          await deleteMessages(snapshot);
-          await deleteDoc(doc(db, "conversations", conversationId));
-          unsubscribe();
-        },
-        (error) => {
-          console.error("Error fetching messages:", error);
-        }
+      await Promise.all(deletePromises);
+
+      await deleteDoc(
+        doc(db, "users", currentUser.uid, "conversations", conversationId)
       );
     } catch (error) {
       console.error("Error deleting conversation:", error);
@@ -224,7 +253,7 @@ const ConversationPage = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.accountName}>Chats</Text>
+        <Text style={styles.headerTitle}>Chats</Text>
         <TouchableOpacity onPress={() => navigation.navigate("Set")}>
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
@@ -245,6 +274,8 @@ const ConversationPage = ({ navigation }) => {
                   item.participants[0] === lastMessages[item.id]?.senderId
                     ? "You sent a photo"
                     : `${shelterNames[item.id]} sent a photo`;
+              } else {
+                lastMessageText = item.lastMessage;
               }
 
               return (
@@ -257,13 +288,20 @@ const ConversationPage = ({ navigation }) => {
                     }
                   }}
                   renderRightActions={() => (
-                    <DeleteButton onDelete={() => handleDeleteConversation(item.id)} />
+                    <DeleteButton
+                      onDelete={() => handleDeleteConversation(item.id)}
+                    />
                   )}
                   onSwipeableOpen={() => handleSwipeableOpen(item.id)}
                 >
                   <TouchableOpacity
-                    style={[styles.conversationItem, !item.senderRead && styles.unreadConversation]}
-                    onPress={() => navigateToMessages(item.id, item.petId, item.participants[1])}
+                    style={[
+                      styles.conversationItem,
+                      !item.senderRead && styles.unreadConversation,
+                    ]}
+                    onPress={() =>
+                      navigateToMessages(item.id, item.petId, item.participants[1])
+                    }
                   >
                     <View style={styles.shelterInfoContainer}>
                       <Image
@@ -280,6 +318,8 @@ const ConversationPage = ({ navigation }) => {
                             styles.shelterName,
                             !item.senderRead && styles.unreadConversation,
                           ]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
                         >
                           {shelterNames[item.id]}
                         </Text>
@@ -288,6 +328,8 @@ const ConversationPage = ({ navigation }) => {
                             styles.lastMessage,
                             !item.senderRead && styles.unreadConversation,
                           ]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
                         >
                           {lastMessageText}
                         </Text>

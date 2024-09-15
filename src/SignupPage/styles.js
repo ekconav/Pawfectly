@@ -64,15 +64,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: COLORS.input,
     borderRadius: 10,
-    paddingRight: 10,
     height: 35,
     marginBottom: 10,
-  },
-  signUpPageEmailSuffix: {
-    marginLeft: 10,
-    fontFamily: "Poppins_400Regular",
-    color: COLORS.title,
-    paddingTop: 6,
   },
   signUpPageRegisterButton: {
     backgroundColor: COLORS.prim,
@@ -144,22 +137,28 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   signUpPageModalCancelButton: {
-    backgroundColor: "gray",
+    backgroundColor: COLORS.subtitle,
+    justifyContent: "center",
+    alignItems: "center",
     padding: 10,
+    width: 90,
     borderRadius: 5,
   },
   signUpPageModalCancelButtonText: {
-    color: "white",
+    color: COLORS.white,
     fontSize: 16,
     fontFamily: "Poppins_500Medium",
   },
   signUpPageModalConfirmButton: {
     backgroundColor: COLORS.prim,
+    justifyContent: "center",
+    alignItems: "center",
     padding: 10,
+    width: 90,
     borderRadius: 5,
   },
   signUpPageModalConfirmButtonText: {
-    color: "white",
+    color: COLORS.white,
     fontSize: 16,
     fontFamily: "Poppins_500Medium",
   },
@@ -167,7 +166,7 @@ const styles = StyleSheet.create({
     color: COLORS.link,
   },
   signUpPageTermsScrollView: {
-    maxHeight: 600, 
+    maxHeight: 600,
     marginBottom: 20,
   },
   signUpPageTOSTitle: {
@@ -189,6 +188,28 @@ const styles = StyleSheet.create({
   signUpPageEmailAd: {
     color: COLORS.prim,
     fontFamily: "Poppins_500Medium",
+  },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  buttonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

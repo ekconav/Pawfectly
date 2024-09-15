@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
@@ -51,6 +50,8 @@ const SignupShelter = () => {
     useState(false);
   const [tosItems, setTosItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
 
   const addShelterToFirestore = async (userId, userData) => {
@@ -121,21 +122,27 @@ const SignupShelter = () => {
       password &&
       confirmPassword
     ) {
+      if (!email.includes("@")) {
+        setModalMessage("Please enter a valid email address.");
+        setAlertModal(true);
+        return;
+      }
+
       if (password !== confirmPassword) {
-        Alert.alert("", "Passwords do not match. Please try again.");
+        setModalMessage("Passwords do not match. Please try again.");
+        setAlertModal(true);
         return;
       }
 
       if (!governmentId || !businessPermit) {
-        Alert.alert(
-          "",
-          "Please upload the necessary documents before registering."
-        );
+        setModalMessage("Please upload the necessary documents before registering.");
+        setAlertModal(true);
         return;
       }
       setModalVisible(true);
     } else {
-      Alert.alert("", "Please fill in all fields.");
+      setModalMessage("Please fill in all fields.");
+      setAlertModal(true);
     }
   };
 
@@ -144,10 +151,9 @@ const SignupShelter = () => {
       setLoading(true);
 
       try {
-        const shelterEmail = email.trim() + "@shelter.com";
         const userCredential = await createUserWithEmailAndPassword(
           auth,
-          shelterEmail,
+          email,
           password
         );
         const user = userCredential.user;
@@ -164,10 +170,7 @@ const SignupShelter = () => {
             const blobBusinessPermit = await responseBusinessPermit.blob();
 
             const governmentIdRef = ref(storage, `governmentIds/${user.uid}`);
-            const businessPermitRef = ref(
-              storage,
-              `businessPermits/${user.uid}`
-            );
+            const businessPermitRef = ref(storage, `businessPermits/${user.uid}`);
 
             await uploadBytes(governmentIdRef, blobGovernmentId);
             await uploadBytes(businessPermitRef, blobBusinessPermit);
@@ -175,8 +178,8 @@ const SignupShelter = () => {
             governmentIdUrl = await getDownloadURL(governmentIdRef);
             businessPermitUrl = await getDownloadURL(businessPermitRef);
           } catch (uploadError) {
-            console.error("Error uploading image:", uploadError.message);
-            Alert.alert("", "Error uploading image. Please try again.");
+            setModalMessage("Error uploading image. Please try again.");
+            setAlertModal(true);
           }
         }
 
@@ -185,26 +188,34 @@ const SignupShelter = () => {
           address: address,
           mobileNumber: fullMobileNumber,
           shelterOwner: ownerName,
-          email: shelterEmail,
+          email: email,
           governmentId: governmentIdUrl,
           businessPermit: businessPermitUrl,
+          verified: false,
+          termsAccepted: true,
         });
 
-        navigation.navigate("LoginPage");
-        Alert.alert("", "Signup Successful", [
-          {
-            text: "OK",
-          },
-        ]);
+        setModalMessage("Signup Successful.");
+        setAlertModal(true);
+        setTimeout(() => {
+          navigation.navigate("LoginPage");
+        }, 2000);
       } catch (error) {
-        console.error("Signup Error: ", error.message);
-        Alert.alert("", "Error signing up. Please try again.");
+        if (error.message.includes("auth/email-already-in-use")) {
+          setModalMessage("Error signing up. Email already in use.");
+        } else if (error.message.includes("auth/weak-password")) {
+          setModalMessage("Password is too weak. Password should be at least 6 characters.");
+        } else {
+          setModalMessage("Error logging in. Please try again.");
+        }
+        setAlertModal(true);
       } finally {
         setLoading(false);
         setModalVisible(false);
       }
     } else {
-      Alert.alert("", "You must agree to the terms of service to sign up.");
+      setModalMessage("You must agree to the terms of service to sign up.");
+      setAlertModal(true);
     }
   };
 
@@ -214,6 +225,13 @@ const SignupShelter = () => {
 
   const handleCloseTermsOfServiceModal = () => {
     setTermsOfServiceModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    if (modalVisible) {
+      setTermsAccepted(false);
+    }
+    setModalVisible(false);
   };
 
   return (
@@ -242,7 +260,12 @@ const SignupShelter = () => {
             <Text style={styles.shelterSignUpCountryCode}>+63</Text>
             <TextInput
               style={styles.shelterSignUpMobileNumberInput}
-              onChangeText={(text) => setMobileNumber(text)}
+              onChangeText={(text) => {
+                if (text.startsWith("0")) {
+                  text = text.slice(1);
+                }
+                setMobileNumber(text);
+              }}
               value={mobileNumber}
               keyboardType="phone-pad"
               maxLength={10}
@@ -259,18 +282,13 @@ const SignupShelter = () => {
         </View>
         <View style={styles.shelterSignUpInputContainer}>
           <Text style={styles.shelterSignUpLabel}>Email Address</Text>
-          <View style={styles.shelterSignUpEmailInput}>
-            <TextInput
-              style={[
-                styles.shelterSignUpInput,
-                { flex: 1, backgroundColor: "none" },
-              ]}
-              onChangeText={(value) => setEmail(value)}
-              value={email}
-              keyboardType="email-address"
-            />
-            <Text style={styles.shelterSignUpEmailSuffix}>@shelter.com</Text>
-          </View>
+          <TextInput
+            style={styles.shelterSignUpInput}
+            onChangeText={(value) => setEmail(value)}
+            value={email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
           <Text style={styles.shelterSignUpLabel}>Password</Text>
@@ -279,6 +297,7 @@ const SignupShelter = () => {
             onChangeText={(value) => setPassword(value)}
             value={password}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
@@ -288,12 +307,11 @@ const SignupShelter = () => {
             onChangeText={(text) => setConfirmPassword(text)}
             value={confirmPassword}
             secureTextEntry
+            autoCapitalize="none"
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>
-            Picture of any Government ID
-          </Text>
+          <Text style={styles.shelterSignUpLabel}>Picture of any Government ID</Text>
           <TouchableOpacity
             style={styles.shelterSignUpFileUpload}
             onPress={handleGovtId}
@@ -324,10 +342,7 @@ const SignupShelter = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.shelterSignUpButton}
-          onPress={handleSignup}
-        >
+        <TouchableOpacity style={styles.shelterSignUpButton} onPress={handleSignup}>
           {loading ? (
             <ActivityIndicator color={COLORS.white} />
           ) : (
@@ -370,19 +385,15 @@ const SignupShelter = () => {
           <View style={styles.shelterSignUpButtonContainer}>
             <TouchableOpacity
               style={styles.shelterSignUpModalCancelButton}
-              onPress={() => setModalVisible(false)}
+              onPress={handleCancel}
             >
-              <Text style={styles.shelterSignUpModalCancelButtonText}>
-                Cancel
-              </Text>
+              <Text style={styles.shelterSignUpModalCancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.shelterSignUpModalConfirmButton}
               onPress={handleConfirmSignup}
             >
-              <Text style={styles.shelterSignUpModalConfirmButtonText}>
-                Confirm
-              </Text>
+              <Text style={styles.shelterSignUpModalConfirmButtonText}>Confirm</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -415,6 +426,19 @@ const SignupShelter = () => {
           >
             <Text style={styles.shelterSignUpModalCancelButtonText}>Close</Text>
           </TouchableOpacity>
+        </View>
+      </Modal>
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </KeyboardAvoidingView>

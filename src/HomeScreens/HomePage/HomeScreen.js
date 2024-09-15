@@ -8,7 +8,14 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { collection, getDocs, doc, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import { auth, db, storage } from "../../FirebaseConfig";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
@@ -37,8 +44,9 @@ const HomeScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    fetchPets();
-    const unsubscribe = onSnapshot(
+    const unsubscribePets = fetchPets();
+
+    const unsubscribeUser = onSnapshot(
       doc(db, "users", auth.currentUser.uid),
       (doc) => {
         if (doc.exists()) {
@@ -52,30 +60,39 @@ const HomeScreen = () => {
         }
       }
     );
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribePets && unsubscribePets();
+      unsubscribeUser();
+    };
   }, []);
 
   useEffect(() => {
     handleSearch();
   }, [searchQuery]);
 
-  const fetchPets = async () => {
+  const fetchPets = () => {
     setLoading(true);
     try {
       const petsCollectionRef = collection(db, "pets");
-      const querySnapshot = await getDocs(petsCollectionRef);
-      const petsData = await Promise.all(
-        querySnapshot.docs.map(async (doc) => {
-          const petData = doc.data();
-          const imageUrl = await getDownloadURL(ref(storage, petData.images));
-          return { id: doc.id, ...petData, imageUrl };
-        })
-      );
-      setPets(petsData);
-      setAllPets(petsData);
+      const petsQuery = query(petsCollectionRef, where("adopted", "==", false));
+
+      const unsubscribe = onSnapshot(petsQuery, async (querySnapshot) => {
+        const petsData = await Promise.all(
+          querySnapshot.docs.map(async (doc) => {
+            const petData = doc.data();
+            const imageUrl = await getDownloadURL(ref(storage, petData.images));
+            return { id: doc.id, ...petData, imageUrl };
+          })
+        );
+        setPets(petsData);
+        setAllPets(petsData);
+        setLoading(false);
+      });
+
+      return unsubscribe;
     } catch (error) {
       console.error("Error fetching pet data: ", error);
-    } finally {
       setLoading(false);
     }
   };
@@ -186,9 +203,11 @@ const HomeScreen = () => {
       </View>
 
       {pets.length === 0 ? (
-        <Text style={styles.noResultsText}>
-          Unfortunately, we couldn't find anything.
-        </Text>
+        <View style={styles.noResultsContainer}>
+          <Text style={styles.noResultsText}>
+            Unfortunately, we couldn't find anything.
+          </Text>
+        </View>
       ) : (
         <View style={styles.mainContainer}>
           <FlatList
@@ -198,18 +217,18 @@ const HomeScreen = () => {
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.petButton}
-                  onPress={() =>
-                    navigation.navigate("DetailsPage", { pet: item })
-                  }
+                  onPress={() => navigation.navigate("DetailsPage", { pet: item })}
                 >
                   <View style={styles.petContainer}>
-                    <Image
-                      source={{
-                        // uri: `${item.imageUrl}?time=${new Date().getTime()}`,
-                        uri: item.imageUrl,
-                      }}
-                      style={styles.petImage}
-                    />
+                    <View style={styles.imageContainer}>
+                      <Image
+                        source={{
+                          uri: item.imageUrl,
+                        }}
+                        style={styles.petImage}
+                      />
+                    </View>
+
                     <View style={styles.petDetails}>
                       <View style={styles.petNameGender}>
                         <Text style={styles.petName}>{item.name}</Text>
@@ -235,7 +254,7 @@ const HomeScreen = () => {
                           )}
                         </Text>
                       </View>
-                      <View style={styles.addressContainer}>
+                      <View>
                         <View style={styles.iconAddress}>
                           <Ionicons
                             name="location-outline"

@@ -21,7 +21,10 @@ const ChoosePage = ({ navigation }) => {
             style={styles.choosePageImage}
             resizeMode="contain"
           />
-          <TouchableOpacity style={styles.choosePageButton} onPress={handleAdopterLogin}>
+          <TouchableOpacity
+            style={styles.choosePageButton}
+            onPress={handleAdopterLogin}
+          >
             <Text style={styles.buttonText}>User Registration</Text>
           </TouchableOpacity>
         </View>
@@ -31,12 +34,17 @@ const ChoosePage = ({ navigation }) => {
             style={styles.choosePageImage}
             resizeMode="contain"
           />
-          <TouchableOpacity style={styles.choosePageButton} onPress={handleShelterLogin}>
+          <TouchableOpacity
+            style={styles.choosePageButton}
+            onPress={handleShelterLogin}
+          >
             <Text style={styles.buttonTextShelter}>Shelter Registration</Text>
           </TouchableOpacity>
         </View>
       </View>
-      <Text style={styles.choosePageText}>Make your life more happy with us</Text>
+      <Text style={styles.choosePageText}>
+        Unleash Happiness with Every Paw Print
+      </Text>
     </View>
   );
 };
