@@ -70,6 +70,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.prim,
     padding: 10,
     width: 100,
+    height: 45,
+    justifyContent: "center",
     borderRadius: 10,
     elevation: 1,
   },

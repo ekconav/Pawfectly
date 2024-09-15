@@ -115,22 +115,20 @@ const SettingsPageShelter = () => {
         petsForAdoptionQuery,
         async (snapshot) => {
           try {
-            const petsData = snapshot.docs.map((doc) => {
-              const petData = doc.data();
-              return { id: doc.id, ...petData, imageUrl: null };
-            });
-            setPetsForAdoption(petsData);
+            const petsData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+              imageUrl: null,
+            }));
 
-            await Promise.all(
-              petsData.map(async (pet, index) => {
+            const petsWithImageUrls = await Promise.all(
+              petsData.map(async (pet) => {
                 const imageUrl = await getDownloadURL(ref(storage, pet.images));
-                setPetsForAdoption((prevPets) => {
-                  const newPets = [...prevPets];
-                  newPets[index].imageUrl = imageUrl;
-                  return newPets;
-                });
+                return { ...pet, imageUrl };
               })
             );
+
+            setPetsForAdoption(petsWithImageUrls);
           } catch (error) {
             console.error("Error fetching pets data: ", error);
           } finally {
@@ -143,22 +141,20 @@ const SettingsPageShelter = () => {
         petsAdoptedQuery,
         async (snapshot) => {
           try {
-            const petsData = snapshot.docs.map((doc) => {
-              const petData = doc.data();
-              return { id: doc.id, ...petData, imageUrl: null };
-            });
-            setPetsAdopted(petsData);
+            const petsData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+              imageUrl: null,
+            }));
 
-            await Promise.all(
-              petsData.map(async (pet, index) => {
+            const petsWithImageUrls = await Promise.all(
+              petsData.map(async (pet) => {
                 const imageUrl = await getDownloadURL(ref(storage, pet.images));
-                setPetsAdopted((prevPets) => {
-                  const newPets = [...prevPets];
-                  newPets[index].imageUrl = imageUrl;
-                  return newPets;
-                });
+                return { ...pet, imageUrl };
               })
             );
+
+            setPetsAdopted(petsWithImageUrls);
           } catch (error) {
             console.error("Error fetching pets data: ", error);
           } finally {
@@ -171,22 +167,25 @@ const SettingsPageShelter = () => {
         petsRescuedQuery,
         async (snapshot) => {
           try {
-            const petsData = snapshot.docs.map((doc) => {
-              const petData = doc.data();
-              return { id: doc.id, ...petData, imageUrl: null };
-            });
-            setPetsRescued(petsData);
+            const petsData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+              imageUrl: null,
+            }));
 
-            await Promise.all(
-              petsData.map(async (pet, index) => {
-                const imageUrl = await getDownloadURL(ref(storage, pet.images));
-                setPetsRescued((prevPets) => {
-                  const newPets = [...prevPets];
-                  newPets[index].imageUrl = imageUrl;
-                  return newPets;
-                });
+            const petsWithImageUrls = await Promise.all(
+              petsData.map(async (pet) => {
+                try {
+                  const imageUrl = await getDownloadURL(ref(storage, pet.images));
+                  return { ...pet, imageUrl };
+                } catch (imageError) {
+                  console.error("Error fetching pet image URL: ", imageError);
+                  return { ...pet, imageUrl: null };
+                }
               })
             );
+
+            setPetsRescued(petsWithImageUrls);
           } catch (error) {
             console.error("Error fetching pets data: ", error);
           } finally {

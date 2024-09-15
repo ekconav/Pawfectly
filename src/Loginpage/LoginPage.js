@@ -42,10 +42,10 @@ const LoginPage = () => {
 
         if (userDoc.exists()) {
           console.log("User logged in");
-          navigation.navigate("UserStack");
+          navigation.replace("UserStack");
         } else if (shelterDoc.exists()) {
           console.log("Shelter logged in");
-          navigation.navigate("ShelterStack");
+          navigation.replace("ShelterStack");
         } else {
           setModalMessage("Email is not registered.");
           setAlertModal(true);

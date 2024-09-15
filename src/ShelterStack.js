@@ -6,7 +6,6 @@ import { createStackNavigator } from "@react-navigation/stack";
 import HomePageScreenShelter from "./HomeScreensShelter/HomePage/HomePageScreenShelter";
 import MessagePageShelter from "./HomeScreensShelter/MessagePage/MessagePageShelter";
 import SettingsPageShelter from "./HomeScreensShelter/SettingsPage/SettingsPageShelter";
-import DetailsPageShelter from "./HomeScreensShelter/DetailsPage/DetailsPageShelter";
 import PetDetails from "./HomeScreensShelter/PetDetails/PetDetails";
 import EditPet from "./HomeScreensShelter/EditPet/EditPet";
 import AddPet from "./HomeScreensShelter/AddPet/AddPet";
@@ -17,10 +16,7 @@ const Stack = createStackNavigator();
 
 const ShelterStack = () => {
   return (
-    <Stack.Navigator
-      initialRouteName="HomePageScreenShelter"
-      headerShown={false}
-    >
+    <Stack.Navigator initialRouteName="HomePageScreenShelter" headerShown={false}>
       <Stack.Screen
         name="HomePageScreenShelter"
         component={HomePageScreenShelter}
@@ -39,11 +35,6 @@ const ShelterStack = () => {
       <Stack.Screen
         name="AddPet"
         component={AddPet}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="DetailsPageShelter"
-        component={DetailsPageShelter}
         options={{ headerShown: false }}
       />
       <Stack.Screen

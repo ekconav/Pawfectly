@@ -29,6 +29,7 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: "center",
     overflow: "hidden",
+    elevation: 1,
   },
   shelterImage: {
     width: "100%",
@@ -105,6 +106,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     width: 40,
+    elevation: 1,
   },
   noResultContainer: {
     flex: 1,

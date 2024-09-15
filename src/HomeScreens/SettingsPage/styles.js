@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: "center",
     overflow: "hidden",
+    elevation: 1,
   },
   profileImage: {
     width: "100%",
@@ -37,6 +38,7 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     marginTop: 50,
+    elevation: 1,
   },
   userInfoContainer: {
     paddingHorizontal: 20,
@@ -99,6 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.prim,
     borderRadius: 10,
     padding: 8,
+    elevation: 1,
   },
   addPetButtonText: {
     color: COLORS.white,

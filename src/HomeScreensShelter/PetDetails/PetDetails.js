@@ -240,9 +240,7 @@ const PetDetails = ({ route }) => {
           onPress={() => navigation.goBack()}
           style={styles.overlayButton}
         >
-          <View style={styles.arrowContainer}>
-            <Ionicons name="arrow-back-outline" size={24} color={COLORS.title} />
-          </View>
+          <Ionicons name="arrow-back-outline" size={24} color={COLORS.title} />
         </TouchableOpacity>
       </View>
       <View style={styles.petStyles}>

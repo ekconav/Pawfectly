@@ -26,11 +26,10 @@ export default StyleSheet.create({
     position: "absolute",
     top: 20,
     left: 20,
-  },
-  arrowContainer: {
     backgroundColor: COLORS.white,
     padding: 7,
     borderRadius: 10,
+    elevation: 1,
   },
   petStyles: {
     flex: 1,
@@ -152,6 +151,7 @@ export default StyleSheet.create({
     justifyContent: "center",
     padding: 10,
     borderRadius: 10,
+    elevation: 1,
   },
   buttonText: {
     fontFamily: "Poppins_600SemiBold",
@@ -169,6 +169,7 @@ export default StyleSheet.create({
     justifyContent: "center",
     padding: 10,
     borderRadius: 10,
+    elevation: 1,
   },
   modalContainer: {
     backgroundColor: COLORS.white,
