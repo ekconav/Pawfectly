@@ -2,15 +2,17 @@ import { StyleSheet } from "react-native";
 import COLORS from "../../colors";
 
 const styles = StyleSheet.create({
+
   container: {
     display: 'grid',
     gridTemplateColumns: '2fr 1fr', // Two equal columns
     gap: '10px', // Space between columns
     padding: '10px',
   },
+
+  //User List 
   userListContainer: {                      
     display: "flex",
-    gap: 250,
     paddingLeft: 50,
     paddingRight: 50,
     marginLeft: 50,
@@ -20,38 +22,19 @@ const styles = StyleSheet.create({
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
     height: "60vh",  
     width:"100vh",
-    backgroundColor: "#FFF9E3",
-  },
-  userInfoContainer: {
-    // display: "flex",
-    gap: 250,
-    paddingLeft: 50,
-    paddingRight: 50,
-    marginLeft: 10,
-    marginRight: 50,
-    border: "5px solid #5F5B5B",
-    borderRadius: "10px",
-    boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
-    height: "60vh",  
-    width:"50vh",
-  },
-  labelItem: {
-    fontWeight: 500,
+    flexDirection: "column",
   },
   userDetails: {
     display: "grid",
-    gridTemplateColumns: "20vh 40vh 20vh", 
-    gridTemplateRows: 'repeat(6, 1fr)', 
-    gap: "20",
+    gridTemplateColumns: "15vh 50vh 20vh 10vh", 
+    gridTemplateRows: 'repeat(4, 2fr)', // Increase row height by setting it to 2fr
+    gap: "10px", 
   },
-  userInfoDetails: {
+  userDetailsLabel: {
     display: "grid",
-    gridTemplateColumns: "25vh 40vh", 
-    gridTemplateRows: 'repeat(4, 1fr)', 
-    gap: "20",
-  },
-  userCard: {
-    display: "contents", 
+    gridTemplateColumns: "15vh 50vh 20vh 10vh", 
+    height: "10vh", 
+    gap: "10px", 
   },
   line: {
     display: "flex",
@@ -64,7 +47,9 @@ const styles = StyleSheet.create({
     width: 50,
     height:  50,
     borderRadius: 25,
-  },
+  }, 
+
+  // Pagination
   pagination: {
     display: 'flex',
     justifyContent: 'right',
@@ -88,7 +73,127 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     cursor: 'not-allowed',
   },
-  
+
+  // User Information
+  userInfoContainer: {
+    paddingLeft: 50,
+    paddingRight: 20,
+    marginLeft: 10,
+    marginRight: 50,
+    border: "5px solid #5F5B5B",
+    borderRadius: "10px",
+    boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
+    height: "60vh",  
+    width:"28vw",
+  },
+  userInfoHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',  
+    alignItems: 'center',
+    width: '100%',                     
+    paddingBottom: '10px',             
+  },
+  userInfoTitle: {
+    flex: 1,                           
+    textAlign: 'center',             
+    fontSize: '18px',                 
+  },
+  selectedUserPicture: {
+    width: 100,
+    height:  100,
+    borderRadius: 25,
+  },
+  userInfoDetails: {
+    display: "grid",  
+    gridTemplateColumns: "25vh 30vh", 
+    gridTemplateRows: 'repeat(4, 1fr)', 
+    gap: "20",
+  },
+
+  // User Information Edit Button
+  editButtonContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+    border: "2px solid black", 
+    borderRadius: "6px",
+    width: "20px", 
+    height: "20px", 
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+  },
+  editIcon: {
+    color: "white",
+    fontSize: "30px",
+  },
+
+  //Modal Styles
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+    borderRadius: 8,
+    width: 400,
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    textAlign: "center",
+  },
+  modalButtons: {
+    display: "flex",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 20,
+  },
+  confirmButton: {
+    backgroundColor: COLORS.prim,
+    borderWidth: 0,
+    padding: 20,
+    borderRadius: 10,
+    color: COLORS.white,
+    cursor: 'pointer',
+  },
+  cancelButton: {
+    backgroundColor: COLORS.outline,
+    color: COLORS.black,
+    padding: 20,
+    border: "none",
+    borderRadius: 10,
+    marginLeft: 10,
+    cursor: 'pointer',
+  },
+
+  // Modal Edit Forms
+  modalForm: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "start",
+    gap: 10
+  },
+  inputField: {
+    width: "100%",
+    padding: 10,
+    border: "1px solid",
+    borderColor: COLORS.outline,
+    borderRadius: 5,
+    boxSizing: "border-box",
+  },
+  SwitchLine: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',  
+    justifyContent: 'flex-start',  
+    width: '100%',  
+  },
 });
 
 export default styles;

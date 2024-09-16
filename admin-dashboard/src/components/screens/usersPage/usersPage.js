@@ -2,13 +2,8 @@ import React, { useState, useEffect } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
 import { db, auth } from "../../../FirebaseConfig";
-import {
-  collection,
-  onSnapshot,
-  setDoc,
-  doc,
-  Timestamp,
-} from "firebase/firestore";
+import {collection,onSnapshot,updateDoc,deleteDoc,getDocs,doc,query,where,} from "firebase/firestore";
+import Modal from "./usersModal";
 
 import LoadingSpinner from "../loadingPage/loadingSpinner";
 
@@ -20,18 +15,6 @@ const UsersPage = () => {
   const [users, setUsers] = useState([]);
   const [sortedUsers, setSortedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Calculate the total number of pages and current items
-  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentItems = sortedUsers.slice(startIndex, startIndex + itemsPerPage);
-
-  // Function to change page
-  const changePage = (pageNumber) => {
-    if (pageNumber > 0 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
-  };
 
   useEffect(() => {
     // Define the function to handle real-time updates
@@ -56,6 +39,7 @@ const UsersPage = () => {
     return () => unsubscribe();
   }, []);
 
+  // Display User List in Ascending Order
   useEffect(() => {
     if (users.length > 0) {
       const sortedList = [...users].sort((a, b) => {
@@ -69,22 +53,180 @@ const UsersPage = () => {
     }
   }, [users]);
 
+
+  // Pagination
+  // Calculate the total number of pages and current items
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = sortedUsers.slice(startIndex, startIndex + itemsPerPage);
   const isPreviousDisabled = currentPage === 1;
   const isNextDisabled = currentPage === totalPages;
 
-  const [selectedUser, setSelectedUser] = useState(null);
+  // Function to change page
+  const changePage = (pageNumber) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
+  //Selected User
+  const [selectedUser, setSelectedUser] = useState(null);
   const handleRowClick = (user) => {
     setSelectedUser(user);
   };
 
+  //Verifcation Status
   const getVerificationStatus = (isVerified) => {
     return isVerified ? "Verified" : "Not Verified";
   };
-
   const getStatusColor = (isVerified) => {
     return isVerified ? "green" : "red";
   };
+
+  // Edit User
+  // Edit Modal
+  const [isUpdateUserModalOpen, setIsUpdateUserModalOpen] = useState(false);
+
+  // Close Modal
+  const handleCloseUpdateUserModal = () => {
+    setIsUpdateUserModalOpen(false);
+    setUpdateUser({
+      firstName: "",
+      lastName: "",
+      mobileNumber: "",
+      verified: false,
+    });
+  };
+  const [updateUser, setUpdateUser] = useState({
+    firstName: "",
+    lastName: "",
+    mobileNumber: "",
+  });
+  const handleEditUser = (user) => {
+    setUpdateUser({
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      mobileNumber: user.mobileNumber || "",
+      verified: user.verified || false,
+    });
+    setIsUpdateUserModalOpen(true); 
+  };
+
+   // Verification Switch
+   const handleSwitchChange = (event) => {
+    setUpdateUser((prev) => ({
+      ...prev,
+      verified: event.target.checked,
+    }));
+  };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUpdateUser((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+ 
+  
+  // Function to handle user update
+  const handleUpdateUser = async () => {
+
+    if (!updateUser.firstName || !updateUser.lastName || !updateUser.mobileNumber) {
+      alert("All fields are required.");
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, "users", selectedUser.id);
+      await updateDoc(userDocRef, {
+        firstName: updateUser.firstName,
+        lastName: updateUser.lastName,
+        // email: updateUser.email,
+        mobileNumber: updateUser.mobileNumber,
+        verified: updateUser.verified, 
+      });
+
+      // Update the selectedUser state with the new data
+      setSelectedUser((prevUser) => ({
+        ...prevUser,
+        firstName: updateUser.firstName,
+        lastName: updateUser.lastName,
+        // email: updateUser.email,
+        mobileNumber: updateUser.mobileNumber,
+        verified: updateUser.verified, 
+      }));
+
+      // Update the users array to reflect the changes
+      setUsers((prevUsers) => {
+        const updatedUsers = prevUsers.map((user) =>
+          user.id === selectedUser.id
+            ? { ...user, ...updateUser } // Update the user in the array
+            : user
+        );
+        return updatedUsers;
+      });
+      
+      setIsUpdateUserModalOpen(false); // Close the modal after update
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+
+  // Delete User
+  // Delete Modal
+  const [isDeleteUserModalOpen, setDeleteUserModalOpen] = useState(false);
+  const handleDeleteButton = (user) => {
+    setSelectedUser(user); 
+    setDeleteUserModalOpen(true); 
+  };
+
+// Function to delete a sub-collection 
+const deleteSubCollection = async (userId, subCollectionName) => {
+  try {
+    const subCollectionRef = collection(db, "users", userId, subCollectionName);
+    const subCollectionSnapshot = await getDocs(subCollectionRef);
+
+    const batch = db.batch();
+    subCollectionSnapshot.forEach((doc) => {
+      const docRef = doc.ref;
+      batch.delete(docRef);
+    });
+
+    await batch.commit(); 
+    console.log(`${subCollectionName} for user ${userId} deleted successfully`);
+  } catch (error) {
+    console.error(`Error deleting sub-collection ${subCollectionName}:`, error);
+  }
+};
+
+  // Main delete user function
+const handleDeleteUser = async () => {
+  if (!selectedUser) return;
+
+  try {
+    // Delete the user's sub-collections first
+    await deleteSubCollection(selectedUser.id, 'conversations'); 
+    await deleteSubCollection(selectedUser.id, 'favorites'); 
+    await deleteSubCollection(selectedUser.id, 'furbabies'); 
+
+    // Then delete the main user document
+    const userDocRef = doc(db, "users", selectedUser.id);
+    await deleteDoc(userDocRef);
+
+    // Update local state to remove the user
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUser.id));
+
+    // Close modal
+    setDeleteUserModalOpen(false);
+    setSelectedUser(null);
+  } catch (error) {
+    console.error("Error deleting user and sub-collections:", error);
+    alert("Failed to delete user and associated data.");
+  }
+};
+
+  
 
   if (loading) {
     return <LoadingSpinner />;
@@ -96,16 +238,18 @@ const UsersPage = () => {
       <h1>Users Page</h1>
       <div style={styles.container}>
         <div style={styles.userListContainer}>
+          <div style={styles.userDetailsLabel}>
+              <div style={styles.line}>
+                <p style={styles.title}>Image</p>
+              </div>
+              <div style={styles.line}>
+                <p style={styles.title}>Name</p>
+              </div>
+              <div style={styles.line}>
+                <p style={styles.title}>Status</p>
+              </div>
+            </div>
           <div style={styles.userDetails}>
-            <div style={styles.line}>
-              <p style={styles.title}>Image</p>
-            </div>
-            <div style={styles.line}>
-              <p style={styles.title}>Name</p>
-            </div>
-            <div style={styles.line}>
-              <p style={styles.title}>Status</p>
-            </div>
             {currentItems.map((users) => (
               <React.Fragment key={users.id}>
                 <div
@@ -136,19 +280,49 @@ const UsersPage = () => {
                     {getVerificationStatus(users.verified)}
                   </p>
                 </div>
+                <div style={styles.line} >
+                <ion-icon
+                  style={{ fontSize: '30px', color: 'red', cursor: 'pointer' }}
+                  name="trash-outline"
+                  onClick={() => handleDeleteButton(users)}
+                ></ion-icon>
+                </div>
               </React.Fragment>
             ))}
           </div>
         </div>
+
+        {/* User Information */}
         {selectedUser && (
           <div style={styles.userInfoContainer}>
-            <h3>User Information</h3>
+            <div style={styles.userInfoHeader}>
+              <h3 style={styles.userInfoTitle}>User Information</h3>
+              <div style={styles.editButtonContainer}>
+                <ion-icon
+                  name="pencil"
+                  sstyle={styles.editIcon} // Add styling as needed
+                  onClick={() => handleEditUser(selectedUser)}
+                ></ion-icon>
+              </div>
+            </div>
+            <img
+              src={
+                selectedUser.accountPicture ||
+                require("../../../const/user.png")
+              }
+              alt="Profile"
+              style={styles.selectedUserPicture}
+            />
             <div style={styles.userInfoDetails}>
               <div style={styles.line}>
-                <p p style={styles.title}>Name:</p>
+                <p p style={styles.title}>
+                  Name:
+                </p>
               </div>
               <div style={styles.line}>
-                <p>{selectedUser.firstName} {selectedUser.lastName}</p>
+                <p>
+                  {selectedUser.firstName} {selectedUser.lastName}
+                </p>
               </div>
               <div style={styles.line}>
                 <p style={styles.title}>Email:</p>
@@ -166,40 +340,60 @@ const UsersPage = () => {
                 <p style={styles.title}>Status:</p>
               </div>
               <div style={styles.line}>
-                <p>{getVerificationStatus(selectedUser.verified)}</p>
+                <p style={{ color: getStatusColor(selectedUser.verified) }}>
+                  {getVerificationStatus(selectedUser.verified)}
+                </p>
               </div>
-              {/* Add any other user details you want to display here */}
+              
+              
             </div>
           </div>
         )}
       </div>
 
       {/* Pagination */}
-      <div style={styles.pagination}>
-        <span>
-          {currentPage} / {totalPages}
-        </span>
-        <button
-          style={{
-            ...styles.paginationButton,
-            ...(isPreviousDisabled ? styles.disabledButton : {}),
-          }}
-          onClick={() => changePage(currentPage - 1)}
-          disabled={isPreviousDisabled}
-        >
-          Previous
-        </button>
-        <button
-          style={{
-            ...styles.paginationButton,
-            ...(isNextDisabled ? styles.disabledButton : {}),
-          }}
-          onClick={() => changePage(currentPage + 1)}
-          disabled={isNextDisabled}
-        >
-          Next
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <div style={styles.pagination}>
+          <span>{currentPage} / {totalPages}</span>
+          <button
+            style={{
+              ...styles.paginationButton,
+              ...(isPreviousDisabled ? styles.disabledButton : {}),
+            }}
+            onClick={() => changePage(currentPage - 1)}
+            disabled={isPreviousDisabled}
+          >
+            Previous
+          </button>
+          <button
+            style={{
+              ...styles.paginationButton,
+              ...(isNextDisabled ? styles.disabledButton : {}),
+            }}
+            onClick={() => changePage(currentPage + 1)}
+            disabled={isNextDisabled}
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {/* Edit Button Modal */}
+      {isUpdateUserModalOpen && (
+        <Modal.UpdateModal
+          updateUser={updateUser}
+          handleInputChange={(e) => setUpdateUser({ ...updateUser, [e.target.name]: e.target.value })}
+          handleSwitchChange={(e) => setUpdateUser({ ...updateUser, verified: e.target.checked })}
+          handleUpdateUser={handleUpdateUser}
+          handleCloseUpdateUserModal={() => setIsUpdateUserModalOpen(false)}
+        />
+      )}
+
+      {isDeleteUserModalOpen && (
+        <Modal.DeleteModal onConfirm={handleDeleteUser} onClose={() => setDeleteUserModalOpen(false)}>
+          <p>Are you sure you want to delete {selectedUser.firstName}?</p>
+        </Modal.DeleteModal>
+      )}
     </div>
   );
 };
