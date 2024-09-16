@@ -330,7 +330,18 @@ const SettingsPageShelter = () => {
       </View>
       <View style={styles.furbabiesContainer}>
         <View style={styles.titleButton}>
-          <Text style={styles.furbabiesText}>{selectedOption}</Text>
+          <Text style={styles.furbabiesText}>
+            {selectedOption}
+            {selectedOption === "Pets for Adoption" &&
+            petsForAdoption.length !== 0 ? (
+              <Text> ({petsForAdoption.length})</Text>
+            ) : selectedOption === "Pets Adopted" && petsAdopted.length !== 0 ? (
+              <Text> ({petsAdopted.length})</Text>
+            ) : selectedOption === "Pets Rescued" && petsRescued.length !== 0 ? (
+              <Text> ({petsAdopted.length})</Text>
+            ) : null}
+          </Text>
+
           <TouchableOpacity
             style={styles.choicesButton}
             onPress={() => setChoicesModal(true)}

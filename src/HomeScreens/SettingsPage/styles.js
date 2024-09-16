@@ -352,6 +352,40 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
+
+  textButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+
+  // Choices Modal
+  choicesModalOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  choicesOptions: {
+    width: 185,
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    elevation: 5,
+    height: 123,
+  },
+  choicesDropdown: {
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.outline,
+  },
+  choicesDropdownText: {
+    fontSize: 12,
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
+  },
 });
 
 export default styles;
