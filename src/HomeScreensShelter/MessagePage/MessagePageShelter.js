@@ -313,10 +313,30 @@ const MessagePageShelter = ({ route }) => {
       const petRef = doc(db, "pets", petId);
       const petSnap = await getDoc(petRef);
 
+      const petsAdoptedCollection = collection(db, "users", userId, "petsAdopted");
+
       if (petSnap.exists()) {
+        const petData = petSnap.data();
         await updateDoc(petRef, {
           adopted: true,
           adoptedBy: userId,
+        });
+
+        const petDocRef = doc(db, "users", userId, "petsAdopted", petId);
+
+        setDoc(petDocRef, {
+          adopted: true,
+          adoptedBy: userId,
+          age: petData.age,
+          breed: petData.breed,
+          description: petData.description,
+          gender: petData.gender,
+          images: petData.images,
+          location: petData.location,
+          name: petData.name,
+          petPosted: serverTimestamp(),
+          type: petData.type,
+          userId: petData.userId,
         });
 
         setPetAdopted(true);

@@ -193,7 +193,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     elevation: 5,
-    height: 180,
+    height: 181,
   },
   choicesDropdown: {
     paddingVertical: 18,

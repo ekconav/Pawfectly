@@ -48,10 +48,16 @@ const styles = StyleSheet.create({
   addressInformation: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 5,
   },
   textAddress: {
     fontFamily: "Poppins_400Regular",
     fontSize: 14,
+    color: COLORS.title,
+  },
+  textAddressAdoptedOn: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 12,
     color: COLORS.title,
   },
   midInfoContainer: {
@@ -142,8 +148,18 @@ const styles = StyleSheet.create({
   adoptMeContainer: {
     width: "73%",
   },
+  petAdoptedContainer: {
+    width: "100%",
+  },
   button: {
     backgroundColor: COLORS.prim,
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    elevation: 1,
+  },
+  deleteButton: {
+    backgroundColor: COLORS.delete,
     padding: 10,
     borderRadius: 10,
     alignItems: "center",

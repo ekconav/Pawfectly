@@ -37,6 +37,9 @@ const DetailsPage = ({ route }) => {
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [isVerified, setIsVerified] = useState(false);
+  const [petAdopted, setPetAdopted] = useState(false);
+  const [petPosted, setPetPosted] = useState(null);
+  const [petDeleted, setPetDeleted] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -89,6 +92,19 @@ const DetailsPage = ({ route }) => {
             }
           }
         }
+
+        const petRef = doc(db, "pets", pet.id);
+        const petSnap = await getDoc(petRef);
+        if (petSnap.exists()) {
+          const petData = petSnap.data();
+          setPetAdopted(petData.adopted === true);
+          if (petData.petPosted) {
+            setPetPosted(petData.petPosted);
+          }
+        } else {
+          setPetDeleted(true);
+        }
+
         setPetDetails(pet);
       } catch (error) {
         console.error("Error fetching pet details:", error);
@@ -166,10 +182,10 @@ const DetailsPage = ({ route }) => {
         });
 
         console.log("Favorite pet added successfully.");
+        navigation.navigate("Favorites");
       } catch (error) {
         console.error("Error adding favorite: ", error);
       }
-      navigation.navigate("Favorites");
     }
   };
 
@@ -341,6 +357,16 @@ const DetailsPage = ({ route }) => {
     }
   };
 
+  let formattedDate = null;
+  if (petPosted) {
+    const petPostedDate = petPosted.toDate(); // Convert Firestore Timestamp to JavaScript Date
+    formattedDate = petPostedDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
   if (!petDetails) {
     return (
       <View style={styles.loadingContainer}>
@@ -363,10 +389,22 @@ const DetailsPage = ({ route }) => {
       <View style={styles.petStyles}>
         <ScrollView contentContainerStyle={styles.petDetails}>
           <Text style={styles.petName}>{petDetails.name}</Text>
-          <View style={styles.addressInformation}>
-            <Ionicons name="location-outline" size={24} color={COLORS.prim} />
-            <Text style={styles.textAddress}>{petDetails.location}</Text>
-          </View>
+          {petAdopted && formattedDate ? (
+            <View style={styles.addressInformation}>
+              <Ionicons name="home-outline" size={22} color={COLORS.prim} />
+              <Text style={styles.textAddressAdoptedOn}>
+                Adopted On:{"\n"}
+                <Text style={{ fontFamily: "Poppins_500Medium" }}>
+                  {formattedDate}
+                </Text>
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.addressInformation}>
+              <Ionicons name="location-outline" size={24} color={COLORS.prim} />
+              <Text style={styles.textAddress}>{petDetails.location}</Text>
+            </View>
+          )}
           <View style={styles.midInfoContainer}>
             <View style={styles.midInfo}>
               <Text style={styles.midInfoDetail}>{petDetails.gender}</Text>
@@ -385,7 +423,9 @@ const DetailsPage = ({ route }) => {
             <View style={styles.shelterInfo}>
               <Image source={shelterImage} style={styles.shelterImage} />
               <View style={styles.shelterTextContainer}>
-                <Text style={styles.midInfoTitle}>Currently In:</Text>
+                <Text style={styles.midInfoTitle}>
+                  {petAdopted || petDeleted ? "From:" : "Currently In:"}
+                </Text>
                 <Text style={styles.shelterName}>{petDetails.shelterName}</Text>
               </View>
             </View>
@@ -408,19 +448,37 @@ const DetailsPage = ({ route }) => {
         </ScrollView>
       </View>
       <View style={styles.buttonContainer}>
-        <View style={styles.favoriteContainer}>
-          <TouchableOpacity style={styles.button} onPress={handleFavorite}>
-            <Ionicons name="heart-outline" size={22} color={COLORS.white} />
-          </TouchableOpacity>
+        <View style={!petAdopted && !petDeleted ? styles.favoriteContainer : null}>
+          {!petAdopted && !petDeleted ? (
+            <TouchableOpacity style={styles.button} onPress={handleFavorite}>
+              <Ionicons name="heart-outline" size={22} color={COLORS.white} />
+            </TouchableOpacity>
+          ) : null}
         </View>
-        <View style={styles.adoptMeContainer}>
+        <View
+          style={
+            !petAdopted && !petDeleted
+              ? styles.adoptMeContainer
+              : styles.petAdoptedContainer
+          }
+        >
           <TouchableOpacity
-            style={!messageSent ? styles.adoptButton : styles.adoptButtonSent}
+            style={
+              !messageSent && !petAdopted && !petDeleted
+                ? styles.adoptButton
+                : styles.adoptButtonSent
+            }
             onPress={handleAdoption}
-            disabled={messageSent}
+            disabled={messageSent || petAdopted || petDeleted}
           >
             <Text style={styles.textButton}>
-              {messageSent ? "Message Sent" : "Adopt Me"}
+              {petAdopted
+                ? "Pet has been adopted"
+                : petDeleted
+                ? "Pet data has been deleted"
+                : messageSent
+                ? "Message Sent"
+                : "Adopt Me"}
             </Text>
           </TouchableOpacity>
         </View>
