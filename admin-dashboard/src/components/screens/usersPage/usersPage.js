@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
 import { db, auth } from "../../../FirebaseConfig";
-import {collection,onSnapshot,updateDoc,deleteDoc,getDocs,doc,query,where,} from "firebase/firestore";
+import {writeBatch,collection,onSnapshot,updateDoc,deleteDoc,getDocs,doc,query,where,} from "firebase/firestore";
 import Modal from "./usersModal";
 
 import LoadingSpinner from "../loadingPage/loadingSpinner";
@@ -181,24 +181,55 @@ const UsersPage = () => {
     setDeleteUserModalOpen(true); 
   };
 
-// Function to delete a sub-collection 
-const deleteSubCollection = async (userId, subCollectionName) => {
+// Function to delete a  sub-collection 
+const deleteSubCollection = async (userId, subCollectionName, nestedCollectionName) => {
   try {
+    // Reference to the sub-collection (e.g., conversations)
     const subCollectionRef = collection(db, "users", userId, subCollectionName);
     const subCollectionSnapshot = await getDocs(subCollectionRef);
 
-    const batch = db.batch();
-    subCollectionSnapshot.forEach((doc) => {
-      const docRef = doc.ref;
-      batch.delete(docRef);
-    });
+    if (subCollectionSnapshot.empty) {
+      console.log("No documents found");
+      return;
+    }
 
+    const batch = writeBatch(db); 
+
+    if(subCollectionName === "conversations"){
+      for (const subDoc of subCollectionSnapshot.docs) {
+        const data = subDoc.data();
+        const participants = data.participants || [];
+        const petId = data.petId || "";
+
+        // Construct the subdocId from fields in the document
+        const subdocId = `${participants[0]}_${participants[1]}_${petId}`;
+
+        
+        const nestedSubCollectionRef = collection(db, "users", userId, subCollectionName, subdocId, nestedCollectionName);
+        const nestedSubCollectionSnapshot = await getDocs(nestedSubCollectionRef);
+
+        // Delete each document in the nested sub-collection 
+        nestedSubCollectionSnapshot.forEach((nestedDoc) => {
+          const nestedDocRef = nestedDoc.ref;
+          batch.delete(nestedDocRef); 
+        });
+
+        // Delete the sub-collection document itself 
+        const subDocRef = doc(db, "users", userId, subCollectionName, subdocId);
+        batch.delete(subDocRef);
+      }
+    }else{
+      subCollectionSnapshot.forEach((doc) => {
+        const docRef = doc.ref;
+        batch.delete(docRef);
+      });
+    }
     await batch.commit(); 
-    console.log(`${subCollectionName} for user ${userId} deleted successfully`);
   } catch (error) {
-    console.error(`Error deleting sub-collection ${subCollectionName}:`, error);
+    console.error(`Error deleting:`, error);
   }
 };
+
 
   // Main delete user function
 const handleDeleteUser = async () => {
@@ -206,21 +237,22 @@ const handleDeleteUser = async () => {
 
   try {
     // Delete the user's sub-collections first
-    await deleteSubCollection(selectedUser.id, 'conversations'); 
+    await deleteSubCollection(selectedUser.id, 'conversations','messages'); 
     await deleteSubCollection(selectedUser.id, 'favorites'); 
-    await deleteSubCollection(selectedUser.id, 'furbabies'); 
+    await deleteSubCollection(selectedUser.id, 'furbabies');
+    await deleteSubCollection(selectedUser.id, 'petsAdopted');
 
-    // Then delete the main user document
+    // // Then delete the main user document
     const userDocRef = doc(db, "users", selectedUser.id);
     await deleteDoc(userDocRef);
 
-    // Update local state to remove the user
+    // // Update local state to remove the user
     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUser.id));
 
     // Close modal
     setDeleteUserModalOpen(false);
     setSelectedUser(null);
-  } catch (error) {
+    } catch (error) {
     console.error("Error deleting user and sub-collections:", error);
     alert("Failed to delete user and associated data.");
   }
