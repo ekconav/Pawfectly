@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
   categoryButtonContainer: {
     flexDirection: "row",
-    gap: 15,
+    gap: 8,
   },
   categoryButton: {
     flexDirection: "row",
