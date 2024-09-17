@@ -388,7 +388,20 @@ const DetailsPage = ({ route }) => {
       </View>
       <View style={styles.petStyles}>
         <ScrollView contentContainerStyle={styles.petDetails}>
-          <Text style={styles.petName}>{petDetails.name}</Text>
+          <View style={styles.petNamePriceContainer}>
+            <Text style={styles.petName}>{petDetails.name}</Text>
+            <View>
+              {petDetails.petPrice ? (
+                <Text style={styles.petPriceTitle}>Adoption Fee:</Text>
+              ) : null}
+              {petDetails.petPrice ? (
+                <Text style={styles.petPrice}>₱{petDetails.petPrice}</Text>
+              ) : (
+                <Text style={styles.petPrice}>Free</Text>
+              )}
+            </View>
+          </View>
+
           {petAdopted && formattedDate ? (
             <View style={styles.addressInformation}>
               <Ionicons name="home-outline" size={22} color={COLORS.prim} />
