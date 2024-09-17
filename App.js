@@ -2,11 +2,10 @@ import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaView, StatusBar } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { auth } from "./src/FirebaseConfig";
+import { auth, db } from "./src/FirebaseConfig";
 import UserStack from "./src/UserStack";
 import ShelterStack from "./src/ShelterStack";
 import LandingPage from "./src/LandingPage/LandingPage";
-import ChooseLogin from "./src/ChooseLogin/ChooseLogin";
 import LoginPage from "./src/Loginpage/LoginPage";
 import SignupPage from "./src/SignupPage/signuppage";
 import SignupShelter from "./src/SignupShelter/SignupShelter";
@@ -22,11 +21,12 @@ import {
 } from "@expo-google-fonts/poppins";
 import COLORS from "./src/const/colors";
 import * as NavigationBar from "expo-navigation-bar";
+import { doc, onSnapshot } from "firebase/firestore";
 
 const Stack = createStackNavigator();
 
 const App = () => {
-  const [userEmail, setUserEmail] = useState("");
+  const [userType, setUserType] = useState("");
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -35,29 +35,43 @@ const App = () => {
   });
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
       if (user) {
-        setUserEmail(user.email);
+        const userDocRef = doc(db, "users", user.uid);
+        const shelterDocRef = doc(db, "shelters", user.uid);
+
+        const unsubscribeUserDoc = onSnapshot(userDocRef, (userDoc) => {
+          if (userDoc.exists()) {
+            setUserType("user");
+          } else {
+            setUserType((prev) => (prev === "shelter" ? "shelter" : ""));
+          }
+        });
+
+        const unsubscribeShelterDoc = onSnapshot(shelterDocRef, (shelterDoc) => {
+          if (shelterDoc.exists()) {
+            setUserType("shelter");
+          } else {
+            setUserType((prev) => (prev === "user" ? "user" : ""));
+          }
+        });
+
+        return () => {
+          unsubscribeUserDoc();
+          unsubscribeShelterDoc();
+        };
       } else {
-        setUserEmail("");
+        setUserType("");
       }
     });
 
-    return unsubscribe;
+    return unsubscribeAuth;
   }, []);
 
   useEffect(() => {
     NavigationBar.setBackgroundColorAsync(COLORS.white);
-    NavigationBar.setButtonStyleAsync("dark"); 
+    NavigationBar.setButtonStyleAsync("dark");
   }, []);
-
-  const isUserEmail = (email) => {
-    return email && email.endsWith("@user.com");
-  };
-
-  const isShelterEmail = (email) => {
-    return email && email.endsWith("@shelter.com");
-  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -69,11 +83,6 @@ const App = () => {
             <Stack.Screen
               name="LandingPage"
               component={LandingPage}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="ChooseLogin"
-              component={ChooseLogin}
               options={{ headerShown: false }}
             />
             <Stack.Screen
@@ -102,13 +111,13 @@ const App = () => {
               options={{ headerShown: false }}
             />
 
-            {isUserEmail(userEmail) ? (
+            {userType === "user" ? (
               <Stack.Screen
                 name="UserStack"
                 component={UserStack}
                 options={{ headerShown: false }}
               />
-            ) : isShelterEmail(userEmail) ? (
+            ) : userType === "shelter" ? (
               <Stack.Screen
                 name="ShelterStack"
                 component={ShelterStack}

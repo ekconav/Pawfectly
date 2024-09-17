@@ -15,10 +15,20 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.outline,
     borderBottomWidth: 1,
   },
+  headerContent: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   headerTitle: {
+    flex: 1,
     fontFamily: "Poppins_500Medium",
     fontSize: 18,
-    color: COLORS.black,
+    color: COLORS.title,
+  },
+  callButton: {
+    alignItems: "flex-end",
   },
   messagesContainer: {
     flexGrow: 1,
@@ -101,11 +111,6 @@ const styles = StyleSheet.create({
     right: 80,
     top: 18,
   },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
   shelterAccountPictureHeader: {
     width: 36,
     height: 36,
@@ -134,6 +139,52 @@ const styles = StyleSheet.create({
   },
   mainMessageContainer: {
     paddingHorizontal: 8,
+  },
+  shelterExist: {
+    padding: 15,
+    backgroundColor: COLORS.subtitle,
+    alignItems: "center",
+  },
+  shelterExistText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+  petAdoptedContainer: {
+    padding: 8,
+    borderBottomColor: COLORS.outline,
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  petAdoptedText: {
+    flex: 1,
+    fontFamily: "Poppins_400Regular",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    color: COLORS.title,
+    flexWrap: "wrap",
+  },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular", 
   },
 });
 

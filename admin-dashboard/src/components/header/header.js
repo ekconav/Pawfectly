@@ -114,11 +114,7 @@ const Header = () => {
           <NavLink
             to="/tos"
             style={({ isActive }) =>
-              isActive
-                ? styles.linkActive
-                : hoveredLink === "tos"
-                ? styles.linkHover
-                : styles.link
+              isActive ? styles.linkActive : hoveredLink === "tos" ? styles.linkHover : styles.link
             }
             onMouseEnter={() => setHoveredLink("tos")}
             onMouseLeave={() => setHoveredLink(null)}
@@ -138,10 +134,7 @@ const Header = () => {
               />
               {dropdownOpen && (
                 <div style={styles.dropdownMenu}>
-                  <button
-                    style={styles.dropdownItem}
-                    onClick={() => navigate("/edit-profile")}
-                  >
+                  <button style={styles.dropdownItem} onClick={() => navigate("/edit-profile")}>
                     Edit Profile
                   </button>
                   <button style={styles.dropdownItem} onClick={handleLogout}>

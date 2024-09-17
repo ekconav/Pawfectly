@@ -1,96 +1,137 @@
 import { StyleSheet } from "react-native";
+import COLORS from "../../const/colors";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: COLORS.white,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomColor: COLORS.outline,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+  },
+  headerContent: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   headerTitle: {
+    flex: 1,
+    fontFamily: "Poppins_500Medium",
     fontSize: 18,
-    fontWeight: "bold",
+    color: COLORS.title,
+  },
+  callButton: {
+    alignItems: "flex-end",
+  },
+  userAccountPictureHeader: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     marginLeft: 10,
   },
   messagesContainer: {
     flexGrow: 1,
   },
+  mainMessageContainer: {
+    paddingHorizontal: 8,
+  },
+  receiveMessageContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  sendMessageContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    gap: 5,
+  },
+  userProfileImage: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  shelterProfileImage: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
   messageContainer: {
-    marginVertical: 8,
+    marginVertical: 5,
     padding: 10,
     borderRadius: 10,
     maxWidth: "75%",
-    flexDirection: "row", // Added for aligning profile images
-    alignItems: "flex-end", // Added for aligning profile images
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
   sentMessage: {
     alignSelf: "flex-end",
-    backgroundColor: "#dcf8c6",
+    backgroundColor: COLORS.sentMessage,
   },
   receivedMessage: {
     alignSelf: "flex-start",
-    backgroundColor: "#ffffff",
+    backgroundColor: COLORS.receivedMessage,
   },
-  messageText: {
-    fontSize: 16,
+  sentMessageText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.white,
+    fontSize: 13,
+  },
+  receivedMessageText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.black,
+    fontSize: 13,
+  },
+  receivedMessageTime: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 10,
+    color: COLORS.title,
+  },
+  sendMessageTime: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 10,
+    color: COLORS.sentDateTime,
   },
   messageImage: {
-    marginTop: -10,
-    marginBottom: -10,
-    width: 180, // Adjust the width as needed to fit within the chat bubble
-    height: 180, // Adjust the height as needed to fit within the chat bubble
-    borderRadius: 10, // Add border radius for rounded corners
-    resizeMode: "contain", // Ensure the entire image fits within the specified dimensions
-  },
-  messageTime: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 5,
+    marginVertical: -10,
+    width: 150,
+    height: 150,
+    resizeMode: "contain",
   },
   inputContainer: {
     flexDirection: "row",
     padding: 10,
     borderTopWidth: 1,
-    borderTopColor: "#ccc",
-    backgroundColor: "#fff",
+    borderTopColor: COLORS.outline,
+    backgroundColor: COLORS.white,
     position: "relative",
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: COLORS.outline,
     borderRadius: 20,
     padding: 10,
     marginRight: 10,
     paddingRight: 50,
+    backgroundColor: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
   sendButton: {
-    backgroundColor: "#34b7f1",
-    borderRadius: 10,
+    backgroundColor: COLORS.white,
     padding: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  sendButtonText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  petHeader: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  petHeaderText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  loadingContainer: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -99,21 +140,69 @@ const styles = StyleSheet.create({
     right: 80,
     top: 18,
   },
-  headerContent: {
+  userExist: {
+    padding: 15,
+    backgroundColor: COLORS.subtitle,
+    alignItems: "center",
+  },
+  userExistText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+  subHeader: {
+    padding: 8,
+    borderBottomColor: COLORS.outline,
+    borderBottomWidth: 1,
     flexDirection: "row",
     alignItems: "center",
   },
-  shelterAccountPictureHeader: {
-    width: 50, // Adjust width as needed
-    height: 50, // Adjust height as needed
-    borderRadius: 25, // Half of width and height for circular shape
-    marginLeft: 10,
+  subHeaderText: {
+    flex: 1,
+    fontFamily: "Poppins_400Regular",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    color: COLORS.title,
+    flexWrap: "wrap",
   },
-  shelterProfileImage: {
-    width: 20,
-    height: 20,
+  userName: {
+    fontFamily: "Poppins_500Medium",
+  },
+  approveButton: {
+    backgroundColor: COLORS.prim,
+    padding: 8,
     borderRadius: 10,
-    marginRight: 5,
+    width: "30%",
+    alignItems: "center",
+  },
+  rejectText: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.white,
+  },
+  approveText: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.white,
+  },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

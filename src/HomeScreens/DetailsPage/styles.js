@@ -18,23 +18,27 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
   },
-  arrowContainer: {
-    backgroundColor: COLORS.white,
-    padding: 7,
-    borderRadius: 10,
-  },
   overlayButton: {
     position: "absolute",
     top: 20,
     left: 20,
+    backgroundColor: COLORS.white,
+    padding: 7,
+    borderRadius: 10,
+    elevation: 1,
   },
-  petDetails: {
+  petStyles: {
     flex: 1,
-    padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    backgroundColor: COLORS.white,
     marginTop: -20,
+    backgroundColor: COLORS.white,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 7,
+  },
+  petDetails: {
+    flexGrow: 1,
   },
   petName: {
     fontFamily: "Poppins_600SemiBold",
@@ -84,14 +88,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   shelterInfo: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 5,
   },
   shelterImage: {
     width: 50,
     height: 50,
     borderRadius: 25,
+  },
+  shelterTextContainer: {
+    flex: 1,
   },
   shelterName: {
     fontFamily: "Poppins_600SemiBold",
@@ -106,6 +114,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.prim,
     padding: 8,
     borderRadius: 50,
+    elevation: 1,
   },
   aboutContainer: {
     marginTop: 20,
@@ -138,12 +147,14 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
+    elevation: 1,
   },
   adoptButton: {
     backgroundColor: COLORS.prim,
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
+    elevation: 1,
   },
   adoptButtonSent: {
     backgroundColor: "rgba(130, 115, 151, 0.5)",
@@ -160,6 +171,28 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     fontSize: 14,
     color: COLORS.white,
+  },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

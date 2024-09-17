@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TextInput, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Linking,
+} from "react-native";
 import { db, auth, storage } from "../../FirebaseConfig";
 import {
   collection,
@@ -11,29 +20,83 @@ import {
   doc,
   updateDoc,
   getDoc,
+  setDoc,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import Modal from "react-native-modal";
 import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
+import COLORS from "../../const/colors";
 
 const MessagePageShelter = ({ route }) => {
   const { conversationId, petId, userId } = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [senderName, setSenderName] = useState("");
+  const [messageSent, setMessageSent] = useState(false);
+  const [userName, setUserName] = useState("");
   const [userAccountPicture, setUserAccountPicture] = useState("");
   const [shelterAccountPicture, setShelterAccountPicture] = useState("");
   const [petName, setPetName] = useState("");
+  const [userExist, setUserExist] = useState(true);
+  const [petExist, setPetExist] = useState(true);
+  const [petAdopted, setPetAdopted] = useState(false);
+  const [userMobileNumber, setUserMobileNumber] = useState("");
   const [loading, setLoading] = useState(true);
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [sendLoading, setSendLoading] = useState(false);
+
   const currentUser = auth.currentUser;
   const navigation = useNavigation();
 
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const messagesRef = collection(db, "conversations", conversationId, "messages");
+        const shelterDocRef = doc(db, "shelters", currentUser.uid);
+        const userDocRef = doc(db, "users", userId);
+        const petDocRef = doc(db, "pets", petId);
+
+        const [shelterDoc, userDoc, petDoc] = await Promise.all([
+          getDoc(shelterDocRef),
+          getDoc(userDocRef),
+          getDoc(petDocRef),
+        ]);
+
+        if (shelterDoc.exists()) {
+          setShelterAccountPicture(shelterDoc.data().accountPicture);
+        }
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserName(userData.firstName);
+          setUserAccountPicture(userData.accountPicture);
+          setUserMobileNumber(userData.mobileNumber);
+        } else {
+          setUserName("Pawfectly User");
+          setUserExist(false);
+        }
+
+        if (!petDoc.exists()) {
+          setPetExist(false);
+        } else {
+          const petData = petDoc.data();
+          setPetName(petData.name);
+          setPetAdopted(petData.adopted || false);
+        }
+
+        const messagesRef = collection(
+          db,
+          "shelters",
+          currentUser.uid,
+          "conversations",
+          conversationId,
+          "messages"
+        );
         const q = query(messagesRef, orderBy("timestamp", "asc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
           const messagesData = snapshot.docs
@@ -41,98 +104,71 @@ const MessagePageShelter = ({ route }) => {
               id: doc.id,
               ...doc.data(),
             }))
-            .reverse(); // Reverse the array here
+            .reverse();
           setMessages(messagesData);
         });
-        return unsubscribe;
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }
-    };
 
-    const fetchConversation = async () => {
-      try {
-        const conversationDoc = await getDoc(doc(db, "conversations", conversationId));
-        if (conversationDoc.exists()) {
-          const senderId = conversationDoc
-            .data()
-            .participants.find((participant) => participant !== currentUser.uid);
-          fetchSenderName(senderId);
-        } else {
-          console.error("Conversation document not found for conversationId:", conversationId);
-        }
+        return () => unsubscribe();
       } catch (error) {
-        console.error("Error fetching conversation:", error);
+        console.error("Error fetching data: ", error);
       } finally {
         setLoading(false);
       }
     };
 
-    const fetchPetName = async () => {
+    fetchData();
+  }, [conversationId, petId, userId]);
+
+  useEffect(() => {
+    const fetchAdoptionMessage = async () => {
+      if (!conversationId || !petId || !currentUser) {
+        return;
+      }
+
+      setLoading(true);
+
       try {
-        const petDoc = await getDoc(doc(db, "pets", petId));
-        if (petDoc.exists()) {
-          setPetName(petDoc.data().name);
-        } else {
-          console.error("Pet document not found for petId:", petId);
+        const conversationDocRef = doc(
+          db,
+          "shelters",
+          currentUser.uid,
+          "conversations",
+          conversationId
+        );
+        const conversationSnap = await getDoc(conversationDocRef);
+
+        if (conversationSnap.exists()) {
+          const messagesRef = collection(conversationDocRef, "messages");
+          const messageText = `Hello, I would like to adopt ${petName}.`;
+          const messageQuery = query(messagesRef, where("text", "==", messageText));
+
+          const messageSnap = await getDocs(messageQuery);
+          if (!messageSnap.empty) {
+            setMessageSent(true);
+          }
         }
       } catch (error) {
-        console.error("Error fetching pet name:", error);
+        console.error("Error fetching pet details: ", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    const fetchData = async () => {
-      try {
-        const userDoc = await getDoc(doc(db, "users", userId));
-        const shelterDoc = await getDoc(doc(db, "shelters", currentUser.uid));
+    fetchAdoptionMessage();
+  }, [conversationId, petId, currentUser, petName]);
 
-        if (userDoc.exists()) {
-          setUserAccountPicture(userDoc.data().accountPicture);
-        } else {
-          console.error("User document not found for userId: ", userId);
-        }
-
-        if (shelterDoc.exists()) {
-          setShelterAccountPicture(shelterDoc.data().accountPicture);
-        } else {
-          console.error("Shelter document not found for shelterId: ", currentUser.uid);
-        }
-      } catch (error) {}
-    };
-
-    fetchMessages();
-    fetchConversation();
-    fetchPetName();
-    fetchData();
-  }, [conversationId]);
-
-  const fetchSenderName = async (senderId) => {
-    try {
-      const senderDoc = await getDoc(doc(db, "users", senderId));
-      if (senderDoc.exists()) {
-        setSenderName(senderDoc.data().firstName);
-      } else {
-        console.error("User document not found for senderId:", senderId);
-      }
-    } catch (error) {
-      console.error("Error fetching sender name:", error);
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (newMessage.trim() === "") {
-      return;
-    }
-    try {
-      const messagesRef = collection(db, "conversations", conversationId, "messages");
-      await addDoc(messagesRef, {
-        text: newMessage,
-        senderId: currentUser.uid,
-        receiverId: userId,
-        timestamp: serverTimestamp(),
+  const updateConversation = async (conversationRef, newMessage) => {
+    const conversationSnap = await getDoc(conversationRef);
+    if (!conversationSnap.exists()) {
+      await setDoc(conversationRef, {
+        lastMessage: newMessage,
+        lastTimestamp: serverTimestamp(),
+        participants: [userId, currentUser.uid],
+        petId: petId,
+        senderRead: false,
+        receiverRead: true,
       });
-
-      const conversationRef = doc(db, "conversations", conversationId);
+    } else {
       await updateDoc(conversationRef, {
         lastMessage: newMessage,
         lastTimestamp: serverTimestamp(),
@@ -140,10 +176,63 @@ const MessagePageShelter = ({ route }) => {
         senderRead: false,
         receiverRead: true,
       });
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (newMessage.trim() === "") {
+      return;
+    }
+    setSendLoading(true);
+    try {
+      const shelterMessagesRef = collection(
+        db,
+        "shelters",
+        currentUser.uid,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+      const userMessagesRef = collection(
+        db,
+        "users",
+        userId,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+
+      await Promise.all([
+        addDoc(shelterMessagesRef, {
+          text: newMessage,
+          senderId: currentUser.uid,
+          receiverId: userId,
+          timestamp: serverTimestamp(),
+        }),
+        addDoc(userMessagesRef, {
+          text: newMessage,
+          senderId: currentUser.uid,
+          receiverId: userId,
+          timestamp: serverTimestamp(),
+        }),
+      ]);
+
+      await Promise.all([
+        updateConversation(
+          doc(db, "shelters", currentUser.uid, "conversations", conversationId),
+          newMessage
+        ),
+        updateConversation(
+          doc(db, "users", userId, "conversations", conversationId),
+          newMessage
+        ),
+      ]);
 
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
+    } finally {
+      setSendLoading(false);
     }
   };
 
@@ -155,7 +244,6 @@ const MessagePageShelter = ({ route }) => {
       quality: 1,
     });
 
-    // Check if result.assets is not null before accessing its properties
     if (result && !result.cancelled && result.assets) {
       console.log("Image selected:", result.assets[0].uri);
       handleSendImage(result.assets[0].uri);
@@ -163,34 +251,92 @@ const MessagePageShelter = ({ route }) => {
   };
 
   const handleSendImage = async (imageUri) => {
+    setSendLoading(true);
     try {
       const imageRef = ref(storage, `images/${Date.now()}_${currentUser.uid}`);
       const img = await fetch(imageUri);
       const bytes = await img.blob();
       await uploadBytes(imageRef, bytes);
       const imageUrl = await getDownloadURL(imageRef);
-      console.log("Image uploaded successfully:", imageUrl);
 
-      const messagesRef = collection(db, "conversations", conversationId, "messages");
-      await addDoc(messagesRef, {
-        text: imageUrl,
-        senderId: currentUser.uid,
-        receiverId: userId,
-        timestamp: serverTimestamp(),
-      });
-      console.log("Image message sent successfully");
+      const shelterMessagesRef = collection(
+        db,
+        "shelters",
+        currentUser.uid,
+        "conversations",
+        conversationId,
+        "messages"
+      );
+      const userMessagesRef = collection(
+        db,
+        "users",
+        userId,
+        "conversations",
+        conversationId,
+        "messages"
+      );
 
-      // Update the lastMessage field in the conversation document
-      const conversationRef = doc(db, "conversations", conversationId);
-      await updateDoc(conversationRef, {
-        lastMessage: "Image", // Set it to a string indicating an image was sent
-        lastTimestamp: serverTimestamp(),
-        petId: petId,
-        senderRead: false,
-        receiverRead: true,
-      });
+      await Promise.all([
+        addDoc(shelterMessagesRef, {
+          text: imageUrl,
+          senderId: currentUser.uid,
+          receiverId: userId,
+          timestamp: serverTimestamp(),
+        }),
+        addDoc(userMessagesRef, {
+          text: imageUrl,
+          senderId: currentUser.uid,
+          receiverId: userId,
+          timestamp: serverTimestamp(),
+        }),
+      ]);
+
+      await Promise.all([
+        updateConversation(
+          doc(db, "shelters", currentUser.uid, "conversations", conversationId),
+          "Image"
+        ),
+        updateConversation(
+          doc(db, "users", userId, "conversations", conversationId),
+          "Image"
+        ),
+      ]);
     } catch (error) {
-      console.error("Error sending image message: ", error);
+      console.error("Error sending image message:", error);
+    } finally {
+      setSendLoading(false);
+    }
+  };
+
+  const handleApproveAdoption = async () => {
+    try {
+      const petRef = doc(db, "pets", petId);
+      const petSnap = await getDoc(petRef);
+
+      if (petSnap.exists()) {
+        await updateDoc(petRef, {
+          adopted: true,
+          adoptedBy: userId,
+        });
+
+        setPetAdopted(true);
+        console.log("Pet successfully adopted!");
+      }
+    } catch (error) {
+      console.error("Error approving pet: ", error);
+    }
+  };
+
+  const handleCall = async () => {
+    try {
+      if (userMobileNumber) {
+        await Linking.openURL(`tel:${userMobileNumber}`);
+      } else {
+        setModalMessage("Sorry, we couldn't find the user you're looking for.");
+        setAlertModal(true);
+      }
+    } catch (error) {
+      console.error("Error initiating call: ", error);
     }
   };
 
@@ -208,34 +354,68 @@ const MessagePageShelter = ({ route }) => {
       : "";
     const isImageMessage = item.text.startsWith("http");
     return (
-      <View
-        style={[
-          styles.messageContainer,
-          isCurrentUser ? styles.sentMessage : styles.receivedMessage,
-        ]}
-      >
-        {/* Display profile image */}
-        <View>
-          {!isCurrentUser && (
-            <Image
-              source={
-                userAccountPicture
-                  ? { uri: userAccountPicture }
-                  : require("../../components/user.png")
-              }
-              style={styles.shelterProfileImage}
-            />
-          )}
-        </View>
-
-        {/* Display message */}
-        <View>
-          {isImageMessage ? (
-            <Image source={{ uri: item.text }} style={styles.messageImage} />
-          ) : (
-            <Text style={styles.messageText}>{item.text}</Text>
-          )}
-          {messageTime ? <Text style={styles.messageTime}>{messageTime}</Text> : null}
+      <View style={styles.mainMessageContainer}>
+        <View
+          style={
+            !isCurrentUser
+              ? styles.receiveMessageContainer
+              : styles.sendMessageContainer
+          }
+        >
+          <View>
+            {!isCurrentUser ? (
+              <Image
+                source={
+                  userAccountPicture
+                    ? { uri: userAccountPicture }
+                    : require("../../components/user.png")
+                }
+                style={styles.userProfileImage}
+              />
+            ) : (
+              <Image
+                source={
+                  shelterAccountPicture
+                    ? { uri: shelterAccountPicture }
+                    : require("../../components/user.png")
+                }
+                style={styles.shelterProfileImage}
+              />
+            )}
+          </View>
+          <View
+            style={[
+              styles.messageContainer,
+              isCurrentUser ? styles.sentMessage : styles.receivedMessage,
+            ]}
+          >
+            <View>
+              {isImageMessage ? (
+                <Image source={{ uri: item.text }} style={styles.messageImage} />
+              ) : (
+                <Text
+                  style={
+                    isCurrentUser
+                      ? styles.sentMessageText
+                      : styles.receivedMessageText
+                  }
+                >
+                  {item.text}
+                </Text>
+              )}
+              {messageTime ? (
+                <Text
+                  style={
+                    !isCurrentUser
+                      ? styles.receivedMessageTime
+                      : styles.sendMessageTime
+                  }
+                >
+                  {messageTime}
+                </Text>
+              ) : null}
+            </View>
+          </View>
         </View>
       </View>
     );
@@ -244,62 +424,112 @@ const MessagePageShelter = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+        <ActivityIndicator size="large" color={COLORS.prim} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="black" />
+          <Ionicons name="arrow-back" size={24} color={COLORS.prim} />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          {/* Display shelter account picture in header */}
           <Image
             source={
               userAccountPicture
                 ? { uri: userAccountPicture }
                 : require("../../components/user.png")
             }
-            style={styles.shelterAccountPictureHeader}
+            style={styles.userAccountPictureHeader}
           />
+          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+            {userName}
+          </Text>
         </View>
-        <Text style={styles.headerTitle}>{senderName}</Text>
+        <TouchableOpacity style={styles.callButton} onPress={handleCall}>
+          <Ionicons name="call" size={24} color={COLORS.prim} />
+        </TouchableOpacity>
       </View>
-
-      {/* Pet Name Header */}
-      <View style={styles.petHeader}>
-        <Text style={styles.petHeaderText}>Pet Name: {petName}</Text>
-      </View>
+      {messageSent && !petAdopted && userExist ? (
+        <View style={styles.subHeader}>
+          <Text style={styles.subHeaderText}>
+            <Text style={styles.userName}>{userName}</Text> wants to adopt {petName}.
+          </Text>
+          <TouchableOpacity
+            style={styles.approveButton}
+            onPress={handleApproveAdoption}
+          >
+            <Text style={styles.approveText}>Approve</Text>
+          </TouchableOpacity>
+        </View>
+      ) : petAdopted ? (
+        <View style={styles.subHeader}>
+          <Text style={styles.subHeaderText}>
+            <Text style={styles.userName}>{userName}</Text> has adopted {petName}!
+          </Text>
+        </View>
+      ) : null}
 
       {/* Messages */}
       <FlatList
-        data={messages} // Pass the reversed array directly
+        data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.messagesContainer}
-        inverted // Reverse the layout
+        inverted
       />
 
       {/* Input */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Type a message"
-          value={newMessage}
-          onChangeText={setNewMessage}
-          multiline={true} // Allow multiple lines
-        />
-        <TouchableOpacity style={styles.imageIcon} onPress={pickImage}>
-          <Ionicons name="image" size={30} color="skyblue" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-          <Ionicons name="send" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
+      {!userExist ? (
+        <View style={styles.userExist}>
+          <Text style={styles.userExistText}>
+            You can't reply to this conversation.
+          </Text>
+        </View>
+      ) : !petExist ? (
+        <View style={styles.userExist}>
+          <Text style={styles.userExistText}>Pet data has been deleted.</Text>
+        </View>
+      ) : (
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Type a message"
+            value={newMessage}
+            onChangeText={setNewMessage}
+            multiline={true}
+          />
+          <TouchableOpacity style={styles.imageIcon} onPress={pickImage}>
+            <Ionicons name="image" size={30} color={COLORS.prim} />
+          </TouchableOpacity>
+          {sendLoading ? (
+            <ActivityIndicator
+              style={{ paddingHorizontal: 4 }}
+              size="large"
+              color={COLORS.prim}
+            />
+          ) : (
+            <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+              <Ionicons name="send" size={24} color={COLORS.prim} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

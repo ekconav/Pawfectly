@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 25,
   },
-  accountName: {
+  headerTitle: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 17,
     marginTop: 5,
@@ -64,11 +64,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   textContainer: {
+    flex: 1,
     justifyContent: "center",
   },
   shelterName: {
     fontSize: 16,
     fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
   },
   lastMessage: {
     fontSize: 12,

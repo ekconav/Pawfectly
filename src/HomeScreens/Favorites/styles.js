@@ -34,21 +34,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-  pageTitle: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 18,
-    color: COLORS.title,
-    textAlign: "center",
-  },
   buttonContainer: {
-    padding: 5,
-    marginBottom: 15,
+    paddingHorizontal: 5,
+    paddingVertical: 8,
     borderRadius: 20,
   },
   petButton: {
-    backgroundColor: COLORS.white,
     borderRadius: 10,
-    elevation: 4,
+    elevation: 2,
   },
   petContainer: {
     backgroundColor: COLORS.background,
@@ -56,12 +49,20 @@ const styles = StyleSheet.create({
     borderColor: COLORS.outline,
     borderWidth: 0.5,
   },
-  petImage: {
+  imageContainer: {
     width: "100%",
+    paddingHorizontal: 10,
     height: 230,
-    borderRadius: 10,
     marginBottom: 10,
-    alignItems: "center",
+    marginTop: 10,
+    alignContent: "center",
+    overflow: "hidden",
+  },
+  petImage: {
+    borderRadius: 10,
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   petDetails: {
     paddingHorizontal: 10,
@@ -112,11 +113,11 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: COLORS.delete,
-    width: 50,
-    borderRadius: 20,
+    width: 45,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 15,
+    marginVertical: 8,
   },
   deleteIcon: {
     color: COLORS.white,
