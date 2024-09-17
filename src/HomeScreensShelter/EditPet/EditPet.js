@@ -77,23 +77,31 @@ const EditPet = ({ route }) => {
   };
 
   const handleMaleCheck = () => {
-    setMaleChecked(true);
-    setFemaleChecked(false);
+    setMaleChecked((prevState) => !prevState);
+    if (femaleChecked) {
+      setFemaleChecked(false);
+    }
   };
 
   const handleFemaleCheck = () => {
-    setFemaleChecked(true);
-    setMaleChecked(false);
+    setFemaleChecked((prevState) => !prevState);
+    if (maleChecked) {
+      setMaleChecked(false);
+    }
   };
 
   const handleDogCheck = () => {
-    setDogChecked(true);
-    setCatChecked(false);
+    setDogChecked((prevState) => !prevState);
+    if (catChecked) {
+      setCatChecked(false);
+    }
   };
 
   const handleCatCheck = () => {
-    setCatChecked(true);
-    setDogChecked(false);
+    setCatChecked((prevState) => !prevState);
+    if (dogChecked) {
+      setDogChecked(false);
+    }
   };
 
   const handlePetRescuedCheck = () => {
@@ -130,22 +138,25 @@ const EditPet = ({ route }) => {
     if (
       !petImage ||
       !petName ||
-      (!dogChecked && !catChecked) ||
       (!maleChecked && !femaleChecked) ||
       !petBreed ||
       !petAge ||
       !petDescription
     ) {
       setAlertModal(true);
-      setModalMessage("Please fill in all fields.");
+      setModalMessage("Please fill in all required fields.");
       return;
     }
+
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
 
     try {
       const user = auth.currentUser;
       if (user) {
         const petsDocRef = doc(db, "pets", pet.id);
+
+        const petType = dogChecked ? "Dog" : catChecked ? "Cat" : "Others";
+
         await updateDoc(petsDocRef, {
           age: petAge,
           breed: petBreed,
@@ -154,7 +165,7 @@ const EditPet = ({ route }) => {
           images: petImageUrl,
           name: petName,
           petPrice: adoptionFee ? adoptionFee : "",
-          type: dogChecked ? "Dog" : "Cat",
+          type: petType,
           rescued: petRescuedChecked ? true : false,
         });
 
@@ -200,9 +211,7 @@ const EditPet = ({ route }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: COLORS.white }}
-    >
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Edit Pet</Text>

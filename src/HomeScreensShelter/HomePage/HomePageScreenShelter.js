@@ -9,14 +9,7 @@ import {
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  collection,
-  onSnapshot,
-  doc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, onSnapshot, doc, query, where } from "firebase/firestore";
 import { db, auth } from "../../FirebaseConfig";
 import { RefreshControl } from "react-native";
 import { SettingOptionsShelter } from "../SettingsPage/SettingStackShelter";
@@ -27,6 +20,7 @@ import Addpet from "../AddPet/AddPet";
 import SearchBar from "../../HomeScreens/HomePage/SearchBar/SearchBar";
 import catIcon from "../../components/catIcon.png";
 import dogIcon from "../../components/dogIcon.png";
+import turtleIcon from "../../components/turtleIcon.png";
 import styles from "./styles";
 
 const Tab = createBottomTabNavigator();
@@ -165,42 +159,62 @@ const HomeScreenPet = () => {
 
       <View style={styles.categoryContainer}>
         <Text style={styles.categoriesTitle}>Pets for Adoption</Text>
-        <View style={styles.categoryButtonContainer}>
-          <TouchableOpacity
-            style={[
-              styles.categoryButton,
-              activeCategory === "cat" && { backgroundColor: COLORS.prim },
-            ]}
-            onPress={() => handleCategoryFilter("cat")}
-          >
-            <Image style={styles.categoryIcon} source={catIcon} />
-            <Text
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={styles.categoryButtonContainer}>
+            <TouchableOpacity
               style={[
-                styles.categoryName,
-                activeCategory === "cat" && { color: COLORS.white },
+                styles.categoryButton,
+                activeCategory === "cat" && { backgroundColor: COLORS.prim },
               ]}
+              onPress={() => handleCategoryFilter("cat")}
             >
-              {" "}
-              Cat
-            </Text>
-          </TouchableOpacity>
+              <Image style={styles.categoryIcon} source={catIcon} />
+              <Text
+                style={[
+                  styles.categoryName,
+                  activeCategory === "cat" && { color: COLORS.white },
+                ]}
+              >
+                {" "}
+                Cat
+              </Text>
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              style={[
+                styles.categoryButton,
+                activeCategory === "dog" && { backgroundColor: COLORS.prim },
+              ]}
+              onPress={() => handleCategoryFilter("dog")}
+            >
+              <Image style={styles.categoryIcon} source={dogIcon} />
+              <Text
+                style={[
+                  styles.categoryName,
+                  activeCategory === "dog" && { color: COLORS.white },
+                ]}
+              >
+                {" "}
+                Dog
+              </Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity
             style={[
               styles.categoryButton,
-              activeCategory === "dog" && { backgroundColor: COLORS.prim },
+              activeCategory === "others" && { backgroundColor: COLORS.prim },
             ]}
-            onPress={() => handleCategoryFilter("dog")}
+            onPress={() => handleCategoryFilter("others")}
           >
-            <Image style={styles.categoryIcon} source={dogIcon} />
+            <Image style={styles.categoryIcon} source={turtleIcon} />
             <Text
               style={[
                 styles.categoryName,
-                activeCategory === "dog" && { color: COLORS.white },
+                activeCategory === "others" && { color: COLORS.white },
               ]}
             >
               {" "}
-              Dog
+              Others
             </Text>
           </TouchableOpacity>
         </View>

@@ -78,23 +78,31 @@ const AddPet = () => {
   );
 
   const handleMaleCheck = () => {
-    setMaleChecked(true);
-    setFemaleChecked(false);
+    setMaleChecked((prevState) => !prevState);
+    if (femaleChecked) {
+      setFemaleChecked(false);
+    }
   };
 
   const handleFemaleCheck = () => {
-    setFemaleChecked(true);
-    setMaleChecked(false);
+    setFemaleChecked((prevState) => !prevState);
+    if (maleChecked) {
+      setMaleChecked(false);
+    }
   };
 
   const handleDogCheck = () => {
-    setDogChecked(true);
-    setCatChecked(false);
+    setDogChecked((prevState) => !prevState);
+    if (catChecked) {
+      setCatChecked(false);
+    }
   };
 
   const handleCatCheck = () => {
-    setCatChecked(true);
-    setDogChecked(false);
+    setCatChecked((prevState) => !prevState);
+    if (dogChecked) {
+      setDogChecked(false);
+    }
   };
 
   const handlePetRescuedCheck = () => {
@@ -192,22 +200,25 @@ const AddPet = () => {
     if (
       !petImage ||
       !petName ||
-      (!dogChecked && !catChecked) ||
       (!maleChecked && !femaleChecked) ||
       !petBreed ||
       !petAge ||
       !petDescription
     ) {
       setAlertModal(true);
-      setModalMessage("Please fill in all fields.");
+      setModalMessage("Please fill in all required fields.");
       return;
     }
+
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
 
     try {
       const user = auth.currentUser;
       if (user) {
         const petsRef = collection(db, "pets");
+
+        const petType = dogChecked ? "Dog" : catChecked ? "Cat" : "Others";
+
         await addDoc(petsRef, {
           adopted: false,
           adoptedBy: "",
@@ -220,22 +231,24 @@ const AddPet = () => {
           name: petName,
           petPosted: serverTimestamp(),
           petPrice: adoptionFee ? adoptionFee : "",
-          type: dogChecked ? "Dog" : "Cat",
+          type: petType,
           rescued: petRescuedChecked ? true : false,
           userId: user.uid,
         });
         navigation.replace("HomePageScreenShelter");
 
-        setPetAge("");
-        setPetBreed("");
-        setPetDescription("");
-        setMaleChecked(false);
-        setFemaleChecked(false);
         setPetImage("");
         setPetName("");
         setDogChecked(false);
         setCatChecked(false);
+        setMaleChecked(false);
+        setFemaleChecked(false);
+        setPetRescuedChecked(false);
         setPriceChecked(false);
+        setAdoptionFee("");
+        setPetBreed("");
+        setPetAge("");
+        setPetDescription("");
       }
       console.log("Pet uploaded");
     } catch (error) {
