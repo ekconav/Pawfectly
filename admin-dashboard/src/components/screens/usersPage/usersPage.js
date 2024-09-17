@@ -246,19 +246,24 @@ const handleDeleteUser = async () => {
     const userDocRef = doc(db, "users", selectedUser.id);
     await deleteDoc(userDocRef);
 
+    // Delete the user from Firebase Authentication
+    // Call backend to delete user from Firebase Authentication
+    await fetch(`http://localhost:5000/deleteUser/${selectedUser.id}`, {
+      method: 'DELETE',
+    });
+
     // // Update local state to remove the user
     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUser.id));
 
-    // Close modal
+    // // Close modal
     setDeleteUserModalOpen(false);
     setSelectedUser(null);
     } catch (error) {
-    console.error("Error deleting user and sub-collections:", error);
-    alert("Failed to delete user and associated data.");
+    // console.error("Error deleting user and sub-collections:", error);
+    // alert("Failed to delete user and associated data.");
   }
 };
 
-  
 
   if (loading) {
     return <LoadingSpinner />;
