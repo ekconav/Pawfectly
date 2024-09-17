@@ -245,7 +245,20 @@ const PetDetails = ({ route }) => {
       </View>
       <View style={styles.petStyles}>
         <ScrollView>
-          <Text style={styles.petName}>{petDetails.name}</Text>
+          <View style={styles.petNamePriceContainer}>
+            <Text style={styles.petName}>{petDetails.name}</Text>
+            <View>
+              {petDetails.petPrice ? (
+                <Text style={styles.petPriceTitle}>Adoption Fee:</Text>
+              ) : null}
+              {petDetails.petPrice ? (
+                <Text style={styles.petPrice}>₱{petDetails.petPrice}</Text>
+              ) : (
+                <Text style={styles.petPrice}>Free</Text>
+              )}
+            </View>
+          </View>
+
           <Text style={styles.petPostedDate}>Pet Posted: {formattedDate}</Text>
           {adopted && adoptedByUser && (
             <View style={styles.adoptedContainer}>

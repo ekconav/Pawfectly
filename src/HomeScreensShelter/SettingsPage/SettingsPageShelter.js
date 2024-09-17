@@ -338,7 +338,7 @@ const SettingsPageShelter = () => {
             ) : selectedOption === "Pets Adopted" && petsAdopted.length !== 0 ? (
               <Text> ({petsAdopted.length})</Text>
             ) : selectedOption === "Pets Rescued" && petsRescued.length !== 0 ? (
-              <Text> ({petsAdopted.length})</Text>
+              <Text> ({petsRescued.length})</Text>
             ) : null}
           </Text>
 

@@ -40,9 +40,24 @@ const styles = StyleSheet.create({
   petDetails: {
     flexGrow: 1,
   },
+  petNamePriceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   petName: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 24,
+    color: COLORS.title,
+  },
+  petPriceTitle: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    fontSize: 12,
+  },
+  petPrice: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 20,
     color: COLORS.title,
   },
   addressInformation: {

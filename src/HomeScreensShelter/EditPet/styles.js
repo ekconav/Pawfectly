@@ -3,7 +3,7 @@ import COLORS from "../../const/colors";
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: COLORS.white,
     paddingVertical: 20,
     paddingHorizontal: 25,
@@ -24,6 +24,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  editPetContainer: {
+    flex: 1,
   },
   addImageContainer: {
     alignItems: "center",
@@ -52,7 +55,6 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   addPetInputContainer: {
-    marginTop: 20,
     flexDirection: "column",
     gap: 13,
   },
@@ -82,6 +84,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 101,
   },
+  inputCheckboxContainerAdoptionFee: {
+    flexDirection: "row",
+    gap: 15,
+  },
   typeText: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
@@ -103,7 +109,7 @@ const styles = StyleSheet.create({
   addPetDescriptionInput: {
     borderWidth: 1,
     borderColor: COLORS.outline,
-    height: 100,
+    height: 75,
     borderRadius: 10,
     padding: 5,
     paddingHorizontal: 10,
@@ -113,7 +119,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     justifyContent: "flex-end",
-    marginTop: 15,
+    paddingVertical: 10,
   },
   clearButton: {
     backgroundColor: COLORS.subtitle,
