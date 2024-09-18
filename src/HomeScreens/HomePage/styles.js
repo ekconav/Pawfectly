@@ -144,6 +144,61 @@ const styles = StyleSheet.create({
   refreshControl: {
     backgroundColor: COLORS.white,
   },
+
+  // Adopter Container
+  adopterContainer: {
+    backgroundColor: COLORS.prim,
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  adopterText: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.white,
+    flexWrap: "wrap",
+  },
+  adopterButton: {
+    marginVertical: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    backgroundColor: COLORS.white,
+    alignSelf: "flex-start",
+    alignItems: "center",
+  },
+  adopterButtonText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.prim,
+  },
+  adopterImage: {
+    width: 120,
+    height: 120,
+  },
+
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
 });
 
 export default styles;
