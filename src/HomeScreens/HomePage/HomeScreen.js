@@ -30,6 +30,7 @@ const Tab = createBottomTabNavigator();
 
 const HomeScreen = () => {
   const [pets, setPets] = useState([]);
+  const [allPetsPostedByMe, setAllPetsPostedByMe] = useState([]);
   const [firstName, setFirstName] = useState("");
   const [allPets, setAllPets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +43,10 @@ const HomeScreen = () => {
   const [userVerifiedModal, setUserVerifiedModal] = useState(false);
 
   const [modalMessage, setModalMessage] = useState("");
+
+  const [choicesModal, setChoicesModal] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("Fur-Ever Friends");
+  const [petsPostedByMe, setPetsPostedByMe] = useState([]);
 
   const navigation = useNavigation();
 
@@ -78,25 +83,50 @@ const HomeScreen = () => {
     setLoading(true);
     try {
       const petsCollectionRef = collection(db, "pets");
-      const petsQuery = query(
+
+      const otherPetsQuery = query(
         petsCollectionRef,
-        where("adopted", "==", false), where("userId", "!=", auth.currentUser.uid)
+        where("adopted", "==", false),
+        where("userId", "!=", auth.currentUser.uid)
       );
 
-      const unsubscribe = onSnapshot(petsQuery, async (querySnapshot) => {
-        const petsData = await Promise.all(
+      const myPetsQuery = query(
+        petsCollectionRef,
+        where("userId", "==", auth.currentUser.uid)
+      );
+
+      const unsubscribeOtherPets = onSnapshot(
+        otherPetsQuery,
+        async (querySnapshot) => {
+          const petsData = await Promise.all(
+            querySnapshot.docs.map(async (doc) => {
+              const petData = doc.data();
+              const imageUrl = await getDownloadURL(ref(storage, petData.images));
+              return { id: doc.id, ...petData, imageUrl };
+            })
+          );
+          setPets(petsData);
+          setAllPets(petsData);
+          setLoading(false);
+        }
+      );
+
+      const unsubscribeMyPets = onSnapshot(myPetsQuery, async (querySnapshot) => {
+        const myPetsData = await Promise.all(
           querySnapshot.docs.map(async (doc) => {
             const petData = doc.data();
             const imageUrl = await getDownloadURL(ref(storage, petData.images));
             return { id: doc.id, ...petData, imageUrl };
           })
         );
-        setPets(petsData);
-        setAllPets(petsData);
-        setLoading(false);
+        setPetsPostedByMe(myPetsData);
+        setAllPetsPostedByMe(myPetsData);
       });
 
-      return unsubscribe;
+      return () => {
+        unsubscribeOtherPets();
+        unsubscribeMyPets();
+      };
     } catch (error) {
       console.error("Error fetching pet data: ", error);
       setLoading(false);
@@ -129,10 +159,25 @@ const HomeScreen = () => {
   const handleCategoryFilter = (category) => {
     if (activeCategory === category) {
       setActiveCategory(null);
-      setPets(allPets);
+      if (selectedOption === "Fur-Ever Friends") {
+        setPets(allPets);
+      } else {
+        setPetsPostedByMe(allPetsPostedByMe);
+      }
     } else {
       setActiveCategory(category);
-      setPets(allPets.filter((pet) => pet.type.toLowerCase() === category));
+
+      if (selectedOption === "Fur-Ever Friends") {
+        const filteredPets = allPets.filter(
+          (pet) => pet.type.toLowerCase() === category.toLowerCase()
+        );
+        setPets(filteredPets);
+      } else {
+        const filteredPetsPostedByMe = allPetsPostedByMe.filter(
+          (pet) => pet.type.toLowerCase() === category.toLowerCase()
+        );
+        setPetsPostedByMe(filteredPetsPostedByMe);
+      }
     }
   };
 
@@ -148,6 +193,25 @@ const HomeScreen = () => {
     } else {
       setModalMessage("Sorry, your account is not yet verified.");
       setUserVerifiedModal(true);
+    }
+  };
+
+  const handleChoiceSelect = (option) => {
+    setSelectedOption(option);
+    setChoicesModal(false);
+
+    if (activeCategory) {
+      if (option === "Fur-Ever Friends") {
+        const filteredPets = allPets.filter(
+          (pet) => pet.type.toLowerCase() === activeCategory.toLowerCase()
+        );
+        setPets(filteredPets);
+      } else {
+        const filteredPetsPostedByMe = allPetsPostedByMe.filter(
+          (pet) => pet.type.toLowerCase() === activeCategory.toLowerCase()
+        );
+        setPetsPostedByMe(filteredPetsPostedByMe);
+      }
     }
   };
 
@@ -188,8 +252,7 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.categoryContainer}>
-        <Text style={styles.categoriesTitle}>Fur-Ever Friends</Text>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <View style={styles.categoryChoices}>
           <View style={styles.categoryButtonContainer}>
             <TouchableOpacity
               style={[
@@ -247,9 +310,24 @@ const HomeScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          style={styles.titleButton}
+          onPress={() => setChoicesModal(true)}
+        >
+          <Text style={styles.categoriesTitle}>{selectedOption}</Text>
+          <Ionicons
+            name="chevron-down-circle-outline"
+            size={16}
+            color={COLORS.white}
+          />
+        </TouchableOpacity>
       </View>
 
-      {pets.length === 0 ? (
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <ActivityIndicator size="large" color={COLORS.prim} />
+        </View>
+      ) : (!loading && pets.length === 0) || petsPostedByMe.length === 0 ? (
         <View style={styles.noResultsContainer}>
           <Text style={styles.noResultsText}>
             Unfortunately, we couldn't find anything.
@@ -258,7 +336,7 @@ const HomeScreen = () => {
       ) : (
         <View style={styles.mainContainer}>
           <FlatList
-            data={pets}
+            data={selectedOption === "Fur-Ever Friends" ? pets : petsPostedByMe}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.buttonContainer}>
@@ -334,6 +412,25 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+      <Modal isVisible={choicesModal} onRequestClose={() => setChoicesModal(false)}>
+        <TouchableOpacity
+          style={styles.choicesModalOverlay}
+          activeOpacity={1}
+          onPress={() => setChoicesModal(false)}
+        >
+          <View style={styles.choicesOptions}>
+            {["Fur-Ever Friends", "Pets Posted"].map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => handleChoiceSelect(option)}
+                style={styles.choicesDropdown}
+              >
+                <Text style={styles.choicesDropdownText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
