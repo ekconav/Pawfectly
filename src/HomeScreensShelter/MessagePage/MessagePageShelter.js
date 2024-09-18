@@ -43,7 +43,9 @@ const MessagePageShelter = ({ route }) => {
   const [petName, setPetName] = useState("");
   const [userExist, setUserExist] = useState(true);
   const [petExist, setPetExist] = useState(true);
-  const [petAdopted, setPetAdopted] = useState(false);
+  const [petAdoptedByAnotherUser, setPetAdoptedByAnotherUser] = useState(false);
+  const [petAdoptedByUser, setPetAdoptedByUser] = useState(false);
+
   const [userMobileNumber, setUserMobileNumber] = useState("");
   const [loading, setLoading] = useState(true);
   const [alertModal, setAlertModal] = useState(false);
@@ -86,7 +88,11 @@ const MessagePageShelter = ({ route }) => {
         } else {
           const petData = petDoc.data();
           setPetName(petData.name);
-          setPetAdopted(petData.adopted || false);
+          if (petData.adopted && petData.adoptedBy === userId) {
+            setPetAdoptedByUser(true);
+          } else if (petData.adopted && petData.adoptedBy !== userId) {
+            setPetAdoptedByAnotherUser(true);
+          }
         }
 
         const messagesRef = collection(
@@ -337,7 +343,6 @@ const MessagePageShelter = ({ route }) => {
           userId: petData.userId,
         });
 
-        setPetAdopted(true);
         console.log("Pet successfully adopted!");
       }
     } catch (error) {
@@ -470,7 +475,7 @@ const MessagePageShelter = ({ route }) => {
           <Ionicons name="call" size={24} color={COLORS.prim} />
         </TouchableOpacity>
       </View>
-      {messageSent && !petAdopted && userExist ? (
+      {messageSent && !petAdoptedByUser && !petAdoptedByAnotherUser && userExist ? (
         <View style={styles.subHeader}>
           <Text style={styles.subHeaderText}>
             <Text style={styles.userName}>{userName}</Text> wants to adopt {petName}.
@@ -482,10 +487,17 @@ const MessagePageShelter = ({ route }) => {
             <Text style={styles.approveText}>Approve</Text>
           </TouchableOpacity>
         </View>
-      ) : petAdopted ? (
+      ) : petAdoptedByUser ? (
         <View style={styles.subHeader}>
           <Text style={styles.subHeaderText}>
             <Text style={styles.userName}>{userName}</Text> has adopted {petName}!
+          </Text>
+        </View>
+      ) : petAdoptedByAnotherUser ? (
+        <View style={styles.subHeader}>
+          <Text style={styles.subHeaderText}>
+            <Text style={styles.userName}>{petName}</Text> has been adopted by
+            another user.
           </Text>
         </View>
       ) : null}

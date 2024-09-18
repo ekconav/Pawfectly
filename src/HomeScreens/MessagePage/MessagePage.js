@@ -400,9 +400,13 @@ const MessagePage = ({ route }) => {
             Congratulations, you adopted {petName}!
           </Text>
         </View>
-      ) : (
-        <View></View>
-      )}
+      ) : petAdoptedByAnotherUser ? (
+        <View style={styles.petAdoptedContainer}>
+          <Text style={styles.petAdoptedText}>
+            Sorry, {petName} has been adopted already.
+          </Text>
+        </View>
+      ) : null}
 
       {/* Messages */}
       <FlatList
@@ -425,10 +429,6 @@ const MessagePage = ({ route }) => {
           <Text style={styles.shelterExistText}>
             Pet data has been deleted by the shelter.
           </Text>
-        </View>
-      ) : petAdoptedByAnotherUser ? (
-        <View style={styles.shelterExist}>
-          <Text style={styles.shelterExistText}>Pet is already adopted.</Text>
         </View>
       ) : (
         <View style={styles.inputContainer}>
