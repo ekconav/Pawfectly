@@ -109,14 +109,31 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_500Medium",
     textAlign: "center",
   },
+  titleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: COLORS.prim,
+    alignSelf: "flex-start",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    marginVertical: 5,
+    borderRadius: 10,
+    elevation: 1,
+  },
   categoriesTitle: {
     fontFamily: "Poppins_600SemiBold",
-    fontSize: 16,
-    color: COLORS.title,
-    marginBottom: 8,
+    fontSize: 14,
+    color: COLORS.white,
+    // marginBottom: 8,
   },
   categoryContainer: {
-    marginBottom: 20,
+    // marginBottom: 20,
+  },
+  categoryChoices: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 5,
   },
   categoryButtonContainer: {
     flexDirection: "row",
@@ -198,6 +215,34 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
+  },
+
+  // Choices Modal
+  choicesModalOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  choicesOptions: {
+    width: 185,
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    elevation: 5,
+    height: 123,
+  },
+  choicesDropdown: {
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.outline,
+  },
+  choicesDropdownText: {
+    fontSize: 12,
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
   },
 });
 
