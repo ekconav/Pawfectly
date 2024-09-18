@@ -36,7 +36,6 @@ const PostPetPage = () => {
   const [catChecked, setCatChecked] = useState(false);
   const [maleChecked, setMaleChecked] = useState(false);
   const [femaleChecked, setFemaleChecked] = useState(false);
-  const [petRescuedChecked, setPetRescuedChecked] = useState(false);
   const [ageModal, setAgeModal] = useState(false);
   const [userAddress, setUserAddress] = useState("");
   const [priceChecked, setPriceChecked] = useState(false);
@@ -90,10 +89,6 @@ const PostPetPage = () => {
     }
   };
 
-  const handlePetRescuedCheck = () => {
-    setPetRescuedChecked((prevChecked) => !prevChecked);
-  };
-
   const handleWithAdoptionFee = () => {
     setPriceChecked((prevChecked) => !prevChecked);
     setAdoptionFee("");
@@ -113,7 +108,6 @@ const PostPetPage = () => {
     setCatChecked(false);
     setMaleChecked(false);
     setFemaleChecked(false);
-    setPetRescuedChecked(false);
     setPriceChecked(false);
     setPetBreed("");
     setPetAge("");
@@ -202,7 +196,6 @@ const PostPetPage = () => {
           petPosted: serverTimestamp(),
           petPrice: adoptionFee ? adoptionFee : "",
           type: petType,
-          rescued: petRescuedChecked ? true : false,
           userId: user.uid,
         });
         navigation.replace("HomeScreen");
@@ -213,7 +206,6 @@ const PostPetPage = () => {
         setCatChecked(false);
         setMaleChecked(false);
         setFemaleChecked(false);
-        setPetRescuedChecked(false);
         setPriceChecked(false);
         setAdoptionFee("");
         setPetBreed("");
@@ -313,19 +305,6 @@ const PostPetPage = () => {
                       color={COLORS.prim}
                     />
                     <Text style={styles.addPetText}>Female</Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.inputRescuedCheckboxContainer}>
-                <Text style={styles.typeGender}>Rescued</Text>
-                <View style={styles.checkboxGender}>
-                  <View style={styles.checkBoxContainer}>
-                    <Checkbox
-                      value={petRescuedChecked}
-                      onValueChange={handlePetRescuedCheck}
-                      color={COLORS.prim}
-                    />
-                    <Text style={styles.addPetText}>Yes</Text>
                   </View>
                 </View>
               </View>

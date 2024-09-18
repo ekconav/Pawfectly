@@ -313,8 +313,6 @@ const MessagePageShelter = ({ route }) => {
       const petRef = doc(db, "pets", petId);
       const petSnap = await getDoc(petRef);
 
-      const petsAdoptedCollection = collection(db, "users", userId, "petsAdopted");
-
       if (petSnap.exists()) {
         const petData = petSnap.data();
         await updateDoc(petRef, {

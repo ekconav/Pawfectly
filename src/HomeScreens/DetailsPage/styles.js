@@ -157,6 +157,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
+  deleteContainer: {
+    width: "48%",
+  },
+  deleteUserPostedButton: {
+    backgroundColor: COLORS.delete,
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    borderRadius: 10,
+    elevation: 1,
+  },
+  buttonText: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 14,
+    color: COLORS.white,
+  },
+  editContainer: {
+    width: "48%",
+  },
+  editButton: {
+    backgroundColor: COLORS.prim,
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    borderRadius: 10,
+    elevation: 1,
+  },
   favoriteContainer: {
     width: "25%",
   },
@@ -194,6 +225,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   textButton: {
+    textAlign: "center",
     fontFamily: "Poppins_600SemiBold",
     fontSize: 14,
     color: COLORS.white,
@@ -222,6 +254,31 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+  deleteModalButtonContainer: {
+    marginTop: 15,
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  deleteModalCancelButton: {
+    backgroundColor: COLORS.outline,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  deleteModalDeleteButton: {
+    backgroundColor: COLORS.delete,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  deleteCancelText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  deleteModalText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
