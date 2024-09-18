@@ -16,6 +16,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import FavoritesPage from "../Favorites/FavoritesPage";
 import { SettingOptions } from "../SettingsPage/SettingStack";
 import { Ionicons } from "@expo/vector-icons";
+import Modal from "react-native-modal";
 import SearchBar from "./SearchBar/SearchBar";
 import styles from "./styles";
 import ConversationPage from "../ConversationsPage/ConversationPage";
@@ -23,6 +24,7 @@ import COLORS from "../../const/colors";
 import catIcon from "../../components/catIcon.png";
 import dogIcon from "../../components/dogIcon.png";
 import turtleIcon from "../../components/turtleIcon.png";
+import adopter from "../../components/adopter.png";
 
 const Tab = createBottomTabNavigator();
 
@@ -35,6 +37,12 @@ const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const [activeCategory, setActiveCategory] = useState(null);
+
+  const [userVerified, setUserVerified] = useState(false);
+  const [userVerifiedModal, setUserVerifiedModal] = useState(false);
+
+  const [modalMessage, setModalMessage] = useState("");
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -51,6 +59,7 @@ const HomeScreen = () => {
               : require("../../components/user.png")
           );
           setFirstName(userData.firstName || "");
+          setUserVerified(userData.verified);
         }
       }
     );
@@ -130,6 +139,15 @@ const HomeScreen = () => {
     setRefreshing(false);
   }, []);
 
+  const handleClickAdopter = () => {
+    if (userVerified) {
+      navigation.navigate("PostPetPage");
+    } else {
+      setModalMessage("Sorry, your account is not yet verified.");
+      setUserVerifiedModal(true);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -152,6 +170,19 @@ const HomeScreen = () => {
         setSearchQuery={setSearchQuery}
         onSearch={handleSearch}
       />
+
+      <View style={styles.adopterContainer}>
+        <View style={{ flex: 1, justifyContent: "space-around" }}>
+          <Text style={styles.adopterText}>Got any furbabies up for adoption?</Text>
+          <TouchableOpacity
+            style={styles.adopterButton}
+            onPress={handleClickAdopter}
+          >
+            <Text style={styles.adopterButtonText}>Click Here</Text>
+          </TouchableOpacity>
+        </View>
+        <Image source={adopter} style={styles.adopterImage} />
+      </View>
 
       <View style={styles.categoryContainer}>
         <Text style={styles.categoriesTitle}>Fur-Ever Friends</Text>
@@ -288,6 +319,19 @@ const HomeScreen = () => {
           />
         </View>
       )}
+      <Modal isVisible={userVerifiedModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setUserVerifiedModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
