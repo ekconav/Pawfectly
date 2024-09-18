@@ -327,77 +327,86 @@ const HomeScreen = () => {
         <View style={{ flex: 1, justifyContent: "center" }}>
           <ActivityIndicator size="large" color={COLORS.prim} />
         </View>
-      ) : (!loading && pets.length === 0) || petsPostedByMe.length === 0 ? (
-        <View style={styles.noResultsContainer}>
-          <Text style={styles.noResultsText}>
-            Unfortunately, we couldn't find anything.
-          </Text>
-        </View>
       ) : (
         <View style={styles.mainContainer}>
-          <FlatList
-            data={selectedOption === "Fur-Ever Friends" ? pets : petsPostedByMe}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={styles.petButton}
-                  onPress={() => navigation.navigate("DetailsPage", { pet: item })}
-                >
-                  <View style={styles.petContainer}>
-                    <View style={styles.imageContainer}>
-                      <Image
-                        source={{
-                          uri: item.imageUrl,
-                        }}
-                        style={styles.petImage}
-                      />
-                    </View>
-
-                    <View style={styles.petDetails}>
-                      <View style={styles.petNameGender}>
-                        <Text style={styles.petName}>{item.name}</Text>
-                        <Text>
-                          {item.gender.toLowerCase() === "male" ? (
-                            <View style={styles.genderIconContainer}>
-                              <Ionicons
-                                style={styles.petGenderIconMale}
-                                name="male"
-                                size={24}
-                                color={COLORS.male}
-                              />
-                            </View>
-                          ) : (
-                            <View style={styles.genderIconContainer}>
-                              <Ionicons
-                                style={styles.petGenderIconFemale}
-                                name="female"
-                                size={24}
-                                color={COLORS.female}
-                              />
-                            </View>
-                          )}
-                        </Text>
+          {selectedOption === "Fur-Ever Friends" && pets.length === 0 ? (
+            <View style={styles.noResultsContainer}>
+              <Text style={styles.noResultsText}>
+                Unfortunately, we couldn't find anything in Fur-Ever Friends.
+              </Text>
+            </View>
+          ) : selectedOption !== "Fur-Ever Friends" &&
+            petsPostedByMe.length === 0 ? (
+            <View style={styles.noResultsContainer}>
+              <Text style={styles.noResultsText}>
+                You haven't posted any pets yet.
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={selectedOption === "Fur-Ever Friends" ? pets : petsPostedByMe}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.petButton}
+                    onPress={() => navigation.navigate("DetailsPage", { pet: item })}
+                  >
+                    <View style={styles.petContainer}>
+                      <View style={styles.imageContainer}>
+                        <Image
+                          source={{
+                            uri: item.imageUrl,
+                          }}
+                          style={styles.petImage}
+                        />
                       </View>
-                      <View>
-                        <View style={styles.iconAddress}>
-                          <Ionicons
-                            name="location-outline"
-                            size={24}
-                            color={COLORS.prim}
-                          />
-                          <Text style={styles.petAddress}>{item.location}</Text>
+
+                      <View style={styles.petDetails}>
+                        <View style={styles.petNameGender}>
+                          <Text style={styles.petName}>{item.name}</Text>
+                          <Text>
+                            {item.gender.toLowerCase() === "male" ? (
+                              <View style={styles.genderIconContainer}>
+                                <Ionicons
+                                  style={styles.petGenderIconMale}
+                                  name="male"
+                                  size={24}
+                                  color={COLORS.male}
+                                />
+                              </View>
+                            ) : (
+                              <View style={styles.genderIconContainer}>
+                                <Ionicons
+                                  style={styles.petGenderIconFemale}
+                                  name="female"
+                                  size={24}
+                                  color={COLORS.female}
+                                />
+                              </View>
+                            )}
+                          </Text>
+                        </View>
+                        <View>
+                          <View style={styles.iconAddress}>
+                            <Ionicons
+                              name="location-outline"
+                              size={24}
+                              color={COLORS.prim}
+                            />
+                            <Text style={styles.petAddress}>{item.location}</Text>
+                          </View>
                         </View>
                       </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          />
+                  </TouchableOpacity>
+                </View>
+              )}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            />
+          )}
         </View>
       )}
       <Modal isVisible={userVerifiedModal}>

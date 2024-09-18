@@ -24,6 +24,7 @@ import {
   setDoc,
   updateDoc,
   onSnapshot,
+  deleteDoc,
 } from "firebase/firestore";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
@@ -40,69 +41,107 @@ const DetailsPage = ({ route }) => {
   const [petAdopted, setPetAdopted] = useState(false);
   const [petPosted, setPetPosted] = useState(null);
   const [petDeleted, setPetDeleted] = useState(false);
+
+  const [userPosted, setUserPosted] = useState(false);
+  const [userToUser, setUserToUser] = useState(false);
+
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [youAdopted, setYouAdopted] = useState(false);
   const navigation = useNavigation();
+
+  const { pet } = route.params;
 
   useEffect(() => {
     const fetchPetDetails = async () => {
       try {
-        const { pet } = route.params;
+        if (auth.currentUser.uid == pet.userId) {
+          setUserPosted(true);
+        }
+
         const shelterRef = doc(db, "shelters", pet.userId);
-        const docSnap = await getDoc(shelterRef);
+        let docSnap = await getDoc(shelterRef);
 
         if (!docSnap.exists()) {
-          console.log("No such document!");
-        } else {
-          pet.shelterName = docSnap.data().shelterName;
-          pet.location = docSnap.data().address;
-          pet.accountPicture = docSnap.data().accountPicture;
-          pet.mobileNumber = docSnap.data().mobileNumber;
-          setShelterImage(
-            pet.accountPicture
-              ? { uri: pet.accountPicture }
-              : require("../../components/user.png")
-          );
-          setMobileNumber(pet.mobileNumber);
+          console.log("No such document in shelters.");
+          const userRef = doc(db, "users", pet.userId);
+          docSnap = await getDoc(userRef);
 
-          const userId = auth.currentUser.uid;
-          const shelterId = pet.userId;
-          const petId = pet.id;
-          const conversationId = `${userId}_${shelterId}_${petId}`;
+          if (!docSnap.exists()) {
+            console.log("No such document in users either!");
+            return;
+          } else {
+            setUserToUser(true);
+            console.log("User to user true");
+          }
+        }
 
-          const conversationDocRef = doc(
-            db,
-            "users",
-            userId,
-            "conversations",
-            conversationId
-          );
-          const conversationSnap = await getDoc(conversationDocRef);
+        pet.shelterName =
+          docSnap.data().shelterName ||
+          `${docSnap.data().firstName} ${docSnap.data().lastName}`;
+        pet.location = docSnap.data().address;
+        pet.accountPicture = docSnap.data().accountPicture;
+        pet.mobileNumber = docSnap.data().mobileNumber;
+        setShelterImage(
+          pet.accountPicture
+            ? { uri: pet.accountPicture }
+            : require("../../components/user.png")
+        );
+        setMobileNumber(pet.mobileNumber);
 
-          if (conversationSnap.exists()) {
-            // Check if the message already exists
-            const messagesRef = collection(conversationDocRef, "messages");
-            const messageText = `Hello, I would like to adopt ${pet.name}.`;
-            const messageQuery = query(
-              messagesRef,
-              where("text", "==", messageText)
-            );
-            const messageSnap = await getDocs(messageQuery);
+        const userId = auth.currentUser.uid;
+        const shelterId = pet.userId;
+        const petId = pet.id;
+        const conversationId = `${userId}_${shelterId}_${petId}`;
 
-            if (!messageSnap.empty) {
-              setMessageSent(true);
-            }
+        const conversationDocRef = doc(
+          db,
+          "users",
+          userId,
+          "conversations",
+          conversationId
+        );
+        const conversationSnap = await getDoc(conversationDocRef);
+
+        if (conversationSnap.exists()) {
+          // Check if the message already exists
+          const messagesRef = collection(conversationDocRef, "messages");
+          const messageText = `Hello, I would like to adopt ${pet.name}.`;
+          const messageQuery = query(messagesRef, where("text", "==", messageText));
+          const messageSnap = await getDocs(messageQuery);
+
+          if (!messageSnap.empty) {
+            setMessageSent(true);
           }
         }
 
         const petRef = doc(db, "pets", pet.id);
         const petSnap = await getDoc(petRef);
-        if (petSnap.exists()) {
+
+        const petAdoptedRef = doc(
+          db,
+          "users",
+          auth.currentUser.uid,
+          "petsAdopted",
+          pet.id
+        );
+        const petAdoptedSnap = await getDoc(petAdoptedRef);
+
+        if (!petSnap.exists()) {
+          setPetDeleted(true);
+        } else {
           const petData = petSnap.data();
           setPetAdopted(petData.adopted === true);
-          if (petData.petPosted) {
-            setPetPosted(petData.petPosted);
+        }
+
+        if (petAdoptedSnap.exists()) {
+          const petAdoptedData = petAdoptedSnap.data();
+          setPetAdopted(petAdoptedData.adopted === true);
+          if (petAdoptedData.petPosted) {
+            setPetPosted(petAdoptedData.petPosted);
           }
-        } else {
-          setPetDeleted(true);
+          if (petAdoptedData.adoptedBy === auth.currentUser.uid) {
+            setYouAdopted(true);
+          }
         }
 
         setPetDetails(pet);
@@ -233,13 +272,26 @@ const DetailsPage = ({ route }) => {
       );
       const userConversationSnap = await getDoc(userConversationDocRef);
 
-      const shelterConversationDocRef = doc(
-        db,
-        "shelters",
-        shelterId,
-        "conversations",
-        conversationId
-      );
+      let shelterConversationDocRef;
+
+      if (!userToUser) {
+        shelterConversationDocRef = doc(
+          db,
+          "shelters",
+          shelterId,
+          "conversations",
+          conversationId
+        );
+      } else {
+        shelterConversationDocRef = doc(
+          db,
+          "users",
+          shelterId,
+          "conversations",
+          conversationId
+        );
+      }
+
       const shelterConversationSnap = await getDoc(shelterConversationDocRef);
 
       if (userConversationSnap.exists()) {
@@ -357,6 +409,24 @@ const DetailsPage = ({ route }) => {
     }
   };
 
+  const handleOpenDeleteModal = () => {
+    setModalMessage("Are you sure you want to delete this pet?");
+    setDeleteModal(true);
+  };
+
+  const handleDeletePress = async () => {
+    const { id } = pet;
+    try {
+      await deleteDoc(doc(db, "pets", id));
+      navigation.goBack();
+      console.log("Pet deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting pet: ", error);
+      setModalMessage("Failed to delete pet. Please try again.");
+      setAlertModal(true);
+    }
+  };
+
   let formattedDate = null;
   if (petPosted) {
     const petPostedDate = petPosted.toDate(); // Convert Firestore Timestamp to JavaScript Date
@@ -437,22 +507,30 @@ const DetailsPage = ({ route }) => {
               <Image source={shelterImage} style={styles.shelterImage} />
               <View style={styles.shelterTextContainer}>
                 <Text style={styles.midInfoTitle}>
-                  {petAdopted || petDeleted ? "From:" : "Currently In:"}
+                  {userToUser && !userPosted
+                    ? "Currently With:"
+                    : !userPosted
+                    ? petAdopted || petDeleted
+                      ? "From:"
+                      : "Currently In:"
+                    : "You:"}
                 </Text>
                 <Text style={styles.shelterName}>{petDetails.shelterName}</Text>
               </View>
             </View>
-            <View style={styles.callMessage}>
-              <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
-                <Ionicons name="call-outline" size={24} color={COLORS.white} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleOpenMessage}
-              >
-                <Ionicons name="chatbox-outline" size={24} color={COLORS.white} />
-              </TouchableOpacity>
-            </View>
+            {!userPosted ? (
+              <View style={styles.callMessage}>
+                <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
+                  <Ionicons name="call-outline" size={24} color={COLORS.white} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleOpenMessage}
+                >
+                  <Ionicons name="chatbox-outline" size={24} color={COLORS.white} />
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </View>
           <View style={styles.aboutContainer}>
             <Text style={styles.aboutTitle}>About {petDetails.name}</Text>
@@ -460,42 +538,65 @@ const DetailsPage = ({ route }) => {
           </View>
         </ScrollView>
       </View>
-      <View style={styles.buttonContainer}>
-        <View style={!petAdopted && !petDeleted ? styles.favoriteContainer : null}>
-          {!petAdopted && !petDeleted ? (
-            <TouchableOpacity style={styles.button} onPress={handleFavorite}>
-              <Ionicons name="heart-outline" size={22} color={COLORS.white} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-        <View
-          style={
-            !petAdopted && !petDeleted
-              ? styles.adoptMeContainer
-              : styles.petAdoptedContainer
-          }
-        >
-          <TouchableOpacity
+      {!userPosted ? (
+        <View style={styles.buttonContainer}>
+          <View style={!petAdopted && !petDeleted ? styles.favoriteContainer : null}>
+            {!petAdopted && !petDeleted ? (
+              <TouchableOpacity style={styles.button} onPress={handleFavorite}>
+                <Ionicons name="heart-outline" size={22} color={COLORS.white} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+          <View
             style={
-              !messageSent && !petAdopted && !petDeleted
-                ? styles.adoptButton
-                : styles.adoptButtonSent
+              !petAdopted && !petDeleted
+                ? styles.adoptMeContainer
+                : styles.petAdoptedContainer
             }
-            onPress={handleAdoption}
-            disabled={messageSent || petAdopted || petDeleted}
           >
-            <Text style={styles.textButton}>
-              {petAdopted
-                ? "Pet has been adopted"
-                : petDeleted
-                ? "Pet data has been deleted"
-                : messageSent
-                ? "Message Sent"
-                : "Adopt Me"}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={
+                !messageSent && !petAdopted && !petDeleted
+                  ? styles.adoptButton
+                  : styles.adoptButtonSent
+              }
+              onPress={handleAdoption}
+              disabled={messageSent || petAdopted || petDeleted}
+            >
+              <Text style={styles.textButton}>
+                {youAdopted && petAdopted
+                  ? `Congratulations, you successfully adopted ${petDetails.name}.`
+                  : petAdopted && !youAdopted
+                  ? "Pet has been adopted"
+                  : petDeleted
+                  ? "Pet data has been deleted"
+                  : messageSent
+                  ? "Message Sent"
+                  : "Adopt Me"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      ) : (
+        <View style={styles.buttonContainer}>
+          <View style={styles.deleteContainer}>
+            <TouchableOpacity
+              style={styles.deleteUserPostedButton}
+              onPress={handleOpenDeleteModal}
+            >
+              <Ionicons name="trash-outline" size={20} color={COLORS.white} />
+              <Text style={styles.buttonText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.editContainer}>
+            <TouchableOpacity style={styles.editButton}>
+              <Ionicons name="create-outline" size={20} color={COLORS.white} />
+              <Text style={styles.buttonText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       <Modal isVisible={alertModal}>
         <View style={styles.modalContainer}>
           <Text style={styles.modalText}>{modalMessage}</Text>
@@ -505,6 +606,25 @@ const DetailsPage = ({ route }) => {
               style={styles.modalButton}
             >
               <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal isVisible={deleteModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.deleteModalButtonContainer}>
+            <TouchableOpacity
+              style={styles.deleteModalCancelButton}
+              onPress={() => setDeleteModal(false)}
+            >
+              <Text style={styles.deleteCancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteModalDeleteButton}
+              onPress={handleDeletePress}
+            >
+              <Text style={styles.deleteModalText}>Delete</Text>
             </TouchableOpacity>
           </View>
         </View>
