@@ -78,7 +78,10 @@ const HomeScreen = () => {
     setLoading(true);
     try {
       const petsCollectionRef = collection(db, "pets");
-      const petsQuery = query(petsCollectionRef, where("adopted", "==", false));
+      const petsQuery = query(
+        petsCollectionRef,
+        where("adopted", "==", false), where("userId", "!=", auth.currentUser.uid)
+      );
 
       const unsubscribe = onSnapshot(petsQuery, async (querySnapshot) => {
         const petsData = await Promise.all(
