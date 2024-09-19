@@ -95,7 +95,7 @@ const Header = () => {
             onMouseEnter={() => setHoveredLink("users")}
             onMouseLeave={() => setHoveredLink(null)}
           >
-            Users
+            Adopters
           </NavLink>
           <NavLink
             to="/shelters"

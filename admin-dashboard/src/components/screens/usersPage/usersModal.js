@@ -47,15 +47,18 @@ const UpdateModal = ({ updateUser, handleInputChange, handleSwitchChange, handle
               style={styles.inputField}
               required
             />
-            <input
-              type="text"
-              name="mobileNumber"
-              placeholder="Mobile Number"
-              value={updateUser.mobileNumber}
-              onChange={handleInputChange}
-              style={styles.inputField}
-              required
-            />
+            <div style={styles.mobileNumberContainer}>
+              <span style={styles.countryCode}>+63</span>
+              <input
+                type="text"
+                name="mobileNumber"
+                placeholder="Mobile Number"
+                value={updateUser.mobileNumber}
+                onChange={handleInputChange}
+                style={{ ...styles.inputField, paddingLeft: '50px' }} // Adding padding to avoid overlap
+                required
+              />
+            </div>
             <div style={styles.SwitchLine}>
               <label style={styles.title}>Verified:</label>
               <Switch
