@@ -17,7 +17,6 @@ const styles = StyleSheet.create({
     paddingRight: 50,
     marginLeft: 50,
     marginRight: 10,  
-    border: "5px solid #5F5B5B",
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
     height: "60vh",  
@@ -80,7 +79,6 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     marginLeft: 10,
     marginRight: 50,
-    border: "5px solid #5F5B5B",
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
     height: "60vh",  
@@ -105,10 +103,42 @@ const styles = StyleSheet.create({
   },
   userInfoDetails: {
     display: "grid",  
-    gridTemplateColumns: "25vh 30vh", 
-    gridTemplateRows: 'repeat(4, 1fr)', 
-    gap: "20",
+    gridTemplateColumns: "20vh 30vh", 
+    // gridTemplateRows: 'repeat(5, 1fr)', 
+    gridTemplateRows: "1fr 1fr 1fr 1fr 2fr", 
+    gap: "3px",
   },
+  userInfoTitleLabel: {
+    marginTop: "4px",
+    marginBottom: "4px",
+  },
+  govtPicture: {
+    width: 80,
+    height:  60,
+    borderRadius: 10,
+    cursor: 'pointer',
+  }, 
+
+  // goPicture Modal
+  fullImage: {
+    maxWidth: '100%',
+    maxHeight: '80vh',
+    border: "2px solid #5F5B5B",
+    borderRadius: "10px",
+    boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
+
+  },
+  closeButton: {
+    marginTop: '10px',
+    padding: '5px 10px',
+    backgroundColor: '#5F5B5B',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+  
+
 
   // User Information Edit Button
   editButtonContainer: {

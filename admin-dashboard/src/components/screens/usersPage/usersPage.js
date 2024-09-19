@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
 import { db, auth } from "../../../FirebaseConfig";
-import {writeBatch,collection,onSnapshot,updateDoc,deleteDoc,getDocs,doc,query,where,} from "firebase/firestore";
+import {writeBatch,collection,onSnapshot,updateDoc,deleteDoc,getDocs,doc,query,limit,} from "firebase/firestore";
 import Modal from "./usersModal";
 
 import LoadingSpinner from "../loadingPage/loadingSpinner";
@@ -18,9 +18,8 @@ const UsersPage = () => {
 
   useEffect(() => {
     // Define the function to handle real-time updates
-    const unsubscribe = onSnapshot(
-      collection(db, "users"),
-      (snapshot) => {
+    const q = query(collection(db, "users"), limit(itemsPerPage)); 
+    const unsubscribe = onSnapshot(q, (snapshot) => {
         // Convert snapshot to array of users
         const usersList = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -232,38 +231,53 @@ const deleteSubCollection = async (userId, subCollectionName, nestedCollectionNa
 
 
   // Main delete user function
-const handleDeleteUser = async () => {
-  if (!selectedUser) return;
-
-  try {
-    // Delete the user's sub-collections first
-    await deleteSubCollection(selectedUser.id, 'conversations','messages'); 
-    await deleteSubCollection(selectedUser.id, 'favorites'); 
-    await deleteSubCollection(selectedUser.id, 'furbabies');
-    await deleteSubCollection(selectedUser.id, 'petsAdopted');
-
-    // // Then delete the main user document
-    const userDocRef = doc(db, "users", selectedUser.id);
-    await deleteDoc(userDocRef);
-
-    // Delete the user from Firebase Authentication
-    // Call backend to delete user from Firebase Authentication
-    await fetch(`http://localhost:5000/deleteUser/${selectedUser.id}`, {
-      method: 'DELETE',
-    });
-
-    // // Update local state to remove the user
-    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUser.id));
-
-    // // Close modal
-    setDeleteUserModalOpen(false);
-    setSelectedUser(null);
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+  
+    try {
+      // Attempt to delete the user from Firebase Authentication via backend API first
+      const response = await fetch(`http://localhost:5000/deleteUser/${selectedUser.id}`, {
+        method: 'DELETE',
+      });
+  
+      // If the backend call fails, don't proceed with Firestore deletion
+      if (!response.ok) {
+        throw new Error("Failed to delete user from Firebase Authentication.");
+      }
+  
+      // Now proceed with deleting the user's sub-collections from Firestore
+      await deleteSubCollection(selectedUser.id, 'conversations', 'messages');
+      await deleteSubCollection(selectedUser.id, 'favorites');
+      await deleteSubCollection(selectedUser.id, 'furbabies');
+      await deleteSubCollection(selectedUser.id, 'petsAdopted');
+  
+      // Then delete the main user document
+      const userDocRef = doc(db, "users", selectedUser.id);
+      await deleteDoc(userDocRef);
+  
+      // Update local state to remove the user
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== selectedUser.id));
+  
+      // Close modal and reset selected user
+      setDeleteUserModalOpen(false);
+      setSelectedUser(null);
+  
     } catch (error) {
-    // console.error("Error deleting user and sub-collections:", error);
-    // alert("Failed to delete user and associated data.");
-  }
-};
+      console.error("Error deleting user and sub-collections:", error);
+      alert("Failed to delete user and associated data.");
+    }
+  };
 
+  // Inside your component
+const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+const [selectedImageUrl, setSelectedImageUrl] = useState("");
+
+// Function to open the image modal
+const openImageModal = (url) => {
+  setSelectedImageUrl(url);
+  setIsImageModalOpen(true);
+};
+  
 
   if (loading) {
     return <LoadingSpinner />;
@@ -272,7 +286,7 @@ const handleDeleteUser = async () => {
   return (
     <div>
       <Header />
-      <h1>Users Page</h1>
+      <h1>Adopters Page</h1>
       <div style={styles.container}>
         <div style={styles.userListContainer}>
           <div style={styles.userDetailsLabel}>
@@ -333,7 +347,7 @@ const handleDeleteUser = async () => {
         {selectedUser && (
           <div style={styles.userInfoContainer}>
             <div style={styles.userInfoHeader}>
-              <h3 style={styles.userInfoTitle}>User Information</h3>
+              <h3 style={styles.userInfoTitle}>Adopter Information</h3>
               <div style={styles.editButtonContainer}>
                 <ion-icon
                   name="pencil"
@@ -352,36 +366,49 @@ const handleDeleteUser = async () => {
             />
             <div style={styles.userInfoDetails}>
               <div style={styles.line}>
-                <p p style={styles.title}>
+                <p style={styles.userInfoTitleLabel}>
                   Name:
                 </p>
               </div>
               <div style={styles.line}>
-                <p>
+                <p style={styles.userInfoTitleLabel} >
                   {selectedUser.firstName} {selectedUser.lastName}
                 </p>
               </div>
               <div style={styles.line}>
-                <p style={styles.title}>Email:</p>
+                <p style={styles.userInfoTitleLabel}>Email:</p>
               </div>
               <div style={styles.line}>
-                <p>{selectedUser.email}</p>
+                <p style={styles.userInfoTitleLabel}>{selectedUser.email}</p>
               </div>
               <div style={styles.line}>
-                <p style={styles.title}>Mobile Number:</p>
+                <p style={styles.userInfoTitleLabel}>Mobile Number:</p>
               </div>
               <div style={styles.line}>
-                <p>{selectedUser.mobileNumber}</p>
+                <p style={styles.userInfoTitleLabel}>{selectedUser.mobileNumber}</p>
               </div>
               <div style={styles.line}>
-                <p style={styles.title}>Status:</p>
+                <p style={styles.userInfoTitleLabel}>Status:</p>
               </div>
               <div style={styles.line}>
-                <p style={{ color: getStatusColor(selectedUser.verified) }}>
+                <p style={{ ...styles.userInfoTitleLabel, color: getStatusColor(selectedUser.verified) }}>
                   {getVerificationStatus(selectedUser.verified)}
                 </p>
               </div>
-              
+              <div style={styles.line}>
+                <p style={styles.userInfoTitleLabel}>Gov't ID:</p>
+              </div>
+              <div style={styles.line}>
+                <img
+                  src={selectedUser.governmentId || require("../../../const/user.png")}
+                  alt="ID"
+                  style={styles.govtPicture}
+                  onClick={() => {
+                    setSelectedImageUrl(selectedUser.governmentId);
+                    setIsImageModalOpen(true);
+                  }}
+                />
+              </div>
               
             </div>
           </div>
@@ -425,11 +452,20 @@ const handleDeleteUser = async () => {
           handleCloseUpdateUserModal={() => setIsUpdateUserModalOpen(false)}
         />
       )}
-
+      {/* Delete Button Modal */}
       {isDeleteUserModalOpen && (
         <Modal.DeleteModal onConfirm={handleDeleteUser} onClose={() => setDeleteUserModalOpen(false)}>
           <p>Are you sure you want to delete {selectedUser.firstName}?</p>
         </Modal.DeleteModal>
+      )}
+
+      {/* Image Zoom Modal */}
+      {isImageModalOpen && (
+        <Modal.ImageModal 
+          isOpen={isImageModalOpen} 
+          imageUrl={selectedImageUrl} 
+          onClose={() => setIsImageModalOpen(false)} 
+        />
       )}
     </div>
   );

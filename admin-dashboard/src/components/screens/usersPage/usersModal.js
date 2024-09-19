@@ -27,7 +27,7 @@ const UpdateModal = ({ updateUser, handleInputChange, handleSwitchChange, handle
     return (
       <div style={styles.modalOverlay}>
         <div style={styles.modalContent}>
-          <h2>Edit User Information</h2>
+          <h2>Edit Adopter Information</h2>
           <div style={styles.modalForm}>
             <input
               type="text"
@@ -69,7 +69,7 @@ const UpdateModal = ({ updateUser, handleInputChange, handleSwitchChange, handle
                 onClick={handleUpdateUser}
                 style={styles.confirmButton}
               >
-                Edit User
+                Confirm
               </button>
               <button
                 onClick={handleCloseUpdateUserModal}
@@ -83,11 +83,26 @@ const UpdateModal = ({ updateUser, handleInputChange, handleSwitchChange, handle
       </div>
     );
 };
+// Image Modal Component
+const ImageModal = ({ isOpen, imageUrl, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <img src={imageUrl} alt="Full View" style={styles.fullImage} />
+        <button onClick={onClose} style={styles.closeButton}>Close</button>
+      </div>
+    </div>
+  );
+};
+
 
 // Export multiple modals
 const Modal = {
   DeleteModal,
   UpdateModal,
+  ImageModal,
 };
 
 export default Modal;
