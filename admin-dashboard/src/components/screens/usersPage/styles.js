@@ -224,6 +224,19 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',  
     width: '100%',  
   },
+  mobileNumberContainer: {
+    position: 'relative',  
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  countryCode: {
+    position: 'absolute',  
+    left: '10px',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    color: '#5F5B5B', 
+  },
 });
 
 export default styles;

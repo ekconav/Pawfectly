@@ -102,10 +102,16 @@ const UsersPage = () => {
     mobileNumber: "",
   });
   const handleEditUser = (user) => {
+
+    // Must not include country code in the display
+    const mobileNumberWithoutCountryCode = user.mobileNumber.startsWith('+63')
+    ? user.mobileNumber.slice(3)
+    : user.mobileNumber;
+    
     setUpdateUser({
       firstName: user.firstName || "",
       lastName: user.lastName || "",
-      mobileNumber: user.mobileNumber || "",
+      mobileNumber: mobileNumberWithoutCountryCode || "",
       verified: user.verified || false,
     });
     setIsUpdateUserModalOpen(true); 
@@ -136,13 +142,20 @@ const UsersPage = () => {
       return;
     }
 
+    // Validate mobile number length
+    if (updateUser.mobileNumber.length !== 10 || !updateUser.mobileNumber.startsWith('9')) {
+      alert("Improper mobile number according to the Country Code");
+      return;
+  }
+
     try {
+      const formattedMobileNumber = `+63${updateUser.mobileNumber}`;
+
       const userDocRef = doc(db, "users", selectedUser.id);
       await updateDoc(userDocRef, {
         firstName: updateUser.firstName,
         lastName: updateUser.lastName,
-        // email: updateUser.email,
-        mobileNumber: updateUser.mobileNumber,
+        mobileNumber: formattedMobileNumber,
         verified: updateUser.verified, 
       });
 
@@ -151,8 +164,7 @@ const UsersPage = () => {
         ...prevUser,
         firstName: updateUser.firstName,
         lastName: updateUser.lastName,
-        // email: updateUser.email,
-        mobileNumber: updateUser.mobileNumber,
+        mobileNumber: formattedMobileNumber,
         verified: updateUser.verified, 
       }));
 
