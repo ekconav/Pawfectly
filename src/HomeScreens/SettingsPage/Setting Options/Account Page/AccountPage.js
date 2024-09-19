@@ -105,6 +105,7 @@ const AccountPage = () => {
     }
 
     const user = auth.currentUser;
+    const fullMobileNumber = `+63${mobileNumber}`;
 
     if (user) {
       const userDocRef = doc(db, "users", user.uid);
@@ -114,7 +115,7 @@ const AccountPage = () => {
           firstName,
           lastName,
           address,
-          mobileNumber,
+          mobileNumber: fullMobileNumber,
         });
         navigation.goBack();
       } catch (error) {
@@ -126,6 +127,18 @@ const AccountPage = () => {
       } finally {
         setLoading(false);
       }
+    }
+  };
+
+  const handleMobileNumberChange = (text) => {
+    if (text.startsWith("+63")) {
+      const newText = text.slice(3);
+      setMobileNumber(newText);
+    } else if (text.startsWith("0")) {
+      const newText = text.slice(1);
+      setMobileNumber(newText);
+    } else {
+      setMobileNumber(text);
     }
   };
 
@@ -194,10 +207,14 @@ const AccountPage = () => {
               <Text style={styles.text}>Mobile Number</Text>
               <TextInput
                 style={styles.input}
-                value={mobileNumber}
-                onChangeText={setMobileNumber}
+                value={
+                  mobileNumber.startsWith("+63")
+                    ? mobileNumber.slice(3)
+                    : mobileNumber
+                }
+                onChangeText={handleMobileNumberChange}
                 keyboardType="phone-pad"
-                maxLength={13}
+                maxLength={10}
               />
             </View>
             <View style={styles.buttonContainer}>

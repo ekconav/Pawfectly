@@ -41,7 +41,7 @@ const SettingsPage = () => {
   const [petDocumentId, setPetDocumentId] = useState("");
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // For Modal
   const [petImage, setPetImage] = useState("");
@@ -115,6 +115,15 @@ const SettingsPage = () => {
       if (user) {
         setLoading(true);
 
+        let isFurbabiesLoaded = false;
+        let isPetsAdoptedLoaded = false;
+
+        const checkAllLoaded = () => {
+          if (isFurbabiesLoaded && isPetsAdoptedLoaded) {
+            setLoading(false);
+          }
+        };
+
         const furbabiesRef = query(
           collection(db, "users", user.uid, "furbabies"),
           orderBy("petUploaded", "desc")
@@ -142,7 +151,8 @@ const SettingsPage = () => {
           } catch (error) {
             console.error("Error fetching furbabies data: ", error);
           } finally {
-            setLoading(false);
+            isFurbabiesLoaded = true;
+            checkAllLoaded();
           }
         });
 
@@ -156,14 +166,12 @@ const SettingsPage = () => {
               const petsAdoptedData = snapshot.docs
                 .map((doc) => {
                   const petData = doc.data();
-
                   if (!doc.id || doc.id === "") {
                     console.error(
                       "Invalid document ID found in petsAdopted collection"
                     );
                     return null;
                   }
-
                   return { id: doc.id, ...petData, imageUrl: null };
                 })
                 .filter((pet) => pet !== null);
@@ -183,7 +191,8 @@ const SettingsPage = () => {
             } catch (error) {
               console.error("Error fetching petsAdopted data: ", error);
             } finally {
-              setLoading(false);
+              isPetsAdoptedLoaded = true;
+              checkAllLoaded();
             }
           }
         );
@@ -304,23 +313,31 @@ const SettingsPage = () => {
   };
 
   const handleMaleCheck = () => {
-    setMaleChecked(true);
-    setFemaleChecked(false);
+    setMaleChecked((prevState) => !prevState);
+    if (femaleChecked) {
+      setFemaleChecked(false);
+    }
   };
 
   const handleFemaleCheck = () => {
-    setFemaleChecked(true);
-    setMaleChecked(false);
+    setFemaleChecked((prevState) => !prevState);
+    if (maleChecked) {
+      setMaleChecked(false);
+    }
   };
 
   const handleEditMaleCheck = () => {
-    setFetchMaleChecked(true);
-    setFetchFemaleChecked(false);
+    setFetchMaleChecked((prevState) => !prevState);
+    if (fetchFemaleChecked) {
+      setFetchFemaleChecked(false);
+    }
   };
 
   const handleEditFemaleCheck = () => {
-    setFetchMaleChecked(false);
-    setFetchFemaleChecked(true);
+    setFetchFemaleChecked((prevState) => !prevState);
+    if (fetchMaleChecked) {
+      setFetchMaleChecked(false);
+    }
   };
 
   const handleOpenPetDetailsModal = (pet) => {
@@ -377,6 +394,15 @@ const SettingsPage = () => {
   };
 
   const handleEditPet = async () => {
+    if (
+      !fetchPetName ||
+      !fetchPetBreed ||
+      (!fetchMaleChecked && !fetchFemaleChecked)
+    ) {
+      setModalMessage("Please fill in all fields and add an image.");
+      setAlertModal(true);
+      return;
+    }
     try {
       const petImageUrl = newPetImage
         ? typeof newPetImage === "string"
@@ -396,7 +422,7 @@ const SettingsPage = () => {
 
         await updateDoc(furbabiesRef, {
           image: petImageUrl,
-          petName: fetchPetName,
+          name: fetchPetName,
           gender: fetchMaleChecked ? "Male" : "Female",
           breed: fetchPetBreed,
         });
@@ -546,66 +572,67 @@ const SettingsPage = () => {
           </View>
         ) : (
           <View style={styles.showcasePetsContainer}>
-            <FlatList
-              data={selectedOption === "My Furbabies" ? pets : petsAdopted}
-              numColumns={2}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={styles.petButton}
-                    onPress={
-                      selectedOption === "My Furbabies"
-                        ? () => handleOpenPetDetailsModal(item)
-                        : () => navigation.navigate("DetailsPage", { pet: item })
-                    }
-                  >
-                    <View style={styles.imageContainer}>
-                      {loading ? (
-                        <View style={styles.imageLoading}>
-                          <ActivityIndicator size="small" color={COLORS.prim} />
-                        </View>
-                      ) : (
+            {loading ? (
+              <ActivityIndicator
+                style={{ flex: 1, justifyContent: "center" }}
+                size="large"
+                color={COLORS.prim}
+              />
+            ) : (
+              <FlatList
+                data={selectedOption === "My Furbabies" ? pets : petsAdopted}
+                numColumns={2}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={styles.petButton}
+                      onPress={
+                        selectedOption === "My Furbabies"
+                          ? () => handleOpenPetDetailsModal(item)
+                          : () => navigation.navigate("DetailsPage", { pet: item })
+                      }
+                    >
+                      <View style={styles.imageContainer}>
                         <Image
                           source={{
                             uri: item.imageUrl,
                           }}
                           style={styles.petImage}
                         />
-                      )}
-                    </View>
-
-                    <View style={styles.petDetails}>
-                      <View style={styles.petNameGender}>
-                        <Text style={styles.petName}>{item.name}</Text>
-                        <Text>
-                          {item.gender.toLowerCase() === "male" ? (
-                            <View style={styles.genderIconContainer}>
-                              <Ionicons
-                                style={styles.petGenderIconMale}
-                                name="male"
-                                size={12}
-                                color={COLORS.male}
-                              />
-                            </View>
-                          ) : (
-                            <View style={styles.genderIconContainer}>
-                              <Ionicons
-                                style={styles.petGenderIconFemale}
-                                name="female"
-                                size={12}
-                                color={COLORS.female}
-                              />
-                            </View>
-                          )}
-                        </Text>
                       </View>
-                      <Text style={styles.petBreedText}>{item.breed}</Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              )}
-            />
+                      <View style={styles.petDetails}>
+                        <View style={styles.petNameGender}>
+                          <Text style={styles.petName}>{item.name}</Text>
+                          <Text>
+                            {item.gender.toLowerCase() === "male" ? (
+                              <View style={styles.genderIconContainer}>
+                                <Ionicons
+                                  style={styles.petGenderIconMale}
+                                  name="male"
+                                  size={12}
+                                  color={COLORS.male}
+                                />
+                              </View>
+                            ) : (
+                              <View style={styles.genderIconContainer}>
+                                <Ionicons
+                                  style={styles.petGenderIconFemale}
+                                  name="female"
+                                  size={12}
+                                  color={COLORS.female}
+                                />
+                              </View>
+                            )}
+                          </Text>
+                        </View>
+                        <Text style={styles.petBreedText}>{item.breed}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            )}
           </View>
         )}
       </View>
