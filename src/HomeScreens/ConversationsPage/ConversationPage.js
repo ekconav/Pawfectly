@@ -42,6 +42,8 @@ const ConversationPage = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const swipeableRefs = useRef({});
 
+  const currentUser = auth.currentUser;
+
   useEffect(() => {
     const fetchConversations = async () => {
       setLoading(true);
@@ -190,7 +192,7 @@ const ConversationPage = ({ navigation }) => {
         conversationId
       );
       await updateDoc(conversationRef, {
-        senderRead: true,
+        seen: true,
       });
     } catch (error) {
       console.error("Error updating senderRead:", error);
@@ -290,10 +292,11 @@ const ConversationPage = ({ navigation }) => {
             renderItem={({ item }) => {
               let lastMessageText = item.lastMessage;
               if (item.lastMessage === "Image") {
+                const senderId = lastMessages[item.id]?.senderId;
                 lastMessageText =
-                  item.participants[0] === lastMessages[item.id]?.senderId
+                  senderId === currentUser.uid
                     ? "You sent a photo"
-                    : `${shelterNames[item.id]} sent a photo`;
+                    : `${shelterNames[item.id]} sent a photo.`;
               } else {
                 lastMessageText = item.lastMessage;
               }
@@ -317,7 +320,7 @@ const ConversationPage = ({ navigation }) => {
                   <TouchableOpacity
                     style={[
                       styles.conversationItem,
-                      !item.senderRead && styles.unreadConversation,
+                      !item.seen && styles.unreadConversation,
                     ]}
                     onPress={() =>
                       navigateToMessages(item.id, item.petId, item.participants[1])
@@ -336,7 +339,7 @@ const ConversationPage = ({ navigation }) => {
                         <Text
                           style={[
                             styles.shelterName,
-                            !item.senderRead && styles.unreadConversation,
+                            !item.seen && styles.unreadConversation,
                           ]}
                           numberOfLines={1}
                           ellipsizeMode="tail"
@@ -346,7 +349,7 @@ const ConversationPage = ({ navigation }) => {
                         <Text
                           style={[
                             styles.lastMessage,
-                            !item.senderRead && styles.unreadConversation,
+                            !item.seen && styles.unreadConversation,
                           ]}
                           numberOfLines={1}
                           ellipsizeMode="tail"

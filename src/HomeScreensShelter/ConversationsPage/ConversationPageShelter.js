@@ -168,7 +168,7 @@ const ConversationPageShelter = ({ navigation }) => {
         conversationId
       );
       await updateDoc(conversationRef, {
-        receiverRead: true,
+        seen: true,
       });
     } catch (error) {
       console.error("Error updating receiverRead:", error);
@@ -308,7 +308,7 @@ const ConversationPageShelter = ({ navigation }) => {
                   <TouchableOpacity
                     style={[
                       styles.conversationItem,
-                      !item.receiverRead && styles.unreadConversation,
+                      !item.seen && styles.unreadConversation,
                     ]}
                     onPress={() =>
                       navigateToMessages(item.id, item.petId, item.participants[0])
@@ -327,7 +327,7 @@ const ConversationPageShelter = ({ navigation }) => {
                         <Text
                           style={[
                             styles.userName,
-                            !item.receiverRead && styles.unreadConversation,
+                            !item.seen && styles.unreadConversation,
                           ]}
                           numberOfLines={1}
                           ellipsizeMode="tail"
@@ -337,7 +337,7 @@ const ConversationPageShelter = ({ navigation }) => {
                         <Text
                           style={[
                             styles.lastMessage,
-                            !item.receiverRead && styles.unreadConversation,
+                            !item.seen && styles.unreadConversation,
                           ]}
                           numberOfLines={1}
                           ellipsizeMode="tail"

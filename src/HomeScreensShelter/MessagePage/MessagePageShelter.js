@@ -163,7 +163,7 @@ const MessagePageShelter = ({ route }) => {
     fetchAdoptionMessage();
   }, [conversationId, petId, currentUser, petName]);
 
-  const updateConversation = async (conversationRef, newMessage) => {
+  const updateConversation = async (conversationRef, newMessage, isSender) => {
     const conversationSnap = await getDoc(conversationRef);
     if (!conversationSnap.exists()) {
       await setDoc(conversationRef, {
@@ -171,16 +171,14 @@ const MessagePageShelter = ({ route }) => {
         lastTimestamp: serverTimestamp(),
         participants: [userId, currentUser.uid],
         petId: petId,
-        senderRead: false,
-        receiverRead: true,
+        seen: isSender ? true : false,
       });
     } else {
       await updateDoc(conversationRef, {
         lastMessage: newMessage,
         lastTimestamp: serverTimestamp(),
         petId: petId,
-        senderRead: false,
-        receiverRead: true,
+        seen: isSender ? true : false,
       });
     }
   };
@@ -226,11 +224,13 @@ const MessagePageShelter = ({ route }) => {
       await Promise.all([
         updateConversation(
           doc(db, "shelters", currentUser.uid, "conversations", conversationId),
-          newMessage
+          newMessage,
+          true
         ),
         updateConversation(
           doc(db, "users", userId, "conversations", conversationId),
-          newMessage
+          newMessage,
+          false
         ),
       ]);
 
@@ -300,11 +300,13 @@ const MessagePageShelter = ({ route }) => {
       await Promise.all([
         updateConversation(
           doc(db, "shelters", currentUser.uid, "conversations", conversationId),
-          "Image"
+          "Image",
+          true
         ),
         updateConversation(
           doc(db, "users", userId, "conversations", conversationId),
-          "Image"
+          "Image",
+          false
         ),
       ]);
     } catch (error) {
