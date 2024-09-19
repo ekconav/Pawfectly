@@ -316,8 +316,7 @@ const DetailsPage = ({ route }) => {
           await updateDoc(userConversationDocRef, {
             lastMessage: messageText,
             lastTimestamp: Timestamp.now(),
-            receiverRead: false,
-            senderRead: true,
+            seen: true,
           });
           console.log("Message sent successfully.");
           setMessageSent(true);
@@ -329,8 +328,7 @@ const DetailsPage = ({ route }) => {
           petId: petId,
           lastMessage: messageText,
           lastTimestamp: Timestamp.now(),
-          receiverRead: false,
-          senderRead: true,
+          seen: true,
         });
 
         const messagesRef = collection(userConversationDocRef, "messages");
@@ -375,8 +373,7 @@ const DetailsPage = ({ route }) => {
           await updateDoc(shelterConversationDocRef, {
             lastMessage: messageText,
             lastTimestamp: Timestamp.now(),
-            receiverRead: false,
-            senderRead: true,
+            seen: false,
           });
           console.log("Message sent successfully.");
           setMessageSent(true);
@@ -387,8 +384,7 @@ const DetailsPage = ({ route }) => {
           petId: petId,
           lastMessage: messageText,
           lastTimestamp: Timestamp.now(),
-          receiverRead: false,
-          senderRead: true,
+          seen: false,
         });
 
         const messagesRef = collection(shelterConversationDocRef, "messages");
