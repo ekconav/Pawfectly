@@ -92,6 +92,7 @@ const HomeScreen = () => {
 
       const myPetsQuery = query(
         petsCollectionRef,
+        where("adopted", "==", false),
         where("userId", "==", auth.currentUser.uid)
       );
 
