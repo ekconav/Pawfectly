@@ -63,10 +63,9 @@ const MessagePageShelter = ({ route }) => {
         const userDocRef = doc(db, "users", userId);
         const petDocRef = doc(db, "pets", petId);
 
-        const [shelterDoc, userDoc, petDoc] = await Promise.all([
+        const [shelterDoc, userDoc] = await Promise.all([
           getDoc(shelterDocRef),
           getDoc(userDocRef),
-          getDoc(petDocRef),
         ]);
 
         if (shelterDoc.exists()) {
@@ -83,17 +82,22 @@ const MessagePageShelter = ({ route }) => {
           setUserExist(false);
         }
 
-        if (!petDoc.exists()) {
-          setPetExist(false);
-        } else {
-          const petData = petDoc.data();
-          setPetName(petData.name);
-          if (petData.adopted && petData.adoptedBy === userId) {
-            setPetAdoptedByUser(true);
-          } else if (petData.adopted && petData.adoptedBy !== userId) {
-            setPetAdoptedByAnotherUser(true);
+        const unsubscribePet = onSnapshot(petDocRef, (snapshot) => {
+          if (!snapshot.exists()) {
+            setPetExist(false);
+          } else {
+            const petData = snapshot.data();
+            setPetName(petData.name);
+            if (petData.adopted && petData.adoptedBy === userId) {
+              setPetAdoptedByUser(true);
+            } else if (petData.adopted && petData.adoptedBy !== userId) {
+              setPetAdoptedByAnotherUser(true);
+            } else {
+              setPetAdoptedByUser(false);
+              setPetAdoptedByAnotherUser(false);
+            }
           }
-        }
+        });
 
         const messagesRef = collection(
           db,
@@ -104,7 +108,7 @@ const MessagePageShelter = ({ route }) => {
           "messages"
         );
         const q = query(messagesRef, orderBy("timestamp", "asc"));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribeMessages = onSnapshot(q, (snapshot) => {
           const messagesData = snapshot.docs
             .map((doc) => ({
               id: doc.id,
@@ -114,9 +118,13 @@ const MessagePageShelter = ({ route }) => {
           setMessages(messagesData);
         });
 
-        return () => unsubscribe();
+        // Clean up listeners
+        return () => {
+          unsubscribePet();
+          unsubscribeMessages();
+        };
       } catch (error) {
-        console.error("Error fetching data: ", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }

@@ -194,7 +194,6 @@ const DetailsPage = ({ route }) => {
 
     navigation.navigate("MessagePage", {
       conversationId,
-      userId,
       shelterId,
       petId,
     });
@@ -347,7 +346,6 @@ const DetailsPage = ({ route }) => {
       setTimeout(() => {
         navigation.navigate("MessagePage", {
           conversationId,
-          userId,
           shelterId,
           petId,
         });

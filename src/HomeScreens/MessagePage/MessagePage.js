@@ -84,10 +84,9 @@ const MessagePage = ({ route }) => {
         const shelterDocRef = doc(db, "shelters", otherParticipantId);
         const petDocRef = doc(db, "pets", petId);
 
-        const [userDoc, shelterDoc, petDoc] = await Promise.all([
+        const [userDoc, shelterDoc] = await Promise.all([
           getDoc(userDocRef),
           getDoc(shelterDocRef),
-          getDoc(petDocRef),
         ]);
 
         if (userDoc.exists()) {
@@ -115,17 +114,24 @@ const MessagePage = ({ route }) => {
           }
         }
 
-        if (!petDoc.exists()) {
-          setPetExist(false);
-        } else {
-          const petData = petDoc.data();
-          setPetName(petData.name);
-          if (petData.adopted && petData.adoptedBy === currentUser.uid) {
-            setPetAdoptedByYou(true);
-          } else if (petData.adopted && petData.adoptedBy !== currentUser.uid) {
-            setPetAdoptedByAnotherUser(true);
+        const unsubscribePet = onSnapshot(petDocRef, (snapshot) => {
+          if (!snapshot.exists()) {
+            setPetExist(false);
+          } else {
+            const petData = snapshot.data();
+            setPetName(petData.name);
+            if (petData.adopted && petData.adoptedBy === currentUser.uid) {
+              setPetAdoptedByYou(true);
+              setPetAdoptedByAnotherUser(false);
+            } else if (petData.adopted && petData.adoptedBy !== currentUser.uid) {
+              setPetAdoptedByAnotherUser(true);
+              setPetAdoptedByYou(false);
+            } else {
+              setPetAdoptedByYou(false);
+              setPetAdoptedByAnotherUser(false);
+            }
           }
-        }
+        });
 
         const messagesRef = collection(
           db,
@@ -136,7 +142,7 @@ const MessagePage = ({ route }) => {
           "messages"
         );
         const q = query(messagesRef, orderBy("timestamp", "asc"));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribeMessages = onSnapshot(q, (snapshot) => {
           const messagesData = snapshot.docs
             .map((doc) => ({
               id: doc.id,
@@ -146,7 +152,10 @@ const MessagePage = ({ route }) => {
           setMessages(messagesData);
         });
         setLoading(false);
-        return () => unsubscribe();
+        return () => {
+          unsubscribePet();
+          unsubscribeMessages();
+        };
       } catch (error) {
         console.error("Error fetching data:", error);
         setLoading(false);
