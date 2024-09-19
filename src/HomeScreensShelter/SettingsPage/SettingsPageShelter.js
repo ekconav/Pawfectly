@@ -365,54 +365,66 @@ const SettingsPageShelter = () => {
           </View>
         ) : (
           <View style={styles.showPetsContainer}>
-            <FlatList
-              data={
-                selectedOption === "Pets for Adoption"
-                  ? petsForAdoption
-                  : selectedOption === "Pets Adopted"
-                  ? petsAdopted
-                  : petsRescued
-              }
-              numColumns={2}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={styles.petButton}
-                    onPress={() => navigation.navigate("Pet Details", { pet: item })}
-                  >
-                    <View style={styles.imageContainer}>
-                      <Image
-                        source={{ uri: item.imageUrl }}
-                        style={styles.petImage}
-                      />
-                    </View>
-                    <View style={styles.petDetails}>
-                      <View style={styles.petNameGender}>
-                        <Text style={styles.petName}>{item.name}</Text>
-                        <Ionicons
-                          style={
-                            item.gender.toLowerCase() === "male"
-                              ? styles.petGenderIconMale
-                              : styles.petGenderIconFemale
-                          }
-                          name={
-                            item.gender.toLowerCase() === "male" ? "male" : "female"
-                          }
-                          size={12}
-                          color={
-                            item.gender.toLowerCase() === "male"
-                              ? COLORS.male
-                              : COLORS.female
-                          }
+            {loading ? (
+              <ActivityIndicator
+                style={{ flex: 1, justifyContent: "center" }}
+                size="large"
+                color={COLORS.prim}
+              />
+            ) : (
+              <FlatList
+                data={
+                  selectedOption === "Pets for Adoption"
+                    ? petsForAdoption
+                    : selectedOption === "Pets Adopted"
+                    ? petsAdopted
+                    : petsRescued
+                }
+                numColumns={2}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={styles.petButton}
+                      onPress={() =>
+                        navigation.navigate("Pet Details", { pet: item })
+                      }
+                    >
+                      <View style={styles.imageContainer}>
+                        <Image
+                          source={{ uri: item.imageUrl }}
+                          style={styles.petImage}
                         />
                       </View>
-                      <Text style={styles.petBreedText}>{item.breed}</Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              )}
-            />
+                      <View style={styles.petDetails}>
+                        <View style={styles.petNameGender}>
+                          <Text style={styles.petName}>{item.name}</Text>
+                          <Ionicons
+                            style={
+                              item.gender.toLowerCase() === "male"
+                                ? styles.petGenderIconMale
+                                : styles.petGenderIconFemale
+                            }
+                            name={
+                              item.gender.toLowerCase() === "male"
+                                ? "male"
+                                : "female"
+                            }
+                            size={12}
+                            color={
+                              item.gender.toLowerCase() === "male"
+                                ? COLORS.male
+                                : COLORS.female
+                            }
+                          />
+                        </View>
+                        <Text style={styles.petBreedText}>{item.breed}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            )}
           </View>
         )}
       </View>

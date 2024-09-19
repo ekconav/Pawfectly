@@ -134,6 +134,18 @@ const AccountPage = () => {
     }
   };
 
+  const handleMobileNumberChange = (text) => {
+    if (text.startsWith("+63")) {
+      const newText = text.slice(3);
+      setShelterMobileNumber(newText);
+    } else if (text.startsWith("0")) {
+      const newText = text.slice(1);
+      setShelterMobileNumber(newText);
+    } else {
+      setShelterMobileNumber(text);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: COLORS.white, paddingBottom: 18 }}
@@ -197,10 +209,14 @@ const AccountPage = () => {
               <Text style={styles.text}>Mobile Number</Text>
               <TextInput
                 style={styles.input}
-                value={shelterMobileNumber}
-                onChangeText={setShelterMobileNumber}
+                value={
+                  shelterMobileNumber.startsWith("+63")
+                    ? shelterMobileNumber.slice(3)
+                    : shelterMobileNumber
+                }
+                onChangeText={handleMobileNumberChange}
                 keyboardType="phone-pad"
-                maxLength={13}
+                maxLength={10}
               />
             </View>
             <View style={styles.buttonContainer}>
