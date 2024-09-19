@@ -108,6 +108,13 @@ const EditPet = ({ route }) => {
     setPetRescuedChecked((prevChecked) => !prevChecked);
   };
 
+  const handleInfoClick = () => {
+    setModalMessage(
+      "Pet type is not required. If both checkboxes are empty, your pet will belong to the 'others' category."
+    );
+    setAlertModal(true);
+  };
+
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -243,7 +250,23 @@ const EditPet = ({ route }) => {
                 />
               </View>
               <View style={styles.inputCheckboxContainer}>
-                <Text style={styles.typeText}>Type</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 4,
+                    marginRight: 25,
+                  }}
+                >
+                  <Text style={styles.typeText}>Type</Text>
+                  <TouchableOpacity onPress={handleInfoClick}>
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={16}
+                      color={COLORS.title}
+                    />
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.checkBoxType}>
                   <View style={styles.checkBoxContainer}>
                     <Checkbox
@@ -298,7 +321,7 @@ const EditPet = ({ route }) => {
                 </View>
               </View>
               <View style={styles.inputCheckboxContainerAdoptionFee}>
-                <Text style={styles.typeText}>With Adoption Fee</Text>
+                <Text style={styles.typeTextAdoptionFee}>With Adoption Fee</Text>
                 <View style={styles.checkBoxType}>
                   <View style={styles.checkBoxContainer}>
                     <Checkbox
