@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
   userDetails: {
     display: "grid",
     gridTemplateColumns: "15vh 50vh 20vh 10vh", 
-    gridTemplateRows: 'repeat(4, 2fr)', // Increase row height by setting it to 2fr
+    gridTemplateRows: 'repeat(5, 2fr)', // Increase row height by setting it to 2fr
     gap: "10px", 
   },
   userDetailsLabel: {
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
-    border: "2px solid black", 
+    border: "2px solid blue", 
     borderRadius: "6px",
     width: "20px", 
     height: "20px", 
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     transition: "all 0.3s ease",
   },
   editIcon: {
-    color: "white",
+    color: "blue",
     fontSize: "30px",
   },
 
