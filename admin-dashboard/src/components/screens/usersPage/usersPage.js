@@ -18,7 +18,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     // Define the function to handle real-time updates
-    const q = query(collection(db, "users"), limit(itemsPerPage)); 
+    const q = query(collection(db, "users")); 
     const unsubscribe = onSnapshot(q, (snapshot) => {
         // Convert snapshot to array of users
         const usersList = snapshot.docs.map((doc) => ({
@@ -363,7 +363,7 @@ const openImageModal = (url) => {
               <div style={styles.editButtonContainer}>
                 <ion-icon
                   name="pencil"
-                  sstyle={styles.editIcon} // Add styling as needed
+                  style={styles.editIcon} // Add styling as needed
                   onClick={() => handleEditUser(selectedUser)}
                 ></ion-icon>
               </div>
