@@ -31,6 +31,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
 
 const DetailsPage = ({ route }) => {
+  const [userDetails, setUserDetails] = useState(null);
   const [petDetails, setPetDetails] = useState(null);
   const [mobileNumber, setMobileNumber] = useState("");
   const [shelterImage, setShelterImage] = useState("");
@@ -54,7 +55,7 @@ const DetailsPage = ({ route }) => {
   useEffect(() => {
     const fetchPetDetails = async () => {
       try {
-        if (auth.currentUser.uid == pet.userId) {
+        if (auth.currentUser.uid === pet.userId) {
           setUserPosted(true);
         }
 
@@ -103,7 +104,6 @@ const DetailsPage = ({ route }) => {
         const conversationSnap = await getDoc(conversationDocRef);
 
         if (conversationSnap.exists()) {
-          // Check if the message already exists
           const messagesRef = collection(conversationDocRef, "messages");
           const messageText = `Hello, I would like to adopt ${pet.name}.`;
           const messageQuery = query(messagesRef, where("text", "==", messageText));
@@ -115,7 +115,15 @@ const DetailsPage = ({ route }) => {
         }
 
         const petRef = doc(db, "pets", pet.id);
-        const petSnap = await getDoc(petRef);
+        const unsubscribePet = onSnapshot(petRef, (petSnap) => {
+          if (!petSnap.exists()) {
+            setPetDeleted(true);
+          } else {
+            const petData = petSnap.data();
+            setPetAdopted(petData.adopted === true);
+            setPetDetails(petData);
+          }
+        });
 
         const petAdoptedRef = doc(
           db,
@@ -124,27 +132,26 @@ const DetailsPage = ({ route }) => {
           "petsAdopted",
           pet.id
         );
-        const petAdoptedSnap = await getDoc(petAdoptedRef);
+        const unsubscribePetAdopted = onSnapshot(petAdoptedRef, (petAdoptedSnap) => {
+          if (petAdoptedSnap.exists()) {
+            const petAdoptedData = petAdoptedSnap.data();
+            setPetAdopted(petAdoptedData.adopted === true);
 
-        if (!petSnap.exists()) {
-          setPetDeleted(true);
-        } else {
-          const petData = petSnap.data();
-          setPetAdopted(petData.adopted === true);
-        }
+            if (petAdoptedData.petPosted) {
+              setPetPosted(petAdoptedData.petPosted);
+            }
 
-        if (petAdoptedSnap.exists()) {
-          const petAdoptedData = petAdoptedSnap.data();
-          setPetAdopted(petAdoptedData.adopted === true);
-          if (petAdoptedData.petPosted) {
-            setPetPosted(petAdoptedData.petPosted);
+            if (petAdoptedData.adoptedBy === auth.currentUser.uid) {
+              setYouAdopted(true);
+            }
           }
-          if (petAdoptedData.adoptedBy === auth.currentUser.uid) {
-            setYouAdopted(true);
-          }
-        }
+        });
+        setUserDetails(pet);
 
-        setPetDetails(pet);
+        return () => {
+          unsubscribePet();
+          unsubscribePetAdopted();
+        };
       } catch (error) {
         console.error("Error fetching pet details:", error);
       }
@@ -183,7 +190,7 @@ const DetailsPage = ({ route }) => {
   const handleOpenMessage = () => {
     const userId = auth.currentUser.uid;
     const shelterId = petDetails.userId;
-    const petId = petDetails.id;
+    const petId = userDetails.id;
     const conversationId = `${userId}_${shelterId}_${petId}`;
 
     if (!isVerified) {
@@ -201,7 +208,7 @@ const DetailsPage = ({ route }) => {
 
   const handleFavorite = async () => {
     const user = auth.currentUser;
-    const petId = petDetails.id;
+    const petId = userDetails.id;
 
     if (user) {
       const favoritesRef = collection(db, "users", user.uid, "favorites");
@@ -252,7 +259,7 @@ const DetailsPage = ({ route }) => {
     try {
       const userId = auth.currentUser.uid;
       const shelterId = petDetails.userId;
-      const petId = petDetails.id;
+      const petId = userDetails.id;
       const conversationId = `${userId}_${shelterId}_${petId}`;
       const messageText = `Hello, I would like to adopt ${petDetails.name}.`;
 
@@ -459,7 +466,7 @@ const DetailsPage = ({ route }) => {
                 <Text style={styles.petPriceTitle}>Adoption Fee:</Text>
               ) : null}
               {petDetails.petPrice ? (
-                <Text style={styles.petPrice}>₱{petDetails.petPrice}</Text>
+                <Text style={styles.petPrice}>₱ {petDetails.petPrice}</Text>
               ) : (
                 <Text style={styles.petPrice}>Free</Text>
               )}
@@ -479,7 +486,7 @@ const DetailsPage = ({ route }) => {
           ) : (
             <View style={styles.addressInformation}>
               <Ionicons name="location-outline" size={24} color={COLORS.prim} />
-              <Text style={styles.textAddress}>{petDetails.location}</Text>
+              <Text style={styles.textAddress}>{userDetails.location}</Text>
             </View>
           )}
           <View style={styles.midInfoContainer}>
@@ -509,7 +516,7 @@ const DetailsPage = ({ route }) => {
                       : "Currently In:"
                     : "You:"}
                 </Text>
-                <Text style={styles.shelterName}>{petDetails.shelterName}</Text>
+                <Text style={styles.shelterName}>{userDetails.shelterName}</Text>
               </View>
             </View>
             {!userPosted ? (
@@ -583,7 +590,10 @@ const DetailsPage = ({ route }) => {
             </TouchableOpacity>
           </View>
           <View style={styles.editContainer}>
-            <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => navigation.navigate("EditPostPetPage", { pet })}
+            >
               <Ionicons name="create-outline" size={20} color={COLORS.white} />
               <Text style={styles.buttonText}>Edit</Text>
             </TouchableOpacity>

@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from "react";
 import {
-  View,
+  Image,
+  KeyboardAvoidingView,
   Text,
   TouchableOpacity,
-  Image,
-  TextInput,
+  View,
   ScrollView,
-  KeyboardAvoidingView,
+  TextInput,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import { auth, db, storage } from "../../../FirebaseConfig";
+import { onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { updateDoc, doc, onSnapshot } from "firebase/firestore";
-import { auth, db, storage } from "../../FirebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import Checkbox from "expo-checkbox";
+import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
-import COLORS from "../../const/colors";
+import Checkbox from "expo-checkbox";
+import * as ImagePicker from "expo-image-picker";
+import COLORS from "../../../const/colors";
 import styles from "./styles";
 
-const EditPet = ({ route }) => {
+const EditPostPetPage = ({ route }) => {
   const { pet } = route.params;
 
   const [profileImage, setProfileImage] = useState("");
@@ -41,40 +41,44 @@ const EditPet = ({ route }) => {
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      doc(db, "shelters", auth.currentUser.uid),
-      (doc) => {
-        if (doc.exists()) {
-          const userData = doc.data();
-          setProfileImage(
-            userData.accountPicture
-              ? { uri: userData.accountPicture }
-              : require("../../components/user.png")
-          );
-        }
+    const unsubscribe = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        setProfileImage(
+          userData.accountPicture
+            ? { uri: userData.accountPicture }
+            : require("../../../components/user.png")
+        );
       }
-    );
+    });
     return () => unsubscribe();
   }, []);
 
-  const handleAgeSelect = (option) => {
-    setAgeModal(false);
-    if (option === "0-3 Months") {
-      setPetAge("0-3 Months");
-    } else if (option === "4-6 Months") {
-      setPetAge("4-6 Months");
-    } else if (option === "7-9 Months") {
-      setPetAge("7-9 Months");
-    } else if (option === "10-12 Months") {
-      setPetAge("10-12 Months");
-    } else if (option === "1-3 Years Old") {
-      setPetAge("1-3 Years Old");
-    } else if (option === "4-6 Years Old") {
-      setPetAge("4-6 Years Old");
-    } else if (option === "7 Years Old and Above") {
-      setPetAge("7 Years Old and Above");
-    }
-  };
+  useEffect(() => {
+    const petsDocRef = doc(db, "pets", pet.id);
+    const unsubscribe = onSnapshot(petsDocRef, (doc) => {
+      if (doc.exists()) {
+        const petData = doc.data();
+
+        setPetImage(petData.images);
+        setPetName(petData.name);
+        setPetBreed(petData.breed);
+        setPetAge(petData.age);
+        setPetDescription(petData.description);
+        setDogChecked(petData.type === "Dog");
+        setCatChecked(petData.type === "Cat");
+        setMaleChecked(petData.gender === "Male");
+        setFemaleChecked(petData.gender === "Female");
+        setPetRescuedChecked(petData.rescued === true);
+        setPriceChecked(petData.petPrice ? true : false);
+        setAdoptionFee(petData.petPrice);
+      } else {
+        console.log("No such document!");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [pet.id]);
 
   const handleMaleCheck = () => {
     setMaleChecked((prevState) => !prevState);
@@ -104,15 +108,35 @@ const EditPet = ({ route }) => {
     }
   };
 
-  const handlePetRescuedCheck = () => {
-    setPetRescuedChecked((prevChecked) => !prevChecked);
-  };
-
   const handleInfoClick = () => {
     setModalMessage(
       "Pet type is not required. If both checkboxes are empty, your pet will belong to the 'others' category."
     );
     setAlertModal(true);
+  };
+
+  const handleWithAdoptionFee = () => {
+    setPriceChecked((prevChecked) => !prevChecked);
+    setAdoptionFee("");
+  };
+
+  const handleAgeSelect = (option) => {
+    setAgeModal(false);
+    if (option === "0-3 Months") {
+      setPetAge("0-3 Months");
+    } else if (option === "4-6 Months") {
+      setPetAge("4-6 Months");
+    } else if (option === "7-9 Months") {
+      setPetAge("7-9 Months");
+    } else if (option === "10-12 Months") {
+      setPetAge("10-12 Months");
+    } else if (option === "1-3 Years Old") {
+      setPetAge("1-3 Years Old");
+    } else if (option === "4-6 Years Old") {
+      setPetAge("4-6 Years Old");
+    } else if (option === "7 Years Old and Above") {
+      setPetAge("7 Years Old and Above");
+    }
   };
 
   const handlePickImage = async () => {
@@ -173,48 +197,15 @@ const EditPet = ({ route }) => {
           name: petName,
           petPrice: adoptionFee ? adoptionFee : "",
           type: petType,
-          rescued: petRescuedChecked ? true : false,
         });
-
         setPetName(petName);
 
         navigation.goBack();
       }
       console.log("Pet updated!");
     } catch (error) {
-      console.error("Error uploading pet details:", error);
+      console.error("Error uploading pet details: ", error);
     }
-  };
-
-  useEffect(() => {
-    const petsDocRef = doc(db, "pets", pet.id);
-    const unsubscribe = onSnapshot(petsDocRef, (doc) => {
-      if (doc.exists()) {
-        const petData = doc.data();
-
-        setPetImage(petData.images);
-        setPetName(petData.name);
-        setPetBreed(petData.breed);
-        setPetAge(petData.age);
-        setPetDescription(petData.description);
-        setDogChecked(petData.type === "Dog");
-        setCatChecked(petData.type === "Cat");
-        setMaleChecked(petData.gender === "Male");
-        setFemaleChecked(petData.gender === "Female");
-        setPetRescuedChecked(petData.rescued === true);
-        setPriceChecked(petData.petPrice ? true : false);
-        setAdoptionFee(petData.petPrice);
-      } else {
-        console.log("No such document!");
-      }
-    });
-
-    return () => unsubscribe();
-  }, [pet.id]);
-
-  const handleWithAdoptionFee = () => {
-    setPriceChecked((prevChecked) => !prevChecked);
-    setAdoptionFee("");
   };
 
   return (
@@ -227,7 +218,7 @@ const EditPet = ({ route }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.editPetContainer}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <ScrollView style={{ flexGrow: 1 }}>
             <View style={styles.addImageContainer}>
               <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
                 {!petImage ? (
@@ -304,19 +295,6 @@ const EditPet = ({ route }) => {
                       color={COLORS.prim}
                     />
                     <Text style={styles.addPetText}>Female</Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.inputRescuedCheckboxContainer}>
-                <Text style={styles.typeGender}>Rescued</Text>
-                <View style={styles.checkboxGender}>
-                  <View style={styles.checkBoxContainer}>
-                    <Checkbox
-                      value={petRescuedChecked}
-                      onValueChange={handlePetRescuedCheck}
-                      color={COLORS.prim}
-                    />
-                    <Text style={styles.addPetText}>Yes</Text>
                   </View>
                 </View>
               </View>
@@ -436,4 +414,4 @@ const EditPet = ({ route }) => {
   );
 };
 
-export default EditPet;
+export default EditPostPetPage;
