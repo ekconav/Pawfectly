@@ -67,95 +67,168 @@ const MessagePage = ({ route }) => {
         const conversationDoc = await getDoc(conversationRef);
 
         if (!conversationDoc.exists()) {
-          console.error("Conversation does not exist");
-          setLoading(false);
-          return;
-        }
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const shelterDocRef = doc(db, "shelters", shelterId);
+          const petDocRef = doc(db, "pets", petId);
 
-        const conversationData = conversationDoc.data();
-        const participants = conversationData.participants;
-
-        // Determine the other participant (either user or shelter)
-        const otherParticipantId = participants.find(
-          (participant) => participant !== currentUser.uid
-        );
-
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const shelterDocRef = doc(db, "shelters", otherParticipantId);
-        const petDocRef = doc(db, "pets", petId);
-
-        const [userDoc, shelterDoc] = await Promise.all([
-          getDoc(userDocRef),
-          getDoc(shelterDocRef),
-        ]);
-
-        if (userDoc.exists()) {
-          setUserAccountPicture(userDoc.data().accountPicture);
-        }
-
-        if (shelterDoc.exists()) {
-          const shelterData = shelterDoc.data();
-          setShelterName(shelterData.shelterName);
-          setShelterAccountPicture(shelterData.accountPicture);
-          setShelterMobileNumber(shelterData.mobileNumber);
-        } else {
-          const userRef = doc(db, "users", otherParticipantId);
-          const userDoc = await getDoc(userRef);
+          const [userDoc, shelterDoc] = await Promise.all([
+            getDoc(userDocRef),
+            getDoc(shelterDocRef),
+          ]);
 
           if (userDoc.exists()) {
-            setUserToUser(true);
-            const userData = userDoc.data();
-            setShelterName(`${userData.firstName} ${userData.lastName}`);
-            setShelterAccountPicture(userData.accountPicture);
-            setShelterMobileNumber(userData.mobileNumber);
-          } else {
-            setShelterName("Pawfectly User");
-            setShelterExist(false);
+            setUserAccountPicture(userDoc.data().accountPicture);
           }
-        }
 
-        const unsubscribePet = onSnapshot(petDocRef, (snapshot) => {
-          if (!snapshot.exists()) {
-            setPetExist(false);
+          if (shelterDoc.exists()) {
+            const shelterData = shelterDoc.data();
+            setShelterName(shelterData.shelterName);
+            setShelterAccountPicture(shelterData.accountPicture);
+            setShelterMobileNumber(shelterData.mobileNumber);
           } else {
-            const petData = snapshot.data();
-            setPetName(petData.name);
-            if (petData.adopted && petData.adoptedBy === currentUser.uid) {
-              setPetAdoptedByYou(true);
-              setPetAdoptedByAnotherUser(false);
-            } else if (petData.adopted && petData.adoptedBy !== currentUser.uid) {
-              setPetAdoptedByAnotherUser(true);
-              setPetAdoptedByYou(false);
+            const userRef = doc(db, "users", shelterId);
+            const userDoc = await getDoc(userRef);
+
+            if (userDoc.exists()) {
+              setUserToUser(true);
+              const userData = userDoc.data();
+              setShelterName(`${userData.firstName} ${userData.lastName}`);
+              setShelterAccountPicture(userData.accountPicture);
+              setShelterMobileNumber(userData.mobileNumber);
             } else {
-              setPetAdoptedByYou(false);
-              setPetAdoptedByAnotherUser(false);
+              setShelterName("Pawfectly User");
+              setShelterExist(false);
             }
           }
-        });
 
-        const messagesRef = collection(
-          db,
-          "users",
-          currentUser.uid,
-          "conversations",
-          conversationId,
-          "messages"
-        );
-        const q = query(messagesRef, orderBy("timestamp", "asc"));
-        const unsubscribeMessages = onSnapshot(q, (snapshot) => {
-          const messagesData = snapshot.docs
-            .map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }))
-            .reverse();
-          setMessages(messagesData);
-        });
-        setLoading(false);
-        return () => {
-          unsubscribePet();
-          unsubscribeMessages();
-        };
+          const unsubscribePet = onSnapshot(petDocRef, (snapshot) => {
+            if (!snapshot.exists()) {
+              setPetExist(false);
+            } else {
+              const petData = snapshot.data();
+              setPetName(petData.name);
+              if (petData.adopted && petData.adoptedBy === currentUser.uid) {
+                setPetAdoptedByYou(true);
+                setPetAdoptedByAnotherUser(false);
+              } else if (petData.adopted && petData.adoptedBy !== currentUser.uid) {
+                setPetAdoptedByAnotherUser(true);
+                setPetAdoptedByYou(false);
+              } else {
+                setPetAdoptedByYou(false);
+                setPetAdoptedByAnotherUser(false);
+              }
+            }
+          });
+
+          const messagesRef = collection(
+            db,
+            "users",
+            currentUser.uid,
+            "conversations",
+            conversationId,
+            "messages"
+          );
+          const q = query(messagesRef, orderBy("timestamp", "asc"));
+          const unsubscribeMessages = onSnapshot(q, (snapshot) => {
+            const messagesData = snapshot.docs
+              .map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }))
+              .reverse();
+            setMessages(messagesData);
+          });
+          setLoading(false);
+          return () => {
+            unsubscribePet();
+            unsubscribeMessages();
+          };
+        } else {
+          const conversationData = conversationDoc.data();
+          const participants = conversationData.participants;
+
+          // Determine the other participant (either user or shelter)
+          const otherParticipantId = participants.find(
+            (participant) => participant !== currentUser.uid
+          );
+
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const shelterDocRef = doc(db, "shelters", otherParticipantId);
+          const petDocRef = doc(db, "pets", petId);
+
+          const [userDoc, shelterDoc] = await Promise.all([
+            getDoc(userDocRef),
+            getDoc(shelterDocRef),
+          ]);
+
+          if (userDoc.exists()) {
+            setUserAccountPicture(userDoc.data().accountPicture);
+          }
+
+          if (shelterDoc.exists()) {
+            const shelterData = shelterDoc.data();
+            setShelterName(shelterData.shelterName);
+            setShelterAccountPicture(shelterData.accountPicture);
+            setShelterMobileNumber(shelterData.mobileNumber);
+          } else {
+            const userRef = doc(db, "users", otherParticipantId);
+            const userDoc = await getDoc(userRef);
+
+            if (userDoc.exists()) {
+              setUserToUser(true);
+              const userData = userDoc.data();
+              setShelterName(`${userData.firstName} ${userData.lastName}`);
+              setShelterAccountPicture(userData.accountPicture);
+              setShelterMobileNumber(userData.mobileNumber);
+            } else {
+              setShelterName("Pawfectly User");
+              setShelterExist(false);
+            }
+          }
+
+          const unsubscribePet = onSnapshot(petDocRef, (snapshot) => {
+            if (!snapshot.exists()) {
+              setPetExist(false);
+            } else {
+              const petData = snapshot.data();
+              setPetName(petData.name);
+              if (petData.adopted && petData.adoptedBy === currentUser.uid) {
+                setPetAdoptedByYou(true);
+                setPetAdoptedByAnotherUser(false);
+              } else if (petData.adopted && petData.adoptedBy !== currentUser.uid) {
+                setPetAdoptedByAnotherUser(true);
+                setPetAdoptedByYou(false);
+              } else {
+                setPetAdoptedByYou(false);
+                setPetAdoptedByAnotherUser(false);
+              }
+            }
+          });
+
+          const messagesRef = collection(
+            db,
+            "users",
+            currentUser.uid,
+            "conversations",
+            conversationId,
+            "messages"
+          );
+          const q = query(messagesRef, orderBy("timestamp", "asc"));
+          const unsubscribeMessages = onSnapshot(q, (snapshot) => {
+            const messagesData = snapshot.docs
+              .map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }))
+              .reverse();
+            setMessages(messagesData);
+          });
+          setLoading(false);
+          return () => {
+            unsubscribePet();
+            unsubscribeMessages();
+          };
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         setLoading(false);
@@ -200,87 +273,146 @@ const MessagePage = ({ route }) => {
       const conversationDoc = await getDoc(conversationRef);
 
       if (!conversationDoc.exists()) {
-        console.error("Conversation does not exist");
-        setSendLoading(false);
-        return;
-      }
-
-      const conversationData = conversationDoc.data();
-      const participants = conversationData.participants;
-
-      // Determine the other participant (either user or shelter)
-      const otherParticipantId = participants.find(
-        (participant) => participant !== currentUser.uid
-      );
-
-      const userMessagesRef = collection(
-        db,
-        "users",
-        currentUser.uid,
-        "conversations",
-        conversationId,
-        "messages"
-      );
-
-      let recipientMessagesRef;
-      if (userToUser) {
-        recipientMessagesRef = collection(
+        const userMessagesRef = collection(
           db,
           "users",
-          otherParticipantId,
+          currentUser.uid,
           "conversations",
           conversationId,
           "messages"
         );
-      } else {
-        recipientMessagesRef = collection(
+
+        const shelterMessagesRef = collection(
           db,
-          "shelters",
+          userToUser ? "users" : "shelters",
           shelterId,
           "conversations",
           conversationId,
           "messages"
         );
+
+        await Promise.all([
+          addDoc(userMessagesRef, {
+            text: newMessage,
+            senderId: currentUser.uid,
+            receiverId: shelterId,
+            timestamp: serverTimestamp(),
+          }),
+          addDoc(shelterMessagesRef, {
+            text: newMessage,
+            senderId: currentUser.uid,
+            receiverId: shelterId,
+            timestamp: serverTimestamp(),
+          }),
+        ]);
+
+        await Promise.all([
+          updateConversation(
+            doc(db, "users", currentUser.uid, "conversations", conversationId),
+            newMessage,
+            true,
+            shelterId
+          ),
+          userToUser
+            ? updateConversation(
+                doc(db, "users", shelterId, "conversations", conversationId),
+                newMessage,
+                false,
+                shelterId
+              )
+            : updateConversation(
+                doc(db, "shelters", shelterId, "conversations", conversationId),
+                newMessage,
+                false,
+                shelterId
+              ),
+        ]);
+
+        setNewMessage("");
+      } else {
+        const conversationData = conversationDoc.data();
+        const participants = conversationData.participants;
+
+        // Determine the other participant (either user or shelter)
+        const otherParticipantId = participants.find(
+          (participant) => participant !== currentUser.uid
+        );
+
+        const userMessagesRef = collection(
+          db,
+          "users",
+          currentUser.uid,
+          "conversations",
+          conversationId,
+          "messages"
+        );
+
+        let recipientMessagesRef;
+        if (userToUser) {
+          recipientMessagesRef = collection(
+            db,
+            "users",
+            otherParticipantId,
+            "conversations",
+            conversationId,
+            "messages"
+          );
+        } else {
+          recipientMessagesRef = collection(
+            db,
+            "shelters",
+            shelterId,
+            "conversations",
+            conversationId,
+            "messages"
+          );
+        }
+
+        await Promise.all([
+          addDoc(userMessagesRef, {
+            text: newMessage,
+            senderId: currentUser.uid,
+            receiverId: otherParticipantId,
+            timestamp: serverTimestamp(),
+          }),
+          addDoc(recipientMessagesRef, {
+            text: newMessage,
+            senderId: currentUser.uid,
+            receiverId: otherParticipantId,
+            timestamp: serverTimestamp(),
+          }),
+        ]);
+
+        await Promise.all([
+          updateConversation(
+            doc(db, "users", currentUser.uid, "conversations", conversationId),
+            newMessage,
+            true,
+            userToUser ? otherParticipantId : shelterId
+          ),
+          userToUser
+            ? updateConversation(
+                doc(
+                  db,
+                  "users",
+                  otherParticipantId,
+                  "conversations",
+                  conversationId
+                ),
+                newMessage,
+                false,
+                currentUser.uid
+              )
+            : updateConversation(
+                doc(db, "shelters", shelterId, "conversations", conversationId),
+                newMessage,
+                false,
+                currentUser.uid
+              ),
+        ]);
+
+        setNewMessage("");
       }
-
-      await Promise.all([
-        addDoc(userMessagesRef, {
-          text: newMessage,
-          senderId: currentUser.uid,
-          receiverId: otherParticipantId,
-          timestamp: serverTimestamp(),
-        }),
-        addDoc(recipientMessagesRef, {
-          text: newMessage,
-          senderId: currentUser.uid,
-          receiverId: otherParticipantId,
-          timestamp: serverTimestamp(),
-        }),
-      ]);
-
-      await Promise.all([
-        updateConversation(
-          doc(db, "users", currentUser.uid, "conversations", conversationId),
-          newMessage,
-          true,
-          userToUser ? otherParticipantId : shelterId
-        ),
-        userToUser
-          ? updateConversation(
-              doc(db, "users", otherParticipantId, "conversations", conversationId),
-              newMessage,
-              false,
-              currentUser.uid
-            )
-          : updateConversation(
-              doc(db, "shelters", shelterId, "conversations", conversationId),
-              newMessage,
-              false,
-              currentUser.uid
-            ),
-      ]);
-
-      setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -322,85 +454,142 @@ const MessagePage = ({ route }) => {
       const conversationDoc = await getDoc(conversationRef);
 
       if (!conversationDoc.exists()) {
-        console.error("Conversation does not exist");
-        setSendLoading(false);
-        return;
-      }
-
-      const conversationData = conversationDoc.data();
-      const participants = conversationData.participants;
-
-      // Determine the other participant (either user or shelter)
-      const otherParticipantId = participants.find(
-        (participant) => participant !== currentUser.uid
-      );
-
-      const userMessagesRef = collection(
-        db,
-        "users",
-        currentUser.uid,
-        "conversations",
-        conversationId,
-        "messages"
-      );
-
-      let recipientMessagesRef;
-      if (userToUser) {
-        recipientMessagesRef = collection(
+        const userMessagesRef = collection(
           db,
           "users",
-          otherParticipantId,
+          currentUser.uid,
           "conversations",
           conversationId,
           "messages"
         );
-      } else {
-        recipientMessagesRef = collection(
+
+        const shelterMessagesRef = collection(
           db,
-          "shelters",
+          userToUser ? "users" : "shelters",
           shelterId,
           "conversations",
           conversationId,
           "messages"
         );
+
+        await Promise.all([
+          addDoc(userMessagesRef, {
+            text: imageUrl,
+            senderId: currentUser.uid,
+            receiverId: shelterId,
+            timestamp: serverTimestamp(),
+          }),
+          addDoc(shelterMessagesRef, {
+            text: imageUrl,
+            senderId: currentUser.uid,
+            receiverId: shelterId,
+            timestamp: serverTimestamp(),
+          }),
+        ]);
+
+        await Promise.all([
+          updateConversation(
+            doc(db, "users", currentUser.uid, "conversations", conversationId),
+            "Image",
+            true,
+            shelterId
+          ),
+          userToUser
+            ? updateConversation(
+                doc(db, "users", shelterId, "conversations", conversationId),
+                "Image",
+                false,
+                shelterId
+              )
+            : updateConversation(
+                doc(db, "shelters", shelterId, "conversations", conversationId),
+                "Image",
+                false,
+                shelterId
+              ),
+        ]);
+      } else {
+        const conversationData = conversationDoc.data();
+        const participants = conversationData.participants;
+
+        // Determine the other participant (either user or shelter)
+        const otherParticipantId = participants.find(
+          (participant) => participant !== currentUser.uid
+        );
+
+        const userMessagesRef = collection(
+          db,
+          "users",
+          currentUser.uid,
+          "conversations",
+          conversationId,
+          "messages"
+        );
+
+        let recipientMessagesRef;
+        if (userToUser) {
+          recipientMessagesRef = collection(
+            db,
+            "users",
+            otherParticipantId,
+            "conversations",
+            conversationId,
+            "messages"
+          );
+        } else {
+          recipientMessagesRef = collection(
+            db,
+            "shelters",
+            shelterId,
+            "conversations",
+            conversationId,
+            "messages"
+          );
+        }
+
+        await Promise.all([
+          addDoc(userMessagesRef, {
+            text: imageUrl,
+            senderId: currentUser.uid,
+            receiverId: shelterId,
+            timestamp: serverTimestamp(),
+          }),
+          addDoc(recipientMessagesRef, {
+            text: imageUrl,
+            senderId: currentUser.uid,
+            receiverId: shelterId,
+            timestamp: serverTimestamp(),
+          }),
+        ]);
+
+        await Promise.all([
+          updateConversation(
+            doc(db, "users", currentUser.uid, "conversations", conversationId),
+            "Image",
+            true,
+            userToUser ? otherParticipantId : shelterId
+          ),
+          userToUser
+            ? updateConversation(
+                doc(
+                  db,
+                  "users",
+                  otherParticipantId,
+                  "conversations",
+                  conversationId
+                ),
+                "Image",
+                false,
+                currentUser.uid
+              )
+            : updateConversation(
+                doc(db, "shelters", shelterId, "conversations", conversationId),
+                "Image",
+                false,
+                currentUser.uid
+              ),
+        ]);
       }
-
-      await Promise.all([
-        addDoc(userMessagesRef, {
-          text: imageUrl,
-          senderId: currentUser.uid,
-          receiverId: shelterId,
-          timestamp: serverTimestamp(),
-        }),
-        addDoc(recipientMessagesRef, {
-          text: imageUrl,
-          senderId: currentUser.uid,
-          receiverId: shelterId,
-          timestamp: serverTimestamp(),
-        }),
-      ]);
-
-      await Promise.all([
-        updateConversation(
-          doc(db, "users", currentUser.uid, "conversations", conversationId),
-          "Image",
-          true,
-          userToUser ? otherParticipantId : shelterId
-        ),
-        userToUser
-          ? updateConversation(
-              doc(db, "users", otherParticipantId, "conversations", conversationId),
-              "Image",
-              false,
-              currentUser.uid
-            )
-          : updateConversation(
-              doc(db, "shelters", shelterId, "conversations", conversationId),
-              "Image",
-              false,
-              currentUser.uid
-            ),
-      ]);
     } catch (error) {
       console.error("Error sending image message:", error);
     } finally {

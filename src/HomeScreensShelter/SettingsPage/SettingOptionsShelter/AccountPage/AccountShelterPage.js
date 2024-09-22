@@ -110,6 +110,7 @@ const AccountPage = () => {
     }
 
     const shelter = auth.currentUser;
+    const fullMobileNumber = `+63${shelterMobileNumber}`;
 
     if (shelter) {
       const shelterDocRef = doc(db, "shelters", shelter.uid);
@@ -119,7 +120,7 @@ const AccountPage = () => {
           shelterName: shelterName,
           shelterOwner: shelterOwnerName,
           address: shelterAddress,
-          mobileNumber: shelterMobileNumber,
+          mobileNumber: fullMobileNumber,
         });
         navigation.goBack();
       } catch (error) {
