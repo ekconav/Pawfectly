@@ -21,6 +21,8 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
@@ -47,6 +49,9 @@ const MessagePage = ({ route }) => {
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [sendLoading, setSendLoading] = useState(false);
+  const [adoptionMessageSent, setAdoptionMessageSent] = useState(false);
+  const [petPostedByMe, setPetPostedByMe] = useState(false);
+  const [userToUserAdoptionSuccess, setUserToUserAdoptionSuccess] = useState(false);
 
   const [userToUser, setUserToUser] = useState(false);
 
@@ -192,6 +197,9 @@ const MessagePage = ({ route }) => {
             } else {
               const petData = snapshot.data();
               setPetName(petData.name);
+              if(petData.adopted && petData.adoptedBy === otherParticipantId) {
+                setUserToUserAdoptionSuccess(true);
+              } else 
               if (petData.adopted && petData.adoptedBy === currentUser.uid) {
                 setPetAdoptedByYou(true);
                 setPetAdoptedByAnotherUser(false);
@@ -237,6 +245,93 @@ const MessagePage = ({ route }) => {
 
     fetchData();
   }, [conversationId, petId, shelterId]);
+
+  useEffect(() => {
+    const fetchAdoptionMessage = async () => {
+      if (!conversationId || !petId || !currentUser) {
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const conversationDocRef = doc(
+          db,
+          "users",
+          currentUser.uid,
+          "conversations",
+          conversationId
+        );
+        const conversationSnap = await getDoc(conversationDocRef);
+
+        if (conversationSnap.exists()) {
+          if (conversationSnap.data().participants[1] === currentUser.uid) {
+            setPetPostedByMe(true);
+          }
+          const messagesRef = collection(conversationDocRef, "messages");
+          const messageText = `Hello, I would like to adopt ${petName}.`;
+          const messageQuery = query(messagesRef, where("text", "==", messageText));
+
+          const messageSnap = await getDocs(messageQuery);
+          if (!messageSnap.empty) {
+            setAdoptionMessageSent(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching pet details: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAdoptionMessage();
+  }, [conversationId, petId, currentUser, petName]);
+
+  const handleApproveAdoption = async () => {
+    try {
+      const petRef = doc(db, "pets", petId);
+      const petSnap = await getDoc(petRef);
+
+      const conversationDocRef = doc(
+        db,
+        "users",
+        currentUser.uid,
+        "conversations",
+        conversationId
+      );
+      const conversationSnap = await getDoc(conversationDocRef);
+
+      if (conversationSnap.exists()) {
+        const participantZero = conversationSnap.data().participants[0];
+        if (petSnap.exists()) {
+          const petData = petSnap.data();
+          await updateDoc(petRef, {
+            adopted: true,
+            adoptedBy: participantZero,
+          });
+
+          const petDocRef = doc(db, "users", participantZero, "petsAdopted", petId);
+
+          setDoc(petDocRef, {
+            adopted: true,
+            adoptedBy: participantZero,
+            age: petData.age,
+            breed: petData.breed,
+            description: petData.description,
+            gender: petData.gender,
+            images: petData.images,
+            location: petData.location,
+            name: petData.name,
+            petPosted: serverTimestamp(),
+            type: petData.type,
+            userId: petData.userId,
+          });
+        }
+        console.log("Pet successfully adopted!");
+      }
+    } catch (error) {
+      console.error("Error approving pet: ", error);
+    }
+  };
 
   const updateConversation = async (ref, lastMessage, isSender, recipientId) => {
     const snap = await getDoc(ref);
@@ -722,13 +817,32 @@ const MessagePage = ({ route }) => {
           <Ionicons name="call" size={24} color={COLORS.prim} />
         </TouchableOpacity>
       </View>
-      {petAdoptedByYou ? (
+      {adoptionMessageSent && petPostedByMe && !userToUserAdoptionSuccess ? (
+        <View style={styles.subHeader}>
+          <Text style={styles.subHeaderText}>
+            {shelterName} wants to adopt {petName}.
+          </Text>
+          <TouchableOpacity
+            style={styles.approveButton}
+            onPress={handleApproveAdoption}
+          >
+            <Text style={styles.approveText}>Approve</Text>
+          </TouchableOpacity>
+        </View>
+      ) : userToUserAdoptionSuccess ? (
+        <View style={styles.subHeader}>
+          <Text style={styles.subHeaderText}>
+            {shelterName} has adopted {petName}.
+          </Text>
+        </View>
+      ) : null}
+      {petAdoptedByYou && !petPostedByMe ? (
         <View style={styles.petAdoptedContainer}>
           <Text style={styles.petAdoptedText}>
             Congratulations, you adopted {petName}!
           </Text>
         </View>
-      ) : petAdoptedByAnotherUser ? (
+      ) : petAdoptedByAnotherUser && !petPostedByMe ? (
         <View style={styles.petAdoptedContainer}>
           <Text style={styles.petAdoptedText}>
             Sorry, {petName} has been adopted already.
