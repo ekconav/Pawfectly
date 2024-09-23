@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
     height: "60vh",  
-    width:"100vh",
+    width:"60vw",
     flexDirection: "column",
   },
   userDetails: {

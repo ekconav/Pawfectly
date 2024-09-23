@@ -101,6 +101,7 @@ const UsersPage = () => {
     lastName: "",
     mobileNumber: "",
   });
+  
   const handleEditUser = (user) => {
 
     // Must not include country code in the display

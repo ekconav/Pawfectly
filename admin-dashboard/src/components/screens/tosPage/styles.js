@@ -27,17 +27,17 @@ const styles = StyleSheet.create({
     display: "grid", 
     gridTemplateColumns: "10vh 2fr 4fr 15vh",  
     borderRadius: "8px",
-    backgroundColor: "#FFF", // Background color for each row
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)", // Shadow 
+    backgroundColor: "#FFF", 
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)", 
     backgroundColor: "#F2F2F2",
     padding: "10px",
     
   },
   line: {
-    display: "flex",        // Flexbox to center items
-    alignItems: "center",   // Vertical centering
-    justifyContent: "center", // Horizontal centering (optional if needed)
-    height: "100%",         // Make sure it takes full height to center correctly
+    display: "flex",        
+    alignItems: "center",   
+    justifyContent: "center", 
+    height: "100%",         
   },  
   // Pagination
   pagination: {
@@ -64,13 +64,13 @@ const styles = StyleSheet.create({
     cursor: 'not-allowed',
   },
 
-  // User Information Edit Button
+  // Edit Button
   editButtonContainer: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "white",
-    border: "2px solid blue", 
+    border: "2px solid #0080FF", 
     borderRadius: "6px",
     width: "20px", 
     height: "20px", 
@@ -79,9 +79,70 @@ const styles = StyleSheet.create({
     margin:"5px",
   },
   editIcon: {
-    color: "blue",
+    color: "#0080FF",
     fontSize: "30px",
   },
+
+  //Modal Styles
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+    borderRadius: 8,
+    width: 500,
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    textAlign: "center",
+  },
+  modalButtons: {
+    display: "flex",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 20,
+  },
+  confirmButton: {
+    backgroundColor: COLORS.prim,
+    borderWidth: 0,
+    padding: 20,
+    borderRadius: 10,
+    color: COLORS.white,
+    cursor: 'pointer',
+  },
+  cancelButton: {
+    backgroundColor: COLORS.outline,
+    color: COLORS.black,
+    padding: 20,
+    border: "none",
+    borderRadius: 10,
+    marginLeft: 10,
+    cursor: 'pointer',
+  },
+
+  // Modal Edit Forms
+  modalForm: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "start",
+    gap: 10
+  },
+  inputField: {
+    width: "100%",
+    padding: 10,
+    border: "1px solid",
+    borderColor: COLORS.outline,
+    borderRadius: 5,
+    boxSizing: "border-box",
+  },
+
 
 });
 
