@@ -48,9 +48,119 @@ const DetailsPage = ({ route }) => {
 
   const [deleteModal, setDeleteModal] = useState(false);
   const [youAdopted, setYouAdopted] = useState(false);
+
+  const [adopted, setAdopted] = useState(false);
+  const [adoptedByUser, setAdoptedByUser] = useState(null);
+
+  const [users, setUsers] = useState([]);
+  const [conversations, setConversations] = useState([]);
+
   const navigation = useNavigation();
 
   const { pet } = route.params;
+
+  useEffect(() => {
+    const checkAdoptionStatus = async () => {
+      try {
+        const petRef = doc(db, "pets", pet.id);
+        const petSnap = await getDoc(petRef);
+
+        if (petSnap.exists()) {
+          const petData = petSnap.data();
+          if (petData.adopted) {
+            setAdopted(true);
+
+            if (petData.adoptedBy) {
+              const adopterRef = doc(db, "users", petData.adoptedBy);
+              const adopterSnap = await getDoc(adopterRef);
+
+              if (adopterSnap.exists()) {
+                const adopterData = adopterSnap.data();
+                setAdoptedByUser({
+                  firstName: adopterData.firstName,
+                  lastName: adopterData.lastName,
+                  accountPicture: adopterData.accountPicture,
+                  uid: petData.adoptedBy,
+                  mobileNumber: adopterData.mobileNumber,
+                });
+              }
+            }
+          }
+        } else {
+          console.log("No such document");
+        }
+      } catch (error) {
+        console.error("Error checking adoption status: ", error);
+      }
+    };
+    checkAdoptionStatus();
+  }, [pet.id]);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const user = auth.currentUser;
+
+        if (user) {
+          const conversationsRef = collection(
+            db,
+            "users",
+            user.uid,
+            "conversations"
+          );
+          const q = query(conversationsRef, where("petId", "==", pet.id));
+          const querySnapshot = await getDocs(q);
+
+          const conversationPromises = querySnapshot.docs.map(
+            async (docSnapshot) => {
+              const conversationData = docSnapshot.data();
+              const userId = conversationData.participants[0];
+
+              const userDocRef = doc(db, "users", userId);
+              const userDocSnapshot = await getDoc(userDocRef);
+
+              return userDocSnapshot.exists() ? conversationData : null;
+            }
+          );
+
+          const conversations = await Promise.all(conversationPromises);
+
+          setConversations(conversations.filter((convo) => convo !== null));
+        }
+      } catch (error) {
+        console.error("Error fetching conversations: ", error);
+      }
+    };
+    fetchConversations();
+  }, [pet.id]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userIds = conversations.map(
+          (conversation) => conversation.participants[0]
+        );
+        const userDetailsPromises = userIds.map(async (userId) => {
+          const userDocRef = doc(db, "users", userId);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            return { ...userData, uid: userId };
+          }
+          return null;
+        });
+
+        const usersDetails = await Promise.all(userDetailsPromises);
+        setUsers(usersDetails.filter(Boolean));
+      } catch (error) {
+        console.error("Error fetching user details: ", error);
+      }
+    };
+
+    if (conversations.length > 0) {
+      fetchUsers();
+    }
+  }, [conversations]);
 
   useEffect(() => {
     const fetchPetDetails = async () => {
@@ -187,6 +297,19 @@ const DetailsPage = ({ route }) => {
     };
   }, []);
 
+  const handleMessage = (userId) => {
+    const shelterId = auth.currentUser.uid;
+    const petId = pet.id;
+
+    const conversationId = `${userId}_${shelterId}_${petId}`;
+    navigation.navigate("MessagePage", {
+      conversationId,
+      userId,
+      shelterId,
+      petId,
+    });
+  };
+
   const handleOpenMessage = () => {
     const userId = auth.currentUser.uid;
     const shelterId = petDetails.userId;
@@ -253,6 +376,10 @@ const DetailsPage = ({ route }) => {
       setModalMessage("There was an error trying to make a call.");
       setAlertModal(true);
     }
+  };
+
+  const handleAdopterCall = (mobileNumber) => {
+    Linking.openURL(`tel:${mobileNumber}`);
   };
 
   const handleAdoption = async () => {
@@ -489,6 +616,44 @@ const DetailsPage = ({ route }) => {
               <Text style={styles.textAddress}>{userDetails.location}</Text>
             </View>
           )}
+          {adopted && adoptedByUser && userPosted && (
+            <View style={styles.adoptedContainer}>
+              <Text style={styles.adoptedText}>Adopted By:</Text>
+              <View style={styles.adoptedByContainer}>
+                <View style={styles.adoptedByUserInfo}>
+                  <Image
+                    source={
+                      adoptedByUser.accountPicture
+                        ? { uri: adoptedByUser.accountPicture }
+                        : require("../../components/user.png")
+                    }
+                    style={styles.adopterImage}
+                  />
+                  <Text style={styles.userFullName}>
+                    {adoptedByUser.firstName} {adoptedByUser.lastName}
+                  </Text>
+                </View>
+                <View style={styles.callMessage}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleAdopterCall(adoptedByUser.mobileNumber)}
+                  >
+                    <Ionicons name="call-outline" size={24} color={COLORS.white} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleMessage(adoptedByUser.uid)}
+                  >
+                    <Ionicons
+                      name="chatbox-outline"
+                      size={24}
+                      color={COLORS.white}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
           <View style={styles.midInfoContainer}>
             <View style={styles.midInfo}>
               <Text style={styles.midInfoDetail}>{petDetails.gender}</Text>
@@ -503,21 +668,76 @@ const DetailsPage = ({ route }) => {
               <Text style={styles.midInfoTitle}>Age</Text>
             </View>
           </View>
-          <View style={styles.shelterContainer}>
+          <View style={userPosted ? null : styles.shelterContainer}>
             <View style={styles.shelterInfo}>
-              <Image source={shelterImage} style={styles.shelterImage} />
-              <View style={styles.shelterTextContainer}>
-                <Text style={styles.midInfoTitle}>
-                  {userToUser && !userPosted
-                    ? "Currently With:"
-                    : !userPosted
-                    ? petAdopted || petDeleted
-                      ? "From:"
-                      : "Currently In:"
-                    : "You:"}
-                </Text>
-                <Text style={styles.shelterName}>{userDetails.shelterName}</Text>
-              </View>
+              {!userPosted ? (
+                <>
+                  <Image source={shelterImage} style={styles.shelterImage} />
+                  <View style={styles.shelterTextContainer}>
+                    <Text style={styles.midInfoTitle}>
+                      {userToUser && !userPosted && !petAdopted
+                        ? "Currently With:"
+                        : !userPosted
+                        ? petAdopted || petDeleted
+                          ? "From:"
+                          : "Currently In:"
+                        : "You:"}
+                    </Text>
+                    <Text style={styles.shelterName}>{userDetails.shelterName}</Text>
+                  </View>
+                </>
+              ) : (
+                <View style={styles.conversationWithContainer}>
+                  <Text style={styles.conversationTitle}>In conversation with:</Text>
+                  {conversations.length === 0 ? (
+                    <View>
+                      <Text style={styles.noConversation}>No conversations</Text>
+                    </View>
+                  ) : (
+                    <View>
+                      {users.map((user, index) => (
+                        <View key={index} style={styles.conversationList}>
+                          <View style={styles.userInfo}>
+                            <Image
+                              source={
+                                user.accountPicture
+                                  ? { uri: user.accountPicture }
+                                  : require("../../components/user.png")
+                              }
+                              style={styles.userAccountPicture}
+                            />
+                            <Text key={index} style={styles.userName}>
+                              {user.firstName} {user.lastName}
+                            </Text>
+                          </View>
+                          <View style={styles.callMessage}>
+                            <TouchableOpacity
+                              style={styles.actionButton}
+                              onPress={() => handleAdopterCall(user.mobileNumber)}
+                            >
+                              <Ionicons
+                                name="call-outline"
+                                size={24}
+                                color={COLORS.white}
+                              />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={styles.actionButton}
+                              onPress={() => handleMessage(user.uid)}
+                            >
+                              <Ionicons
+                                name="chatbox-outline"
+                                size={24}
+                                color={COLORS.white}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
             {!userPosted ? (
               <View style={styles.callMessage}>
@@ -533,7 +753,7 @@ const DetailsPage = ({ route }) => {
               </View>
             ) : null}
           </View>
-          <View style={styles.aboutContainer}>
+          <View style={userPosted ? null : styles.aboutContainer}>
             <Text style={styles.aboutTitle}>About {petDetails.name}</Text>
             <Text style={styles.aboutDescription}>{petDetails.description}</Text>
           </View>

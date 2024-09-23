@@ -197,10 +197,9 @@ const MessagePage = ({ route }) => {
             } else {
               const petData = snapshot.data();
               setPetName(petData.name);
-              if(petData.adopted && petData.adoptedBy === otherParticipantId) {
+              if (petData.adopted && petData.adoptedBy === otherParticipantId) {
                 setUserToUserAdoptionSuccess(true);
-              } else 
-              if (petData.adopted && petData.adoptedBy === currentUser.uid) {
+              } else if (petData.adopted && petData.adoptedBy === currentUser.uid) {
                 setPetAdoptedByYou(true);
                 setPetAdoptedByAnotherUser(false);
               } else if (petData.adopted && petData.adoptedBy !== currentUser.uid) {
