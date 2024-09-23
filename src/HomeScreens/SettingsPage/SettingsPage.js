@@ -19,7 +19,7 @@ import {
   deleteDoc,
   serverTimestamp,
   query,
-  orderBy,
+  where,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "../../FirebaseConfig";
@@ -36,35 +36,19 @@ const SettingsPage = () => {
   const [profileImage, setProfileImage] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [checkVerify, setCheckVerify] = useState(false);
-  const [isAddPetModalVisible, setIsAddPetModalVisible] = useState(false);
   const [pets, setPets] = useState([]);
-  const [petDocumentId, setPetDocumentId] = useState("");
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // For Modal
-  const [petImage, setPetImage] = useState("");
-  const [petName, setPetName] = useState("");
-  const [maleChecked, setMaleChecked] = useState(false);
-  const [femaleChecked, setFemaleChecked] = useState(false);
-  const [petBreed, setPetBreed] = useState("");
-
   // Setting Modal
   const [isSettingModalVisible, setIsSettingModalVisible] = useState(false);
-
-  // Pet Details Modal
-  const [isPetDetailsModalVisible, setIsPetDetailsModalVisible] = useState(false);
-  const [newPetImage, setNewPetImage] = useState(null);
-  const [fetchPetImage, setFetchPetImage] = useState(null);
-  const [fetchPetName, setFetchPetName] = useState("");
-  const [fetchPetBreed, setFetchPetBreed] = useState("");
-  const [fetchMaleChecked, setFetchMaleChecked] = useState(false);
-  const [fetchFemaleChecked, setFetchFemaleChecked] = useState(false);
 
   const [choicesModal, setChoicesModal] = useState(false);
   const [selectedOption, setSelectedOption] = useState("My Furbabies");
   const [petsAdopted, setPetsAdopted] = useState([]);
+
+  const [petsSuccessPaws, setPetsSuccessPaws] = useState([]);
 
   const navigation = useNavigation();
 
@@ -117,16 +101,18 @@ const SettingsPage = () => {
 
         let isFurbabiesLoaded = false;
         let isPetsAdoptedLoaded = false;
+        let isSuccessPawsLoaded = false;
 
         const checkAllLoaded = () => {
-          if (isFurbabiesLoaded && isPetsAdoptedLoaded) {
+          if (isFurbabiesLoaded && isPetsAdoptedLoaded && isSuccessPawsLoaded) {
             setLoading(false);
           }
         };
 
         const furbabiesRef = query(
-          collection(db, "users", user.uid, "furbabies"),
-          orderBy("petUploaded", "desc")
+          collection(db, "pets"),
+          where("adopted", "==", false),
+          where("userId", "==", auth.currentUser.uid)
         );
 
         const unsubscribeFurbabies = onSnapshot(furbabiesRef, async (snapshot) => {
@@ -140,7 +126,7 @@ const SettingsPage = () => {
 
             await Promise.all(
               furbabiesData.map(async (pet, index) => {
-                const imageUrl = await getDownloadURL(ref(storage, pet.image));
+                const imageUrl = await getDownloadURL(ref(storage, pet.images));
                 setPets((prevPets) => {
                   const newPets = [...prevPets];
                   newPets[index].imageUrl = imageUrl;
@@ -197,6 +183,42 @@ const SettingsPage = () => {
           }
         );
 
+        const successPawsRef = query(
+          collection(db, "pets"),
+          where("adopted", "==", true),
+          where("userId", "==", auth.currentUser.uid)
+        );
+
+        const unsubscribeSuccessPaws = onSnapshot(
+          successPawsRef,
+          async (snapshot) => {
+            try {
+              const successPawsData = snapshot.docs.map((doc) => {
+                const petData = doc.data();
+                return { id: doc.id, ...petData, imageUrl: null };
+              });
+
+              setPetsSuccessPaws(successPawsData);
+
+              await Promise.all(
+                successPawsData.map(async (pet, index) => {
+                  const imageUrl = await getDownloadURL(ref(storage, pet.images));
+                  setPetsSuccessPaws((prevPets) => {
+                    const newPetsSuccess = [...prevPets];
+                    newPetsSuccess[index].imageUrl = imageUrl;
+                    return newPetsSuccess;
+                  });
+                })
+              );
+            } catch (error) {
+              console.error("Error fetching success paws: ", error);
+            } finally {
+              isSuccessPawsLoaded = true;
+              checkAllLoaded();
+            }
+          }
+        );
+
         return () => {
           unsubscribeFurbabies();
           unsubscribePetsAdopted();
@@ -244,202 +266,6 @@ const SettingsPage = () => {
     }
   };
 
-  // For furbabies pick photo
-  const handlePickPetImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: null,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const { uri } = result.assets[0];
-      const user = auth.currentUser;
-
-      if (user) {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const timestamp = new Date().getTime();
-        const storageRef = ref(storage, `petPictures/${user.uid}/${timestamp}`);
-        await uploadBytes(storageRef, blob);
-
-        const downloadURL = await getDownloadURL(storageRef);
-
-        setPetImage({ uri: downloadURL });
-      }
-    }
-  };
-
-  const handleCancelButton = async () => {
-    setIsAddPetModalVisible(false);
-    setPetImage("");
-    setPetName("");
-    setMaleChecked(false);
-    setFemaleChecked(false);
-    setPetBreed("");
-  };
-
-  const handleSubmitPet = async () => {
-    if (!petImage || !petName || !petBreed || (!maleChecked && !femaleChecked)) {
-      setModalMessage("Please fill in all fields and add an image.");
-      setAlertModal(true);
-      return;
-    }
-    const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
-
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const furbabiesRef = collection(db, "users", user.uid, "furbabies");
-        await addDoc(furbabiesRef, {
-          image: petImageUrl,
-          name: petName,
-          gender: maleChecked ? "Male" : "Female",
-          breed: petBreed,
-          petUploaded: serverTimestamp(),
-        });
-        setPetImage("");
-        setPetName("");
-        setMaleChecked(false);
-        setFemaleChecked(false);
-        setPetBreed("");
-      }
-    } catch (error) {
-      console.error("Error submitting pet: ", error);
-    } finally {
-      setIsAddPetModalVisible(false);
-    }
-  };
-
-  const handleMaleCheck = () => {
-    setMaleChecked((prevState) => !prevState);
-    if (femaleChecked) {
-      setFemaleChecked(false);
-    }
-  };
-
-  const handleFemaleCheck = () => {
-    setFemaleChecked((prevState) => !prevState);
-    if (maleChecked) {
-      setMaleChecked(false);
-    }
-  };
-
-  const handleEditMaleCheck = () => {
-    setFetchMaleChecked((prevState) => !prevState);
-    if (fetchFemaleChecked) {
-      setFetchFemaleChecked(false);
-    }
-  };
-
-  const handleEditFemaleCheck = () => {
-    setFetchFemaleChecked((prevState) => !prevState);
-    if (fetchMaleChecked) {
-      setFetchMaleChecked(false);
-    }
-  };
-
-  const handleOpenPetDetailsModal = (pet) => {
-    setPetDocumentId(pet.id);
-    setFetchPetName(pet.name);
-    setFetchPetBreed(pet.breed);
-    setFetchPetImage(pet.imageUrl);
-    setFetchMaleChecked(pet.gender === "Male");
-    setFetchFemaleChecked(pet.gender === "Female");
-    setIsPetDetailsModalVisible(true);
-  };
-
-  const handleEditPetImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: null,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setFetchPetImage(null);
-      setNewPetImage(null);
-      const { uri } = result.assets[0];
-      const user = auth.currentUser;
-
-      if (user) {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const timestamp = new Date().getTime();
-        const storageRef = ref(storage, `petPictures/${user.uid}/${timestamp}`);
-        await uploadBytes(storageRef, blob);
-
-        const downloadURL = await getDownloadURL(storageRef);
-
-        setNewPetImage(downloadURL);
-      }
-    }
-  };
-
-  const handleDeleteButton = async () => {
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const furbabiesRef = doc(db, "users", user.uid, "furbabies", petDocumentId);
-
-        await deleteDoc(furbabiesRef);
-      }
-    } catch (error) {
-      console.error("Error deleting pet: ", error);
-    } finally {
-      setIsPetDetailsModalVisible(false);
-    }
-  };
-
-  const handleEditPet = async () => {
-    if (
-      !fetchPetName ||
-      !fetchPetBreed ||
-      (!fetchMaleChecked && !fetchFemaleChecked)
-    ) {
-      setModalMessage("Please fill in all fields and add an image.");
-      setAlertModal(true);
-      return;
-    }
-    try {
-      const petImageUrl = newPetImage
-        ? typeof newPetImage === "string"
-          ? newPetImage
-          : newPetImage.uri
-        : typeof fetchPetImage === "string"
-        ? fetchPetImage
-        : fetchPetImage?.uri;
-
-      if (!petImageUrl) {
-        console.error("No valid pet image URL found.");
-        return;
-      }
-      const user = auth.currentUser;
-      if (user) {
-        const furbabiesRef = doc(db, "users", user.uid, "furbabies", petDocumentId);
-
-        await updateDoc(furbabiesRef, {
-          image: petImageUrl,
-          name: fetchPetName,
-          gender: fetchMaleChecked ? "Male" : "Female",
-          breed: fetchPetBreed,
-        });
-      }
-    } catch (error) {
-      console.error("Error updating pet: ", error);
-    } finally {
-      setNewPetImage(null);
-      setFetchPetImage(null);
-      setFetchPetName("");
-      setFetchPetBreed("");
-      setFetchMaleChecked(false);
-      setFetchFemaleChecked(false);
-      setIsPetDetailsModalVisible(false);
-    }
-  };
-
   const handleOptionSelect = (option) => {
     setIsSettingModalVisible(false);
     if (option === "Logout") {
@@ -455,19 +281,6 @@ const SettingsPage = () => {
     } else if (option === "Delete Account") {
       navigation.navigate("Request Account Deletion");
     }
-  };
-
-  const handleOverlayPress = () => {
-    setIsAddPetModalVisible(false);
-    setPetImage("");
-    setPetName("");
-    setMaleChecked(false);
-    setFemaleChecked(false);
-    setPetBreed("");
-  };
-
-  const handleContentPress = (event) => {
-    event.stopPropagation();
   };
 
   const handleChoiceSelect = (option) => {
@@ -551,13 +364,6 @@ const SettingsPage = () => {
             <Text style={styles.furbabiesText}>{selectedOption}</Text>
             <Ionicons name="caret-down-circle" size={20} color={COLORS.title} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addPetButton}
-            onPress={() => setIsAddPetModalVisible(true)}
-          >
-            <Ionicons name="add-outline" size={14} color={COLORS.white} />
-            <Text style={styles.addPetButtonText}>Add Your Pet</Text>
-          </TouchableOpacity>
         </View>
 
         {selectedOption === "My Furbabies" && pets.length === 0 ? (
@@ -570,6 +376,12 @@ const SettingsPage = () => {
               You haven't adopted any pets yet.
             </Text>
           </View>
+        ) : selectedOption === "Success Paws" && petsSuccessPaws.length === 0 ? (
+          <View style={styles.noResultContainer}>
+            <Text style={styles.noResultsText}>
+              Pets you posted hasn't been adopted yet.
+            </Text>
+          </View>
         ) : (
           <View style={styles.showcasePetsContainer}>
             {loading ? (
@@ -580,17 +392,21 @@ const SettingsPage = () => {
               />
             ) : (
               <FlatList
-                data={selectedOption === "My Furbabies" ? pets : petsAdopted}
+                data={
+                  selectedOption === "My Furbabies"
+                    ? pets
+                    : selectedOption === "Pets Adopted"
+                    ? petsAdopted
+                    : petsSuccessPaws
+                }
                 numColumns={2}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <View style={styles.buttonContainer}>
                     <TouchableOpacity
                       style={styles.petButton}
-                      onPress={
-                        selectedOption === "My Furbabies"
-                          ? () => handleOpenPetDetailsModal(item)
-                          : () => navigation.navigate("DetailsPage", { pet: item })
+                      onPress={() =>
+                        navigation.navigate("DetailsPage", { pet: item })
                       }
                     >
                       <View style={styles.imageContainer}>
@@ -626,7 +442,20 @@ const SettingsPage = () => {
                             )}
                           </Text>
                         </View>
-                        <Text style={styles.petBreedText}>{item.breed}</Text>
+                        <View style={styles.petLocation}>
+                          <Ionicons
+                            name="location-outline"
+                            size={12}
+                            color={COLORS.prim}
+                          />
+                          <Text
+                            style={styles.locationText}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {item.location}
+                          </Text>
+                        </View>
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -636,95 +465,6 @@ const SettingsPage = () => {
           </View>
         )}
       </View>
-
-      {/* Add Pet Modal */}
-      <Modal
-        isVisible={isAddPetModalVisible}
-        onRequestClose={() => setIsAddPetModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.addPetModalOverlay}
-          activeOpacity={1}
-          onPress={handleOverlayPress}
-        >
-          <TouchableWithoutFeedback onPress={handleContentPress}>
-            <View style={styles.addPetModalContainer}>
-              <Text style={styles.modalTitle}>Showcase Your Pet!</Text>
-              <View style={styles.addImageContainer}>
-                <TouchableOpacity
-                  style={styles.modalAddPetImage}
-                  onPress={handlePickPetImage}
-                >
-                  {!petImage ? (
-                    <View style={styles.iconAndText}>
-                      <Ionicons
-                        name="image-outline"
-                        size={20}
-                        color={COLORS.title}
-                      />
-                      <Text style={styles.modalText}>Add Image</Text>
-                    </View>
-                  ) : (
-                    <Image source={petImage} style={styles.petPreviewImage} />
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.addPetInputContainer}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.modalText}>Pet Name</Text>
-                  <TextInput
-                    style={styles.addPetInput}
-                    value={petName}
-                    onChangeText={(text) => setPetName(text)}
-                  />
-                </View>
-                <View style={styles.inputGenderContainer}>
-                  <Text style={styles.modalText}>Gender</Text>
-                  <View style={styles.checkBoxContainer}>
-                    <Checkbox
-                      value={maleChecked}
-                      onValueChange={handleMaleCheck}
-                      color={COLORS.prim}
-                    />
-                    <Text style={styles.modalText}>Male</Text>
-                  </View>
-                  <View style={styles.checkBoxContainer}>
-                    <Checkbox
-                      value={femaleChecked}
-                      onValueChange={handleFemaleCheck}
-                      color={COLORS.prim}
-                    />
-                    <Text style={styles.modalText}>Female</Text>
-                  </View>
-                </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.modalText}>Breed</Text>
-                  <TextInput
-                    style={styles.addPetInput}
-                    value={petBreed}
-                    onChangeText={(text) => setPetBreed(text)}
-                  />
-                </View>
-              </View>
-              <View style={styles.addPetButtonContainer}>
-                <TouchableOpacity
-                  style={styles.modalSubmitButton}
-                  onPress={handleSubmitPet}
-                >
-                  <Text style={styles.modalSubmitText}>Submit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleCancelButton}
-                  style={styles.modalCancelButton}
-                >
-                  <Text style={styles.modalText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </TouchableOpacity>
-      </Modal>
 
       {/* Settings Dropdown Modal */}
       <Modal
@@ -758,93 +498,7 @@ const SettingsPage = () => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Pet Details Modal */}
-      <Modal
-        animationType="fade"
-        isVisible={isPetDetailsModalVisible}
-        onRequestClose={() => setIsPetDetailsModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.petDetailsOverlay}
-          activeOpacity={1}
-          onPress={() => setIsPetDetailsModalVisible(false)}
-        >
-          <TouchableWithoutFeedback onPress={handleContentPress}>
-            <View style={styles.addPetModalContainer}>
-              <Text style={styles.modalTitle}>Edit Pet</Text>
-              <View style={styles.addImageContainer}>
-                <TouchableOpacity
-                  style={styles.modalAddPetImage}
-                  onPress={handleEditPetImage}
-                >
-                  {!fetchPetImage ? (
-                    <Image
-                      source={{ uri: newPetImage }}
-                      style={styles.petPreviewImage}
-                    />
-                  ) : (
-                    <Image
-                      source={{ uri: fetchPetImage }}
-                      style={styles.petPreviewImage}
-                    />
-                  )}
-                </TouchableOpacity>
-              </View>
-              <View style={styles.addPetInputContainer}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.modalText}>Pet Name</Text>
-                  <TextInput
-                    style={styles.addPetInput}
-                    value={fetchPetName}
-                    onChangeText={(text) => setFetchPetName(text)}
-                  />
-                </View>
-                <View style={styles.inputGenderContainer}>
-                  <Text style={styles.modalText}>Gender</Text>
-                  <View style={styles.checkBoxContainer}>
-                    <Checkbox
-                      value={fetchMaleChecked}
-                      onValueChange={handleEditMaleCheck}
-                      color={COLORS.prim}
-                    />
-                    <Text style={styles.modalText}>Male</Text>
-                  </View>
-                  <View style={styles.checkBoxContainer}>
-                    <Checkbox
-                      value={fetchFemaleChecked}
-                      onValueChange={handleEditFemaleCheck}
-                      color={COLORS.prim}
-                    />
-                    <Text style={styles.modalText}>Female</Text>
-                  </View>
-                </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.modalText}>Breed</Text>
-                  <TextInput
-                    style={styles.addPetInput}
-                    value={fetchPetBreed}
-                    onChangeText={(text) => setFetchPetBreed(text)}
-                  />
-                </View>
-              </View>
-              <View style={styles.addPetButtonContainer}>
-                <TouchableOpacity
-                  style={styles.petDetailsSaveButton}
-                  onPress={handleEditPet}
-                >
-                  <Text style={styles.modalSubmitText}>Save</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleDeleteButton}
-                  style={styles.petDetailsDeleteButton}
-                >
-                  <Text style={styles.petDetailsDeleteText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </TouchableOpacity>
-      </Modal>
+      {/* Alert Modal */}
       <Modal isVisible={alertModal}>
         <View style={styles.alertModalContainer}>
           <Text style={styles.alertModalText}>{modalMessage}</Text>
@@ -858,6 +512,8 @@ const SettingsPage = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Choices Modal */}
       <Modal isVisible={choicesModal} onRequestClose={() => setChoicesModal(false)}>
         <TouchableOpacity
           style={styles.choicesModalOverlay}
@@ -865,15 +521,17 @@ const SettingsPage = () => {
           onPress={() => setChoicesModal(false)}
         >
           <View style={styles.choicesOptions}>
-            {["My Furbabies", "Pets Adopted"].map((option, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => handleChoiceSelect(option)}
-                style={styles.choicesDropdown}
-              >
-                <Text style={styles.choicesDropdownText}>{option}</Text>
-              </TouchableOpacity>
-            ))}
+            {["My Furbabies", "Pets Adopted", "Success Paws"].map(
+              (option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleChoiceSelect(option)}
+                  style={styles.choicesDropdown}
+                >
+                  <Text style={styles.choicesDropdownText}>{option}</Text>
+                </TouchableOpacity>
+              )
+            )}
           </View>
         </TouchableOpacity>
       </Modal>

@@ -48,6 +48,8 @@ const HomeScreen = () => {
   const [selectedOption, setSelectedOption] = useState("Fur-Ever Friends");
   const [petsPostedByMe, setPetsPostedByMe] = useState([]);
 
+  const [seeAllPressed, setSeeAllPressed] = useState(false);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -216,6 +218,10 @@ const HomeScreen = () => {
     }
   };
 
+  const handleSeeAllPressed = () => {
+    setSeeAllPressed((prevState) => !prevState);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -233,65 +239,70 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onSearch={handleSearch}
-      />
+      {!seeAllPressed && (
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      )}
 
-      <View style={styles.adopterContainer}>
-        <View style={{ flex: 1, justifyContent: "space-around" }}>
-          <Text style={styles.adopterText}>Got any furbabies up for adoption?</Text>
-          <TouchableOpacity
-            style={styles.adopterButton}
-            onPress={handleClickAdopter}
-          >
-            <Text style={styles.adopterButtonText}>Click Here</Text>
-          </TouchableOpacity>
+      {!seeAllPressed && (
+        <View style={styles.adopterContainer}>
+          <View style={{ flex: 1, justifyContent: "space-around" }}>
+            <Text style={styles.adopterText}>
+              Got any furbabies up for adoption?
+            </Text>
+            <TouchableOpacity
+              style={styles.adopterButton}
+              onPress={handleClickAdopter}
+            >
+              <Text style={styles.adopterButtonText}>Click Here</Text>
+            </TouchableOpacity>
+          </View>
+          <Image source={adopter} style={styles.adopterImage} />
         </View>
-        <Image source={adopter} style={styles.adopterImage} />
-      </View>
+      )}
 
       <View style={styles.categoryContainer}>
         <View style={styles.categoryChoices}>
-          <View style={styles.categoryButtonContainer}>
-            <TouchableOpacity
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "cat" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("cat")}
+          >
+            <Image style={styles.categoryIcon} source={catIcon} />
+            <Text
               style={[
-                styles.categoryButton,
-                activeCategory === "cat" && { backgroundColor: COLORS.prim },
+                styles.categoryName,
+                activeCategory === "cat" && { color: COLORS.white },
               ]}
-              onPress={() => handleCategoryFilter("cat")}
             >
-              <Image style={styles.categoryIcon} source={catIcon} />
-              <Text
-                style={[
-                  styles.categoryName,
-                  activeCategory === "cat" && { color: COLORS.white },
-                ]}
-              >
-                {" "}
-                Cat
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+              {" "}
+              Cat
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "dog" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("dog")}
+          >
+            <Image style={styles.categoryIcon} source={dogIcon} />
+            <Text
               style={[
-                styles.categoryButton,
-                activeCategory === "dog" && { backgroundColor: COLORS.prim },
+                styles.categoryName,
+                activeCategory === "dog" && { color: COLORS.white },
               ]}
-              onPress={() => handleCategoryFilter("dog")}
             >
-              <Image style={styles.categoryIcon} source={dogIcon} />
-              <Text
-                style={[
-                  styles.categoryName,
-                  activeCategory === "dog" && { color: COLORS.white },
-                ]}
-              >
-                {" "}
-                Dog
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {" "}
+              Dog
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[
               styles.categoryButton,
@@ -311,17 +322,38 @@ const HomeScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.titleButton}
-          onPress={() => setChoicesModal(true)}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
         >
-          <Text style={styles.categoriesTitle}>{selectedOption}</Text>
-          <Ionicons
-            name="chevron-down-circle-outline"
-            size={16}
-            color={COLORS.white}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.titleButton}
+            onPress={() => setChoicesModal(true)}
+          >
+            <Text style={styles.categoriesTitle}>{selectedOption}</Text>
+            <Ionicons
+              name="chevron-down-circle-outline"
+              size={16}
+              color={COLORS.white}
+            />
+          </TouchableOpacity>
+          {!seeAllPressed ? (
+            <TouchableOpacity onPress={handleSeeAllPressed}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={{ flexDirection: "row", alignItems: "center" }}
+              onPress={handleSeeAllPressed}
+            >
+              <Ionicons name="arrow-back-outline" size={18} color={COLORS.title} />
+              <Text style={styles.seeAllText}>Back</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {loading ? (
@@ -345,16 +377,30 @@ const HomeScreen = () => {
             </View>
           ) : (
             <FlatList
+              key={seeAllPressed ? "twoColumns" : "oneColumn"}
               data={selectedOption === "Fur-Ever Friends" ? pets : petsPostedByMe}
               keyExtractor={(item) => item.id}
+              numColumns={seeAllPressed ? 2 : 1}
               renderItem={({ item }) => (
-                <View style={styles.buttonContainer}>
+                <View
+                  style={
+                    seeAllPressed
+                      ? styles.buttonContainerSeeAll
+                      : styles.buttonContainer
+                  }
+                >
                   <TouchableOpacity
-                    style={styles.petButton}
+                    style={seeAllPressed ? styles.petButtonSeeAll : styles.petButton}
                     onPress={() => navigation.navigate("DetailsPage", { pet: item })}
                   >
                     <View style={styles.petContainer}>
-                      <View style={styles.imageContainer}>
+                      <View
+                        style={
+                          seeAllPressed
+                            ? styles.imageContainerSeeAll
+                            : styles.imageContainer
+                        }
+                      >
                         <Image
                           source={{
                             uri: item.imageUrl,
@@ -364,15 +410,27 @@ const HomeScreen = () => {
                       </View>
 
                       <View style={styles.petDetails}>
-                        <View style={styles.petNameGender}>
-                          <Text style={styles.petName}>{item.name}</Text>
+                        <View
+                          style={
+                            seeAllPressed
+                              ? styles.petNameGenderSeeAll
+                              : styles.petNameGender
+                          }
+                        >
+                          <Text
+                            style={
+                              seeAllPressed ? styles.petNameSeeAll : styles.petName
+                            }
+                          >
+                            {item.name}
+                          </Text>
                           <Text>
                             {item.gender.toLowerCase() === "male" ? (
                               <View style={styles.genderIconContainer}>
                                 <Ionicons
                                   style={styles.petGenderIconMale}
                                   name="male"
-                                  size={24}
+                                  size={seeAllPressed ? 12 : 24}
                                   color={COLORS.male}
                                 />
                               </View>
@@ -381,7 +439,7 @@ const HomeScreen = () => {
                                 <Ionicons
                                   style={styles.petGenderIconFemale}
                                   name="female"
-                                  size={24}
+                                  size={seeAllPressed ? 12 : 24}
                                   color={COLORS.female}
                                 />
                               </View>
@@ -392,10 +450,20 @@ const HomeScreen = () => {
                           <View style={styles.iconAddress}>
                             <Ionicons
                               name="location-outline"
-                              size={24}
+                              size={seeAllPressed ? 12 : 24}
                               color={COLORS.prim}
                             />
-                            <Text style={styles.petAddress}>{item.location}</Text>
+                            <Text
+                              style={
+                                seeAllPressed
+                                  ? styles.petAddressSeeAll
+                                  : styles.petAddress
+                              }
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {item.location}
+                            </Text>
                           </View>
                         </View>
                       </View>

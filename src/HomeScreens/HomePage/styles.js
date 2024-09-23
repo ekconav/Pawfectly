@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
   },
   mainContainer: {
     flex: 1,
+    paddingBottom: 5,
   },
   header: {
     flexDirection: "row",
@@ -39,9 +40,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
   },
+  buttonContainerSeeAll: {
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+  },
   petButton: {
     borderRadius: 10,
     elevation: 2,
+  },
+  petButtonSeeAll: {
+    elevation: 2,
+    width: 135,
+    height: 200,
   },
   petContainer: {
     backgroundColor: COLORS.background,
@@ -54,10 +65,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.title,
   },
+  petNameSeeAll: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 12,
+    color: COLORS.title,
+  },
   imageContainer: {
     width: "100%",
     paddingHorizontal: 10,
     height: 230,
+    marginBottom: 10,
+    marginTop: 10,
+    alignContent: "center",
+    overflow: "hidden",
+  },
+  imageContainerSeeAll: {
+    width: "100%",
+    paddingHorizontal: 10,
+    height: 130,
     marginBottom: 10,
     marginTop: 10,
     alignContent: "center",
@@ -68,6 +93,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+    alignItems: "center",
   },
   petDetails: {
     paddingHorizontal: 10,
@@ -77,6 +103,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 7,
+    alignItems: "center",
+  },
+  petNameGenderSeeAll:{ 
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 3,
     alignItems: "center",
   },
   genderIconContainer: {
@@ -99,6 +131,11 @@ const styles = StyleSheet.create({
   petAddress: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
+  },
+  petAddressSeeAll: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    fontSize: 11,
   },
   noResultsContainer: {
     flex: 1,
@@ -125,19 +162,11 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     fontSize: 14,
     color: COLORS.white,
-    // marginBottom: 8,
-  },
-  categoryContainer: {
-    // marginBottom: 20,
   },
   categoryChoices: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 5,
-  },
-  categoryButtonContainer: {
-    flexDirection: "row",
-    gap: 8,
   },
   categoryButton: {
     flexDirection: "row",
@@ -243,6 +272,10 @@ const styles = StyleSheet.create({
     color: COLORS.title,
     fontFamily: "Poppins_400Regular",
     textAlign: "center",
+  },
+  seeAllText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
   },
 });
 

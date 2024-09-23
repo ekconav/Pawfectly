@@ -282,6 +282,69 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
+  adoptedText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
+  },
+  adoptedByContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  adopterImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  adoptedByUserInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  userFullName: {
+    flex: 1,
+    flexWrap: "wrap",
+    fontFamily: "Poppins_600SemiBold",
+    color: COLORS.title,
+  },
+
+  conversationWithContainer: {
+    flex: 1,
+    paddingVertical: 10,
+  },
+  conversationTitle: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.title,
+  },
+  noConversation: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+  },
+  conversationList: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    justifyContent: "space-between",
+    borderColor: COLORS.outline,
+    borderBottomWidth: 1,
+    paddingVertical: 5,
+  },
+  userInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  userAccountPicture: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  userName: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+  },
 });
 
 export default styles;
