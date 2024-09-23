@@ -10,6 +10,7 @@ import SheltersPage from "./components/screens/sheltersPage/sheltersPage";
 import TOSPage from "./components/screens/tosPage/tosPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoadingSpinner from "./components/screens/loadingPage/loadingSpinner";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [user, setUser] = useState(null);
