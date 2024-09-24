@@ -55,6 +55,11 @@ const CreateTOSModal = ({
               rows={3}
               placeholder="description"
               required
+              style={{
+                width: '100%', 
+                maxHeight: '50vh', 
+                resize: 'vertical',  
+              }}
             />
           </Form.Group>
           <Form.Group className="mb-3">
