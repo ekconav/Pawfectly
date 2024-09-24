@@ -8,8 +8,10 @@ import {
   onSnapshot,
   addDoc,
   getDocs,
+  deleteDoc,
   writeBatch,
   doc,
+  where,
 } from "firebase/firestore";
 import { db } from "../../../FirebaseConfig";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
@@ -188,6 +190,55 @@ const TOSPage = () => {
     }));
   };
 
+  const [selectedTOS, setSelectedTOS] = useState(null);
+
+  const [isDeleteTOSModalOpen, setDeleteTOSModalOpen] = useState(false);
+
+  const handleOpenDeleteModal = (tosItem) => {
+    setSelectedTOS(tosItem); // Store the selected TOS item to delete
+    setDeleteTOSModalOpen(true); // Show delete modal
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteTOSModalOpen(false); // Close modal
+  };
+
+  // Function to handle TOS deletion
+  const handleConfirmDelete = async () => {
+    if (selectedTOS?.id) {
+      try {
+
+        // delete the selected in the firebase
+        const docRef = doc(db, "TOS", selectedTOS.id); 
+        await deleteDoc(docRef);
+
+        const higherOrderQuery = query(
+          collection(db, "TOS"),
+          where("order", ">", selectedTOS.order)
+        );
+
+        const querySnapshot = await getDocs(higherOrderQuery);
+
+        //Decrement the order of TOS entries with higher orders
+        const batch = writeBatch(db); 
+        querySnapshot.forEach((docSnapshot) => {
+          const docRef = doc(db, "TOS", docSnapshot.id);
+          const newOrder = docSnapshot.data().order - 1;
+          batch.update(docRef, { order: newOrder });
+        });
+        await batch.commit();
+
+        setDeleteTOSModalOpen(false);
+        
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+        alert("Error deleting the TOS entry: " + error.message);
+      }
+    }
+  };
+
+
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -264,7 +315,7 @@ const TOSPage = () => {
                   <ion-icon
                     name="pencil"
                     style={styles.editIcon}
-                    // onClick={() => handleEditUser(selectedUser)}
+                    // onClick={() => handleOpenDeleteModal(TOSitem)}
                   ></ion-icon>
                 </div>
 
@@ -276,7 +327,7 @@ const TOSPage = () => {
                     cursor: "pointer",
                   }}
                   name="trash-outline"
-                  // onClick={() => handleDeleteButton(users)}
+                  onClick={() => handleOpenDeleteModal(TOSitem)}
                 ></ion-icon>
               </div>
             </div>
@@ -322,6 +373,13 @@ const TOSPage = () => {
           handleOrderChange={handleOrderChange}
           availableOrders={availableOrders}
         />
+      )}
+
+      {/* Delete Button Modal */}
+      {isDeleteTOSModalOpen && (
+        <Modal.DeleteModal onConfirm={handleConfirmDelete} onClose={handleCloseDeleteModal}>
+          <h3>Are you sure you want to delete {selectedTOS?.title}?</h3>
+        </Modal.DeleteModal>
       )}
     </div>
   );
