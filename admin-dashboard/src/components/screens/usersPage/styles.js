@@ -89,7 +89,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',  
     alignItems: 'center',
     width: '100%',                     
-    paddingBottom: '10px',             
+    paddingBottom: '10px',    
+    paddingTop: '10px',          
   },
   userInfoTitle: {
     flex: 1,                           
