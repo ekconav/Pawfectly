@@ -78,8 +78,12 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    handleSearch();
-  }, [searchQuery]);
+    if (selectedOption === "Fur-Ever Friends") {
+      handleSearch();
+    } else {
+      handleSearchPetsAdopted();
+    }
+  }, [searchQuery, selectedOption]);
 
   const fetchPets = () => {
     setLoading(true);
@@ -157,6 +161,29 @@ const HomeScreen = () => {
     });
 
     setPets(filteredPets);
+  };
+
+  const handleSearchPetsAdopted = () => {
+    if (!searchQuery.trim()) {
+      setPetsPostedByMe(allPetsPostedByMe);
+      return;
+    }
+
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+
+    const filteredPets = allPetsPostedByMe.filter((pet) => {
+      const { name, type, gender, age, breed, description } = pet;
+      return (
+        gender.toLowerCase() === lowerCaseSearchQuery ||
+        name.toLowerCase().includes(lowerCaseSearchQuery) ||
+        type.toLowerCase().includes(lowerCaseSearchQuery) ||
+        age.toLowerCase().includes(lowerCaseSearchQuery) ||
+        breed.toLowerCase().includes(lowerCaseSearchQuery) ||
+        description.toLowerCase().includes(lowerCaseSearchQuery)
+      );
+    });
+
+    setPetsPostedByMe(filteredPets);
   };
 
   const handleCategoryFilter = (category) => {
