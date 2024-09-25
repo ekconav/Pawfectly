@@ -33,6 +33,9 @@ const HomeScreenPet = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [seeAllPressed, setSeeAllPressed] = useState(false);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -134,6 +137,10 @@ const HomeScreenPet = () => {
     setRefreshing(false);
   }, []);
 
+  const handleSeeAllPressed = () => {
+    setSeeAllPressed((prevState) => !prevState);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -151,54 +158,54 @@ const HomeScreenPet = () => {
         </TouchableOpacity>
       </View>
 
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onSearch={handleSearch}
-      />
+      {!seeAllPressed && (
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      )}
 
       <View style={styles.categoryContainer}>
-        <Text style={styles.categoriesTitle}>Pets for Adoption</Text>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View style={styles.categoryButtonContainer}>
-            <TouchableOpacity
+        <View style={styles.categoryChoices}>
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "cat" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("cat")}
+          >
+            <Image style={styles.categoryIcon} source={catIcon} />
+            <Text
               style={[
-                styles.categoryButton,
-                activeCategory === "cat" && { backgroundColor: COLORS.prim },
+                styles.categoryName,
+                activeCategory === "cat" && { color: COLORS.white },
               ]}
-              onPress={() => handleCategoryFilter("cat")}
             >
-              <Image style={styles.categoryIcon} source={catIcon} />
-              <Text
-                style={[
-                  styles.categoryName,
-                  activeCategory === "cat" && { color: COLORS.white },
-                ]}
-              >
-                {" "}
-                Cat
-              </Text>
-            </TouchableOpacity>
+              {" "}
+              Cat
+            </Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "dog" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("dog")}
+          >
+            <Image style={styles.categoryIcon} source={dogIcon} />
+            <Text
               style={[
-                styles.categoryButton,
-                activeCategory === "dog" && { backgroundColor: COLORS.prim },
+                styles.categoryName,
+                activeCategory === "dog" && { color: COLORS.white },
               ]}
-              onPress={() => handleCategoryFilter("dog")}
             >
-              <Image style={styles.categoryIcon} source={dogIcon} />
-              <Text
-                style={[
-                  styles.categoryName,
-                  activeCategory === "dog" && { color: COLORS.white },
-                ]}
-              >
-                {" "}
-                Dog
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {" "}
+              Dog
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[
               styles.categoryButton,
@@ -219,6 +226,28 @@ const HomeScreenPet = () => {
           </TouchableOpacity>
         </View>
       </View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Text style={styles.categoriesTitle}>Pets for Adoption</Text>
+        {!seeAllPressed ? (
+          <TouchableOpacity onPress={handleSeeAllPressed}>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={{ flexDirection: "row", alignItems: "center" }}
+            onPress={handleSeeAllPressed}
+          >
+            <Ionicons name="arrow-back-outline" size={18} color={COLORS.title} />
+            <Text style={styles.seeAllText}>Back</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {pets.length === 0 ? (
         <View style={styles.noResultsContainer}>
@@ -229,29 +258,55 @@ const HomeScreenPet = () => {
       ) : (
         <View style={styles.mainContainer}>
           <FlatList
+            key={seeAllPressed ? "twoColumns" : "oneColumn"}
             data={pets}
             keyExtractor={(item) => item.id}
+            numColumns={seeAllPressed ? 2 : 1}
             renderItem={({ item }) => (
-              <View style={styles.buttonContainer}>
+              <View
+                style={
+                  seeAllPressed
+                    ? styles.buttonContainerSeeAll
+                    : styles.buttonContainer
+                }
+              >
                 <TouchableOpacity
-                  style={styles.petButton}
+                  style={seeAllPressed ? styles.petButtonSeeAll : styles.petButton}
                   onPress={() => navigation.navigate("PetDetails", { pet: item })}
                 >
                   <View style={styles.petContainer}>
-                    <View style={styles.imageContainer}>
+                    <View
+                      style={
+                        seeAllPressed
+                          ? styles.imageContainerSeeAll
+                          : styles.imageContainer
+                      }
+                    >
                       <Image source={{ uri: item.images }} style={styles.petImage} />
                     </View>
 
                     <View style={styles.petDetails}>
-                      <View style={styles.petNameGender}>
-                        <Text style={styles.petName}>{item.name}</Text>
+                      <View
+                        style={
+                          seeAllPressed
+                            ? styles.petNameGenderSeeAll
+                            : styles.petNameGender
+                        }
+                      >
+                        <Text
+                          style={
+                            seeAllPressed ? styles.petNameSeeAll : styles.petName
+                          }
+                        >
+                          {item.name}
+                        </Text>
 
                         {item.gender.toLowerCase() === "male" ? (
                           <View style={styles.genderIconContainer}>
                             <Ionicons
                               style={styles.petGenderIconMale}
                               name="male"
-                              size={24}
+                              size={seeAllPressed ? 12 : 24}
                               color={COLORS.male}
                             />
                           </View>
@@ -260,14 +315,20 @@ const HomeScreenPet = () => {
                             <Ionicons
                               style={styles.petGenderIconFemale}
                               name="female"
-                              size={24}
+                              size={seeAllPressed ? 12 : 24}
                               color={COLORS.female}
                             />
                           </View>
                         )}
                       </View>
                       <View style={styles.ageContainer}>
-                        <Text style={styles.ageText}>Age: {item.age}</Text>
+                        <Text
+                          style={styles.ageText}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          Age: {item.age}
+                        </Text>
                       </View>
                     </View>
                   </View>
