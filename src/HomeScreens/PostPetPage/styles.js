@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
-  editPetContainer: {
+  addPetContainer: {
     flex: 1,
   },
   addImageContainer: {
@@ -70,6 +70,15 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     color: COLORS.black,
   },
+  addPetDescriptionInput: {
+    borderWidth: 1,
+    borderColor: COLORS.outline,
+    height: 75,
+    borderRadius: 10,
+    padding: 5,
+    paddingHorizontal: 10,
+    fontFamily: "Poppins_400Regular",
+  },
   inputCheckboxContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -79,14 +88,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-  },
-  inputRescuedCheckboxContainer: {
-    flexDirection: "row",
-    gap: 101,
-  },
-  inputCheckboxContainerAdoptionFee: {
-    flexDirection: "row",
-    gap: 15,
   },
   typeText: {
     fontFamily: "Poppins_400Regular",
@@ -110,14 +111,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 45,
   },
-  addPetDescriptionInput: {
-    borderWidth: 1,
-    borderColor: COLORS.outline,
-    height: 75,
-    borderRadius: 10,
-    padding: 5,
-    paddingHorizontal: 10,
-    fontFamily: "Poppins_400Regular",
+  inputCheckboxContainerAdoptionFee: {
+    flexDirection: "row",
+    gap: 15,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -125,7 +121,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingVertical: 10,
   },
-  clearButton: {
+  cancelButton: {
     backgroundColor: COLORS.subtitle,
     padding: 10,
     borderRadius: 10,
@@ -186,6 +182,7 @@ const styles = StyleSheet.create({
   modalText: {
     color: COLORS.title,
     fontFamily: "Poppins_400Regular",
+    // textAlign: "justify",
   },
   modalButton: {
     backgroundColor: COLORS.prim,

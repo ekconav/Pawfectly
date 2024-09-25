@@ -9,6 +9,8 @@ import FavoritesPage from "./HomeScreens/Favorites/FavoritesPage";
 import MessagePage from "./HomeScreens/MessagePage/MessagePage";
 import SettingsPage from "./HomeScreens/SettingsPage/SettingsPage";
 import ConversationPage from "./HomeScreens/ConversationsPage/ConversationPage";
+import PostPetPage from "./HomeScreens/PostPetPage/PostPetPage";
+import EditPostPetPage from "./HomeScreens/PostPetPage/EditPostPetPage/EditPostPetPage";
 
 const Stack = createStackNavigator();
 
@@ -43,6 +45,16 @@ const UserStack = () => {
       <Stack.Screen
         name="ConversationPage"
         component={ConversationPage}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PostPetPage"
+        component={PostPetPage}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="EditPostPetPage"
+        component={EditPostPetPage}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

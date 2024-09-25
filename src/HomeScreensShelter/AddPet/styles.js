@@ -92,7 +92,11 @@ const styles = StyleSheet.create({
   typeText: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
-    marginRight: 45,
+  },
+  typeTextAdoptionFee: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    marginRight: 44,
   },
   typeGender: {
     fontFamily: "Poppins_400Regular",

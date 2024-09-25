@@ -43,7 +43,9 @@ const MessagePageShelter = ({ route }) => {
   const [petName, setPetName] = useState("");
   const [userExist, setUserExist] = useState(true);
   const [petExist, setPetExist] = useState(true);
-  const [petAdopted, setPetAdopted] = useState(false);
+  const [petAdoptedByAnotherUser, setPetAdoptedByAnotherUser] = useState(false);
+  const [petAdoptedByUser, setPetAdoptedByUser] = useState(false);
+
   const [userMobileNumber, setUserMobileNumber] = useState("");
   const [loading, setLoading] = useState(true);
   const [alertModal, setAlertModal] = useState(false);
@@ -61,10 +63,9 @@ const MessagePageShelter = ({ route }) => {
         const userDocRef = doc(db, "users", userId);
         const petDocRef = doc(db, "pets", petId);
 
-        const [shelterDoc, userDoc, petDoc] = await Promise.all([
+        const [shelterDoc, userDoc] = await Promise.all([
           getDoc(shelterDocRef),
           getDoc(userDocRef),
-          getDoc(petDocRef),
         ]);
 
         if (shelterDoc.exists()) {
@@ -81,13 +82,22 @@ const MessagePageShelter = ({ route }) => {
           setUserExist(false);
         }
 
-        if (!petDoc.exists()) {
-          setPetExist(false);
-        } else {
-          const petData = petDoc.data();
-          setPetName(petData.name);
-          setPetAdopted(petData.adopted || false);
-        }
+        const unsubscribePet = onSnapshot(petDocRef, (snapshot) => {
+          if (!snapshot.exists()) {
+            setPetExist(false);
+          } else {
+            const petData = snapshot.data();
+            setPetName(petData.name);
+            if (petData.adopted && petData.adoptedBy === userId) {
+              setPetAdoptedByUser(true);
+            } else if (petData.adopted && petData.adoptedBy !== userId) {
+              setPetAdoptedByAnotherUser(true);
+            } else {
+              setPetAdoptedByUser(false);
+              setPetAdoptedByAnotherUser(false);
+            }
+          }
+        });
 
         const messagesRef = collection(
           db,
@@ -98,7 +108,7 @@ const MessagePageShelter = ({ route }) => {
           "messages"
         );
         const q = query(messagesRef, orderBy("timestamp", "asc"));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
+        const unsubscribeMessages = onSnapshot(q, (snapshot) => {
           const messagesData = snapshot.docs
             .map((doc) => ({
               id: doc.id,
@@ -108,9 +118,13 @@ const MessagePageShelter = ({ route }) => {
           setMessages(messagesData);
         });
 
-        return () => unsubscribe();
+        // Clean up listeners
+        return () => {
+          unsubscribePet();
+          unsubscribeMessages();
+        };
       } catch (error) {
-        console.error("Error fetching data: ", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -157,7 +171,7 @@ const MessagePageShelter = ({ route }) => {
     fetchAdoptionMessage();
   }, [conversationId, petId, currentUser, petName]);
 
-  const updateConversation = async (conversationRef, newMessage) => {
+  const updateConversation = async (conversationRef, newMessage, isSender) => {
     const conversationSnap = await getDoc(conversationRef);
     if (!conversationSnap.exists()) {
       await setDoc(conversationRef, {
@@ -165,16 +179,14 @@ const MessagePageShelter = ({ route }) => {
         lastTimestamp: serverTimestamp(),
         participants: [userId, currentUser.uid],
         petId: petId,
-        senderRead: false,
-        receiverRead: true,
+        seen: isSender ? true : false,
       });
     } else {
       await updateDoc(conversationRef, {
         lastMessage: newMessage,
         lastTimestamp: serverTimestamp(),
         petId: petId,
-        senderRead: false,
-        receiverRead: true,
+        seen: isSender ? true : false,
       });
     }
   };
@@ -220,11 +232,13 @@ const MessagePageShelter = ({ route }) => {
       await Promise.all([
         updateConversation(
           doc(db, "shelters", currentUser.uid, "conversations", conversationId),
-          newMessage
+          newMessage,
+          true
         ),
         updateConversation(
           doc(db, "users", userId, "conversations", conversationId),
-          newMessage
+          newMessage,
+          false
         ),
       ]);
 
@@ -294,11 +308,13 @@ const MessagePageShelter = ({ route }) => {
       await Promise.all([
         updateConversation(
           doc(db, "shelters", currentUser.uid, "conversations", conversationId),
-          "Image"
+          "Image",
+          true
         ),
         updateConversation(
           doc(db, "users", userId, "conversations", conversationId),
-          "Image"
+          "Image",
+          false
         ),
       ]);
     } catch (error) {
@@ -312,8 +328,6 @@ const MessagePageShelter = ({ route }) => {
     try {
       const petRef = doc(db, "pets", petId);
       const petSnap = await getDoc(petRef);
-
-      const petsAdoptedCollection = collection(db, "users", userId, "petsAdopted");
 
       if (petSnap.exists()) {
         const petData = petSnap.data();
@@ -339,7 +353,6 @@ const MessagePageShelter = ({ route }) => {
           userId: petData.userId,
         });
 
-        setPetAdopted(true);
         console.log("Pet successfully adopted!");
       }
     } catch (error) {
@@ -472,7 +485,7 @@ const MessagePageShelter = ({ route }) => {
           <Ionicons name="call" size={24} color={COLORS.prim} />
         </TouchableOpacity>
       </View>
-      {messageSent && !petAdopted && userExist ? (
+      {messageSent && !petAdoptedByUser && !petAdoptedByAnotherUser && userExist ? (
         <View style={styles.subHeader}>
           <Text style={styles.subHeaderText}>
             <Text style={styles.userName}>{userName}</Text> wants to adopt {petName}.
@@ -484,10 +497,17 @@ const MessagePageShelter = ({ route }) => {
             <Text style={styles.approveText}>Approve</Text>
           </TouchableOpacity>
         </View>
-      ) : petAdopted ? (
+      ) : petAdoptedByUser ? (
         <View style={styles.subHeader}>
           <Text style={styles.subHeaderText}>
             <Text style={styles.userName}>{userName}</Text> has adopted {petName}!
+          </Text>
+        </View>
+      ) : petAdoptedByAnotherUser ? (
+        <View style={styles.subHeader}>
+          <Text style={styles.subHeaderText}>
+            <Text style={styles.userName}>{petName}</Text> has been adopted by
+            another user.
           </Text>
         </View>
       ) : null}

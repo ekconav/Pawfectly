@@ -94,20 +94,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  addPetButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: COLORS.prim,
-    borderRadius: 10,
-    padding: 8,
-    elevation: 1,
-  },
-  addPetButtonText: {
-    color: COLORS.white,
-    fontFamily: "Poppins_400Regular",
-    fontSize: 12,
-  },
 
   // Add Pet Modal Container
   addPetModalOverlay: {
@@ -272,11 +258,15 @@ const styles = StyleSheet.create({
     padding: 2,
     borderRadius: 50,
   },
-  petBreedText: {
+  petLocation: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 5,
+  },
+  locationText: {
     fontFamily: "Poppins_400Regular",
     fontSize: 11,
     color: COLORS.title,
-    paddingHorizontal: 7,
   },
 
   // Settings Modal
@@ -373,7 +363,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     elevation: 5,
-    height: 123,
+    height: 181,
   },
   choicesDropdown: {
     paddingVertical: 18,

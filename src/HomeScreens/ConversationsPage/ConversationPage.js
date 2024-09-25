@@ -19,6 +19,7 @@ import {
   limit,
   deleteDoc,
   getDocs,
+  getDoc,
 } from "firebase/firestore";
 import { Swipeable } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
@@ -41,6 +42,8 @@ const ConversationPage = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const swipeableRefs = useRef({});
 
+  const currentUser = auth.currentUser;
+
   useEffect(() => {
     const fetchConversations = async () => {
       setLoading(true);
@@ -54,6 +57,8 @@ const ConversationPage = ({ navigation }) => {
           currentUser.uid,
           "conversations"
         );
+
+        // Fetch conversations involving the current user
         const q = query(
           conversationsRef,
           where("participants", "array-contains", currentUser.uid),
@@ -66,21 +71,24 @@ const ConversationPage = ({ navigation }) => {
             ...doc.data(),
           }));
 
-          const shelterListeners = conversationsData.map((conversation) => {
-            const shelterId = conversation.participants[1];
+          const participantsListeners = conversationsData.map((conversation) => {
+            const otherParticipantId = conversation.participants.find(
+              (participant) => participant !== currentUser.uid
+            );
 
-            return listenToShelterData(shelterId, (shelterData) => {
+            return listenToUserOrShelterData(otherParticipantId, (data) => {
               setShelterNames((prev) => ({
                 ...prev,
-                [conversation.id]: shelterData.shelterName,
+                [conversation.id]: data.name,
               }));
               setShelterImage((prev) => ({
                 ...prev,
-                [conversation.id]: shelterData.accountPicture,
+                [conversation.id]: data.image,
               }));
             });
           });
 
+          // Fetch last messages
           const lastMessagesPromises = conversationsData.map((conversation) =>
             getLastMessage(conversation.id)
           );
@@ -96,7 +104,7 @@ const ConversationPage = ({ navigation }) => {
           setLoading(false);
 
           return () => {
-            shelterListeners.forEach((unsubscribe) => unsubscribe());
+            participantsListeners.forEach((unsubscribe) => unsubscribe());
           };
         });
 
@@ -110,29 +118,43 @@ const ConversationPage = ({ navigation }) => {
     fetchConversations();
   }, []);
 
-  const listenToShelterData = (receiverId, onDataChange) => {
+  // Listen to data from either "shelters" or "users" based on the participant ID
+  const listenToUserOrShelterData = (participantId, onDataChange) => {
     try {
-      const shelterRef = doc(db, "shelters", receiverId);
+      const shelterRef = doc(db, "shelters", participantId);
 
-      const unsubscribe = onSnapshot(shelterRef, (shelterDoc) => {
+      const unsubscribe = onSnapshot(shelterRef, async (shelterDoc) => {
         if (shelterDoc.exists()) {
-          const data = shelterDoc.data();
+          const shelterData = shelterDoc.data();
           onDataChange({
-            shelterName: data.shelterName || "Pawfectly User",
-            accountPicture: data.accountPicture,
+            name: shelterData.shelterName || "Pawfectly User",
+            image: shelterData.accountPicture || null,
           });
         } else {
-          onDataChange({
-            shelterName: "Pawfectly User",
-          });
+          const userRef = doc(db, "users", participantId);
+          const userDoc = await getDoc(userRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            onDataChange({
+              name: `${userData.firstName} ${userData.lastName}` || "Pawfectly User",
+              image: userData.accountPicture || null,
+            });
+          } else {
+            onDataChange({
+              name: "Pawfectly User",
+              image: null,
+            });
+          }
         }
       });
 
       return unsubscribe;
     } catch (error) {
-      console.error("Error listening to shelter data:", error);
+      console.error("Error listening to user/shelter data:", error);
       onDataChange({
-        shelterName: "Pawfectly User",
+        name: "Pawfectly User",
+        image: null,
       });
     }
   };
@@ -170,13 +192,13 @@ const ConversationPage = ({ navigation }) => {
         conversationId
       );
       await updateDoc(conversationRef, {
-        senderRead: true,
+        seen: true,
       });
     } catch (error) {
       console.error("Error updating senderRead:", error);
     }
 
-    navigation.navigate("MessagePage", { conversationId, petId, shelterId });
+    navigation.navigate("MessagePage", { conversationId, shelterId, petId });
   };
 
   const handleDeleteConversation = async (conversationId) => {
@@ -270,10 +292,11 @@ const ConversationPage = ({ navigation }) => {
             renderItem={({ item }) => {
               let lastMessageText = item.lastMessage;
               if (item.lastMessage === "Image") {
+                const senderId = lastMessages[item.id]?.senderId;
                 lastMessageText =
-                  item.participants[0] === lastMessages[item.id]?.senderId
+                  senderId === currentUser.uid
                     ? "You sent a photo"
-                    : `${shelterNames[item.id]} sent a photo`;
+                    : `${shelterNames[item.id]} sent a photo.`;
               } else {
                 lastMessageText = item.lastMessage;
               }
@@ -297,7 +320,7 @@ const ConversationPage = ({ navigation }) => {
                   <TouchableOpacity
                     style={[
                       styles.conversationItem,
-                      !item.senderRead && styles.unreadConversation,
+                      !item.seen && styles.unreadConversation,
                     ]}
                     onPress={() =>
                       navigateToMessages(item.id, item.petId, item.participants[1])
@@ -316,7 +339,7 @@ const ConversationPage = ({ navigation }) => {
                         <Text
                           style={[
                             styles.shelterName,
-                            !item.senderRead && styles.unreadConversation,
+                            !item.seen && styles.unreadConversation,
                           ]}
                           numberOfLines={1}
                           ellipsizeMode="tail"
@@ -326,7 +349,7 @@ const ConversationPage = ({ navigation }) => {
                         <Text
                           style={[
                             styles.lastMessage,
-                            !item.senderRead && styles.unreadConversation,
+                            !item.seen && styles.unreadConversation,
                           ]}
                           numberOfLines={1}
                           ellipsizeMode="tail"

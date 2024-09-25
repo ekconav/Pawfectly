@@ -16,6 +16,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import FavoritesPage from "../Favorites/FavoritesPage";
 import { SettingOptions } from "../SettingsPage/SettingStack";
 import { Ionicons } from "@expo/vector-icons";
+import Modal from "react-native-modal";
 import SearchBar from "./SearchBar/SearchBar";
 import styles from "./styles";
 import ConversationPage from "../ConversationsPage/ConversationPage";
@@ -23,11 +24,13 @@ import COLORS from "../../const/colors";
 import catIcon from "../../components/catIcon.png";
 import dogIcon from "../../components/dogIcon.png";
 import turtleIcon from "../../components/turtleIcon.png";
+import adopter from "../../components/adopter.png";
 
 const Tab = createBottomTabNavigator();
 
 const HomeScreen = () => {
   const [pets, setPets] = useState([]);
+  const [allPetsPostedByMe, setAllPetsPostedByMe] = useState([]);
   const [firstName, setFirstName] = useState("");
   const [allPets, setAllPets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +38,18 @@ const HomeScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [profileImage, setProfileImage] = useState("");
   const [activeCategory, setActiveCategory] = useState(null);
+
+  const [userVerified, setUserVerified] = useState(false);
+  const [userVerifiedModal, setUserVerifiedModal] = useState(false);
+
+  const [modalMessage, setModalMessage] = useState("");
+
+  const [choicesModal, setChoicesModal] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("Fur-Ever Friends");
+  const [petsPostedByMe, setPetsPostedByMe] = useState([]);
+
+  const [seeAllPressed, setSeeAllPressed] = useState(false);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -51,6 +66,7 @@ const HomeScreen = () => {
               : require("../../components/user.png")
           );
           setFirstName(userData.firstName || "");
+          setUserVerified(userData.verified);
         }
       }
     );
@@ -69,22 +85,51 @@ const HomeScreen = () => {
     setLoading(true);
     try {
       const petsCollectionRef = collection(db, "pets");
-      const petsQuery = query(petsCollectionRef, where("adopted", "==", false));
 
-      const unsubscribe = onSnapshot(petsQuery, async (querySnapshot) => {
-        const petsData = await Promise.all(
+      const otherPetsQuery = query(
+        petsCollectionRef,
+        where("adopted", "==", false),
+        where("userId", "!=", auth.currentUser.uid)
+      );
+
+      const myPetsQuery = query(
+        petsCollectionRef,
+        where("adopted", "==", false),
+        where("userId", "==", auth.currentUser.uid)
+      );
+
+      const unsubscribeOtherPets = onSnapshot(
+        otherPetsQuery,
+        async (querySnapshot) => {
+          const petsData = await Promise.all(
+            querySnapshot.docs.map(async (doc) => {
+              const petData = doc.data();
+              const imageUrl = await getDownloadURL(ref(storage, petData.images));
+              return { id: doc.id, ...petData, imageUrl };
+            })
+          );
+          setPets(petsData);
+          setAllPets(petsData);
+          setLoading(false);
+        }
+      );
+
+      const unsubscribeMyPets = onSnapshot(myPetsQuery, async (querySnapshot) => {
+        const myPetsData = await Promise.all(
           querySnapshot.docs.map(async (doc) => {
             const petData = doc.data();
             const imageUrl = await getDownloadURL(ref(storage, petData.images));
             return { id: doc.id, ...petData, imageUrl };
           })
         );
-        setPets(petsData);
-        setAllPets(petsData);
-        setLoading(false);
+        setPetsPostedByMe(myPetsData);
+        setAllPetsPostedByMe(myPetsData);
       });
 
-      return unsubscribe;
+      return () => {
+        unsubscribeOtherPets();
+        unsubscribeMyPets();
+      };
     } catch (error) {
       console.error("Error fetching pet data: ", error);
       setLoading(false);
@@ -117,10 +162,25 @@ const HomeScreen = () => {
   const handleCategoryFilter = (category) => {
     if (activeCategory === category) {
       setActiveCategory(null);
-      setPets(allPets);
+      if (selectedOption === "Fur-Ever Friends") {
+        setPets(allPets);
+      } else {
+        setPetsPostedByMe(allPetsPostedByMe);
+      }
     } else {
       setActiveCategory(category);
-      setPets(allPets.filter((pet) => pet.type.toLowerCase() === category));
+
+      if (selectedOption === "Fur-Ever Friends") {
+        const filteredPets = allPets.filter(
+          (pet) => pet.type.toLowerCase() === category.toLowerCase()
+        );
+        setPets(filteredPets);
+      } else {
+        const filteredPetsPostedByMe = allPetsPostedByMe.filter(
+          (pet) => pet.type.toLowerCase() === category.toLowerCase()
+        );
+        setPetsPostedByMe(filteredPetsPostedByMe);
+      }
     }
   };
 
@@ -129,6 +189,38 @@ const HomeScreen = () => {
     fetchPets();
     setRefreshing(false);
   }, []);
+
+  const handleClickAdopter = () => {
+    if (userVerified) {
+      navigation.navigate("PostPetPage");
+    } else {
+      setModalMessage("Sorry, your account is not yet verified.");
+      setUserVerifiedModal(true);
+    }
+  };
+
+  const handleChoiceSelect = (option) => {
+    setSelectedOption(option);
+    setChoicesModal(false);
+
+    if (activeCategory) {
+      if (option === "Fur-Ever Friends") {
+        const filteredPets = allPets.filter(
+          (pet) => pet.type.toLowerCase() === activeCategory.toLowerCase()
+        );
+        setPets(filteredPets);
+      } else {
+        const filteredPetsPostedByMe = allPetsPostedByMe.filter(
+          (pet) => pet.type.toLowerCase() === activeCategory.toLowerCase()
+        );
+        setPetsPostedByMe(filteredPetsPostedByMe);
+      }
+    }
+  };
+
+  const handleSeeAllPressed = () => {
+    setSeeAllPressed((prevState) => !prevState);
+  };
 
   if (loading) {
     return (
@@ -147,53 +239,70 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onSearch={handleSearch}
-      />
+      {!seeAllPressed && (
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      )}
 
-      <View style={styles.categoryContainer}>
-        <Text style={styles.categoriesTitle}>Fur-Ever Friends</Text>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View style={styles.categoryButtonContainer}>
+      {!seeAllPressed && (
+        <View style={styles.adopterContainer}>
+          <View style={{ flex: 1, justifyContent: "space-around" }}>
+            <Text style={styles.adopterText}>
+              Got any furbabies up for adoption?
+            </Text>
             <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                activeCategory === "cat" && { backgroundColor: COLORS.prim },
-              ]}
-              onPress={() => handleCategoryFilter("cat")}
+              style={styles.adopterButton}
+              onPress={handleClickAdopter}
             >
-              <Image style={styles.categoryIcon} source={catIcon} />
-              <Text
-                style={[
-                  styles.categoryName,
-                  activeCategory === "cat" && { color: COLORS.white },
-                ]}
-              >
-                {" "}
-                Cat
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                activeCategory === "dog" && { backgroundColor: COLORS.prim },
-              ]}
-              onPress={() => handleCategoryFilter("dog")}
-            >
-              <Image style={styles.categoryIcon} source={dogIcon} />
-              <Text
-                style={[
-                  styles.categoryName,
-                  activeCategory === "dog" && { color: COLORS.white },
-                ]}
-              >
-                {" "}
-                Dog
-              </Text>
+              <Text style={styles.adopterButtonText}>Click Here</Text>
             </TouchableOpacity>
           </View>
+          <Image source={adopter} style={styles.adopterImage} />
+        </View>
+      )}
+
+      <View style={styles.categoryContainer}>
+        <View style={styles.categoryChoices}>
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "cat" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("cat")}
+          >
+            <Image style={styles.categoryIcon} source={catIcon} />
+            <Text
+              style={[
+                styles.categoryName,
+                activeCategory === "cat" && { color: COLORS.white },
+              ]}
+            >
+              {" "}
+              Cat
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "dog" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("dog")}
+          >
+            <Image style={styles.categoryIcon} source={dogIcon} />
+            <Text
+              style={[
+                styles.categoryName,
+                activeCategory === "dog" && { color: COLORS.white },
+              ]}
+            >
+              {" "}
+              Dog
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[
               styles.categoryButton,
@@ -213,81 +322,194 @@ const HomeScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <TouchableOpacity
+            style={styles.titleButton}
+            onPress={() => setChoicesModal(true)}
+          >
+            <Text style={styles.categoriesTitle}>{selectedOption}</Text>
+            <Ionicons
+              name="chevron-down-circle-outline"
+              size={16}
+              color={COLORS.white}
+            />
+          </TouchableOpacity>
+          {!seeAllPressed ? (
+            <TouchableOpacity onPress={handleSeeAllPressed}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={{ flexDirection: "row", alignItems: "center" }}
+              onPress={handleSeeAllPressed}
+            >
+              <Ionicons name="arrow-back-outline" size={18} color={COLORS.title} />
+              <Text style={styles.seeAllText}>Back</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      {pets.length === 0 ? (
-        <View style={styles.noResultsContainer}>
-          <Text style={styles.noResultsText}>
-            Unfortunately, we couldn't find anything.
-          </Text>
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <ActivityIndicator size="large" color={COLORS.prim} />
         </View>
       ) : (
         <View style={styles.mainContainer}>
-          <FlatList
-            data={pets}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={styles.petButton}
-                  onPress={() => navigation.navigate("DetailsPage", { pet: item })}
+          {selectedOption === "Fur-Ever Friends" && pets.length === 0 ? (
+            <View style={styles.noResultsContainer}>
+              <Text style={styles.noResultsText}>
+                Unfortunately, we couldn't find anything in Fur-Ever Friends.
+              </Text>
+            </View>
+          ) : selectedOption !== "Fur-Ever Friends" &&
+            petsPostedByMe.length === 0 ? (
+            <View style={styles.noResultsContainer}>
+              <Text style={styles.noResultsText}>
+                You haven't posted any pets yet.
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              key={seeAllPressed ? "twoColumns" : "oneColumn"}
+              data={selectedOption === "Fur-Ever Friends" ? pets : petsPostedByMe}
+              keyExtractor={(item) => item.id}
+              numColumns={seeAllPressed ? 2 : 1}
+              renderItem={({ item }) => (
+                <View
+                  style={
+                    seeAllPressed
+                      ? styles.buttonContainerSeeAll
+                      : styles.buttonContainer
+                  }
                 >
-                  <View style={styles.petContainer}>
-                    <View style={styles.imageContainer}>
-                      <Image
-                        source={{
-                          uri: item.imageUrl,
-                        }}
-                        style={styles.petImage}
-                      />
-                    </View>
-
-                    <View style={styles.petDetails}>
-                      <View style={styles.petNameGender}>
-                        <Text style={styles.petName}>{item.name}</Text>
-                        <Text>
-                          {item.gender.toLowerCase() === "male" ? (
-                            <View style={styles.genderIconContainer}>
-                              <Ionicons
-                                style={styles.petGenderIconMale}
-                                name="male"
-                                size={24}
-                                color={COLORS.male}
-                              />
-                            </View>
-                          ) : (
-                            <View style={styles.genderIconContainer}>
-                              <Ionicons
-                                style={styles.petGenderIconFemale}
-                                name="female"
-                                size={24}
-                                color={COLORS.female}
-                              />
-                            </View>
-                          )}
-                        </Text>
+                  <TouchableOpacity
+                    style={seeAllPressed ? styles.petButtonSeeAll : styles.petButton}
+                    onPress={() => navigation.navigate("DetailsPage", { pet: item })}
+                  >
+                    <View style={styles.petContainer}>
+                      <View
+                        style={
+                          seeAllPressed
+                            ? styles.imageContainerSeeAll
+                            : styles.imageContainer
+                        }
+                      >
+                        <Image
+                          source={{
+                            uri: item.imageUrl,
+                          }}
+                          style={styles.petImage}
+                        />
                       </View>
-                      <View>
-                        <View style={styles.iconAddress}>
-                          <Ionicons
-                            name="location-outline"
-                            size={24}
-                            color={COLORS.prim}
-                          />
-                          <Text style={styles.petAddress}>{item.location}</Text>
+
+                      <View style={styles.petDetails}>
+                        <View
+                          style={
+                            seeAllPressed
+                              ? styles.petNameGenderSeeAll
+                              : styles.petNameGender
+                          }
+                        >
+                          <Text
+                            style={
+                              seeAllPressed ? styles.petNameSeeAll : styles.petName
+                            }
+                          >
+                            {item.name}
+                          </Text>
+                          <Text>
+                            {item.gender.toLowerCase() === "male" ? (
+                              <View style={styles.genderIconContainer}>
+                                <Ionicons
+                                  style={styles.petGenderIconMale}
+                                  name="male"
+                                  size={seeAllPressed ? 12 : 24}
+                                  color={COLORS.male}
+                                />
+                              </View>
+                            ) : (
+                              <View style={styles.genderIconContainer}>
+                                <Ionicons
+                                  style={styles.petGenderIconFemale}
+                                  name="female"
+                                  size={seeAllPressed ? 12 : 24}
+                                  color={COLORS.female}
+                                />
+                              </View>
+                            )}
+                          </Text>
+                        </View>
+                        <View>
+                          <View style={styles.iconAddress}>
+                            <Ionicons
+                              name="location-outline"
+                              size={seeAllPressed ? 12 : 24}
+                              color={COLORS.prim}
+                            />
+                            <Text
+                              style={
+                                seeAllPressed
+                                  ? styles.petAddressSeeAll
+                                  : styles.petAddress
+                              }
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {item.location}
+                            </Text>
+                          </View>
                         </View>
                       </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          />
+                  </TouchableOpacity>
+                </View>
+              )}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+            />
+          )}
         </View>
       )}
+      <Modal isVisible={userVerifiedModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setUserVerifiedModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal isVisible={choicesModal} onRequestClose={() => setChoicesModal(false)}>
+        <TouchableOpacity
+          style={styles.choicesModalOverlay}
+          activeOpacity={1}
+          onPress={() => setChoicesModal(false)}
+        >
+          <View style={styles.choicesOptions}>
+            {["Fur-Ever Friends", "Pets Posted"].map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => handleChoiceSelect(option)}
+                style={styles.choicesDropdown}
+              >
+                <Text style={styles.choicesDropdownText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };

@@ -1,81 +1,84 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  View,
+  Image,
+  KeyboardAvoidingView,
   Text,
   TouchableOpacity,
-  Image,
-  TextInput,
+  View,
   ScrollView,
-  KeyboardAvoidingView,
+  TextInput,
 } from "react-native";
+import { auth, db, storage } from "../../../FirebaseConfig";
+import { onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { useNavigation } from "@react-navigation/native";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Ionicons } from "@expo/vector-icons";
-import { storage, db } from "../../FirebaseConfig";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import {
-  collection,
-  addDoc,
-  getDoc,
-  doc,
-  serverTimestamp,
-  onSnapshot,
-} from "firebase/firestore";
-import { auth } from "../../FirebaseConfig";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Modal from "react-native-modal";
-import * as ImagePicker from "expo-image-picker";
 import Checkbox from "expo-checkbox";
-import styles from "../AddPet/styles";
-import COLORS from "../../const/colors";
+import * as ImagePicker from "expo-image-picker";
+import COLORS from "../../../const/colors";
+import styles from "./styles";
 
-const AddPet = () => {
+const EditPostPetPage = ({ route }) => {
+  const { pet } = route.params;
+
   const [profileImage, setProfileImage] = useState("");
-  const [petImage, setPetImage] = useState("");
-  const [petName, setPetName] = useState("");
-  const [petBreed, setPetBreed] = useState("");
-  const [petAge, setPetAge] = useState("");
-  const [petDescription, setPetDescription] = useState("");
-  const [dogChecked, setDogChecked] = useState(false);
-  const [catChecked, setCatChecked] = useState(false);
-  const [maleChecked, setMaleChecked] = useState(false);
-  const [femaleChecked, setFemaleChecked] = useState(false);
+  const [petImage, setPetImage] = useState(pet.images);
+  const [petName, setPetName] = useState(pet.name);
+  const [petBreed, setPetBreed] = useState(pet.breed);
+  const [petAge, setPetAge] = useState(pet.age);
+  const [petDescription, setPetDescription] = useState(pet.description);
+  const [dogChecked, setDogChecked] = useState(pet.type === "Dog");
+  const [catChecked, setCatChecked] = useState(pet.type === "Cat");
+  const [maleChecked, setMaleChecked] = useState(pet.gender === "Male");
+  const [femaleChecked, setFemaleChecked] = useState(pet.gender === "Female");
   const [petRescuedChecked, setPetRescuedChecked] = useState(false);
-  const [ageModal, setAgeModal] = useState(false);
-  const [shelterAddress, setShelterAddress] = useState("");
-  const [alertModal, setAlertModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState("");
-  const [shelterVerified, setShelterVerified] = useState(false);
-  const [shelterVerifiedModal, setShelterVerifiedModal] = useState(false);
   const [priceChecked, setPriceChecked] = useState(false);
   const [adoptionFee, setAdoptionFee] = useState("");
+  const [ageModal, setAgeModal] = useState(false);
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      doc(db, "shelters", auth.currentUser.uid),
-      (doc) => {
-        if (doc.exists()) {
-          const userData = doc.data();
-          setProfileImage(
-            userData.accountPicture
-              ? { uri: userData.accountPicture }
-              : require("../../components/user.png")
-          );
-
-          setShelterVerified(userData.verified);
-        }
+    const unsubscribe = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        setProfileImage(
+          userData.accountPicture
+            ? { uri: userData.accountPicture }
+            : require("../../../components/user.png")
+        );
       }
-    );
+    });
     return () => unsubscribe();
   }, []);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      if (!shelterVerified) {
-        setShelterVerifiedModal(true);
-        setModalMessage("Sorry, your account is not yet verified.");
+  useEffect(() => {
+    const petsDocRef = doc(db, "pets", pet.id);
+    const unsubscribe = onSnapshot(petsDocRef, (doc) => {
+      if (doc.exists()) {
+        const petData = doc.data();
+
+        setPetImage(petData.images);
+        setPetName(petData.name);
+        setPetBreed(petData.breed);
+        setPetAge(petData.age);
+        setPetDescription(petData.description);
+        setDogChecked(petData.type === "Dog");
+        setCatChecked(petData.type === "Cat");
+        setMaleChecked(petData.gender === "Male");
+        setFemaleChecked(petData.gender === "Female");
+        setPetRescuedChecked(petData.rescued === true);
+        setPriceChecked(petData.petPrice ? true : false);
+        setAdoptionFee(petData.petPrice);
+      } else {
+        console.log("No such document!");
       }
-    }, [shelterVerified])
-  );
+    });
+
+    return () => unsubscribe();
+  }, [pet.id]);
 
   const handleMaleCheck = () => {
     setMaleChecked((prevState) => !prevState);
@@ -105,20 +108,16 @@ const AddPet = () => {
     }
   };
 
-  const handlePetRescuedCheck = () => {
-    setPetRescuedChecked((prevChecked) => !prevChecked);
-  };
-
-  const handleWithAdoptionFee = () => {
-    setPriceChecked((prevChecked) => !prevChecked);
-    setAdoptionFee("");
-  };
-
   const handleInfoClick = () => {
     setModalMessage(
       "Pet type is not required. If both checkboxes are empty, your pet will belong to the 'others' category."
     );
     setAlertModal(true);
+  };
+
+  const handleWithAdoptionFee = () => {
+    setPriceChecked((prevChecked) => !prevChecked);
+    setAdoptionFee("");
   };
 
   const handleAgeSelect = (option) => {
@@ -139,43 +138,6 @@ const AddPet = () => {
       setPetAge("7 Years Old and Above");
     }
   };
-
-  const handleClear = () => {
-    setPetImage("");
-    setPetName("");
-    setDogChecked(false);
-    setCatChecked(false);
-    setMaleChecked(false);
-    setFemaleChecked(false);
-    setPetRescuedChecked(false);
-    setPriceChecked(false);
-    setPetBreed("");
-    setPetAge("");
-    setPetDescription("");
-  };
-
-  useEffect(() => {
-    const fetchShelterAddress = async () => {
-      try {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          const shelterDoc = await getDoc(doc(db, "shelters", currentUser.uid));
-          if (shelterDoc.exists()) {
-            const shelterData = shelterDoc.data();
-            setShelterAddress(shelterData.address);
-          } else {
-            console.log("No such document!");
-          }
-        } else {
-          console.log("No user logged in!");
-        }
-      } catch (error) {
-        console.error("Error fetching shelter address:", error);
-      }
-    };
-
-    fetchShelterAddress();
-  }, []);
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -198,12 +160,12 @@ const AddPet = () => {
 
         const downloadURL = await getDownloadURL(storageRef);
 
-        setPetImage({ uri: downloadURL });
+        setPetImage(downloadURL);
       }
     }
   };
 
-  const handleUpload = async () => {
+  const handleEditPet = async () => {
     if (
       !petImage ||
       !petName ||
@@ -212,8 +174,8 @@ const AddPet = () => {
       !petAge ||
       !petDescription
     ) {
-      setAlertModal(true);
       setModalMessage("Please fill in all required fields.");
+      setAlertModal(true);
       return;
     }
 
@@ -222,81 +184,41 @@ const AddPet = () => {
     try {
       const user = auth.currentUser;
       if (user) {
-        const petsRef = collection(db, "pets");
+        const petsDocRef = doc(db, "pets", pet.id);
 
         const petType = dogChecked ? "Dog" : catChecked ? "Cat" : "Others";
 
-        await addDoc(petsRef, {
-          adopted: false,
-          adoptedBy: "",
+        await updateDoc(petsDocRef, {
           age: petAge,
           breed: petBreed,
           description: petDescription,
           gender: maleChecked ? "Male" : "Female",
           images: petImageUrl,
-          location: shelterAddress,
           name: petName,
-          petPosted: serverTimestamp(),
           petPrice: adoptionFee ? adoptionFee : "",
           type: petType,
-          rescued: petRescuedChecked ? true : false,
-          userId: user.uid,
         });
-        navigation.replace("HomePageScreenShelter");
+        setPetName(petName);
 
-        setPetImage("");
-        setPetName("");
-        setDogChecked(false);
-        setCatChecked(false);
-        setMaleChecked(false);
-        setFemaleChecked(false);
-        setPetRescuedChecked(false);
-        setPriceChecked(false);
-        setAdoptionFee("");
-        setPetBreed("");
-        setPetAge("");
-        setPetDescription("");
+        navigation.goBack();
       }
-      console.log("Pet uploaded");
+      console.log("Pet updated!");
     } catch (error) {
-      console.error("Error uploading pet details:", error);
+      console.error("Error uploading pet details: ", error);
     }
   };
-
-  if (!shelterVerified) {
-    return (
-      <View style={styles.container}>
-        <Modal isVisible={shelterVerifiedModal}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalText}>{modalMessage}</Text>
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity
-                onPress={() => {
-                  setShelterVerifiedModal(false);
-                  navigation.goBack();
-                }}
-                style={styles.modalButton}
-              >
-                <Text style={styles.modalButtonText}>OK</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      </View>
-    );
-  }
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Add Pet</Text>
+          <Text style={styles.headerTitle}>Edit Pet</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Set")}>
             <Image source={profileImage} style={styles.profileImage} />
           </TouchableOpacity>
         </View>
-        <View style={styles.addPetContainer}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.editPetContainer}>
+          <ScrollView style={{ flexGrow: 1 }}>
             <View style={styles.addImageContainer}>
               <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
                 {!petImage ? (
@@ -305,7 +227,7 @@ const AddPet = () => {
                     <Text style={styles.addPetText}>Add Image</Text>
                   </View>
                 ) : (
-                  <Image source={petImage} style={styles.petPreviewImage} />
+                  <Image source={{ uri: petImage }} style={styles.petPreviewImage} />
                 )}
               </TouchableOpacity>
             </View>
@@ -376,19 +298,6 @@ const AddPet = () => {
                   </View>
                 </View>
               </View>
-              <View style={styles.inputRescuedCheckboxContainer}>
-                <Text style={styles.typeGender}>Rescued</Text>
-                <View style={styles.checkboxGender}>
-                  <View style={styles.checkBoxContainer}>
-                    <Checkbox
-                      value={petRescuedChecked}
-                      onValueChange={handlePetRescuedCheck}
-                      color={COLORS.prim}
-                    />
-                    <Text style={styles.addPetText}>Yes</Text>
-                  </View>
-                </View>
-              </View>
               <View style={styles.inputCheckboxContainerAdoptionFee}>
                 <Text style={styles.typeTextAdoptionFee}>With Adoption Fee</Text>
                 <View style={styles.checkBoxType}>
@@ -445,13 +354,15 @@ const AddPet = () => {
             </View>
           </ScrollView>
         </View>
-
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-            <Text style={styles.buttonText}>Clear</Text>
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
-            <Text style={styles.buttonText}>Upload</Text>
+          <TouchableOpacity style={styles.uploadButton} onPress={handleEditPet}>
+            <Text style={styles.buttonText}>Save</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -503,4 +414,4 @@ const AddPet = () => {
   );
 };
 
-export default AddPet;
+export default EditPostPetPage;

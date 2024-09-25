@@ -112,9 +112,9 @@ export default StyleSheet.create({
     gap: 5,
   },
   userAccountPicture: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   conversationTitle: {
     fontFamily: "Poppins_500Medium",
@@ -125,8 +125,7 @@ export default StyleSheet.create({
     color: COLORS.title,
   },
   userName: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 14,
+    fontFamily: "Poppins_400Regular",
     color: COLORS.title,
   },
   callMessage: {
