@@ -125,7 +125,7 @@ const ConversationPageShelter = ({ navigation }) => {
         if (userDoc.exists()) {
           const data = userDoc.data();
           onDataChange({
-            userName: data.firstName || "Pawfectly User",
+            userName: `${data.firstName} ${data.lastName}` || "Pawfectly User",
             accountPicture: data.accountPicture,
           });
         } else {

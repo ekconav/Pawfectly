@@ -4,20 +4,15 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  TouchableWithoutFeedback,
   ActivityIndicator,
   FlatList,
-  TextInput,
 } from "react-native";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import {
-  addDoc,
   collection,
   doc,
   onSnapshot,
   updateDoc,
-  deleteDoc,
-  serverTimestamp,
   query,
   where,
 } from "firebase/firestore";
@@ -29,7 +24,6 @@ import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
 import COLORS from "../../const/colors";
 import Modal from "react-native-modal";
-import Checkbox from "expo-checkbox";
 
 const SettingsPage = () => {
   const [userDetails, setUserDetails] = useState({});

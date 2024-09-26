@@ -557,7 +557,7 @@ const DetailsPage = ({ route }) => {
 
   let formattedDate = null;
   if (petPosted) {
-    const petPostedDate = petPosted.toDate(); // Convert Firestore Timestamp to JavaScript Date
+    const petPostedDate = petPosted.toDate();
     formattedDate = petPostedDate.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",

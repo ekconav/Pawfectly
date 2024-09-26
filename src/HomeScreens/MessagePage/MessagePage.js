@@ -52,6 +52,8 @@ const MessagePage = ({ route }) => {
   const [adoptionMessageSent, setAdoptionMessageSent] = useState(false);
   const [petPostedByMe, setPetPostedByMe] = useState(false);
   const [userToUserAdoptionSuccess, setUserToUserAdoptionSuccess] = useState(false);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const [userToUser, setUserToUser] = useState(false);
 
@@ -704,6 +706,16 @@ const MessagePage = ({ route }) => {
     }
   };
 
+  const handleImagePress = (uri) => {
+    setSelectedImage(uri);
+    setImageModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setImageModalVisible(false);
+    setSelectedImage(null);
+  };
+
   const renderItem = ({ item }) => {
     const isCurrentUser = item.senderId === currentUser.uid;
     const messageTime = item.timestamp
@@ -755,7 +767,9 @@ const MessagePage = ({ route }) => {
           >
             <View>
               {isImageMessage ? (
-                <Image source={{ uri: item.text }} style={styles.messageImage} />
+                <TouchableOpacity onPress={() => handleImagePress(item.text)}>
+                  <Image source={{ uri: item.text }} style={styles.messageImage} />
+                </TouchableOpacity>
               ) : (
                 <Text
                   style={
@@ -908,6 +922,19 @@ const MessagePage = ({ route }) => {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+      <Modal isVisible={imageModalVisible} onRequestClose={closeModal}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closeModal}
+        >
+          <Image
+            source={{ uri: selectedImage }}
+            style={styles.expandedImage}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
       </Modal>
     </View>
   );
