@@ -32,17 +32,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   categoryContainer: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   categoriesTitle: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 16,
     color: COLORS.title,
-    marginBottom: 8,
   },
-  categoryButtonContainer: {
+  categoryChoices: {
     flexDirection: "row",
-    gap: 15,
+    justifyContent: "space-between",
+    marginBottom: 5,
   },
   categoryButton: {
     flexDirection: "row",
@@ -80,9 +80,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
   },
+  buttonContainerSeeAll: {
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 5,
+  },
   petButton: {
     borderRadius: 10,
     elevation: 2,
+  },
+  petButtonSeeAll: {
+    elevation: 2,
+    width: 135,
+    height: 200,
   },
   petContainer: {
     backgroundColor: COLORS.background,
@@ -94,6 +104,15 @@ const styles = StyleSheet.create({
     width: "100%",
     paddingHorizontal: 10,
     height: 230,
+    marginBottom: 10,
+    marginTop: 10,
+    alignContent: "center",
+    overflow: "hidden",
+  },
+  imageContainerSeeAll: {
+    width: "100%",
+    paddingHorizontal: 10,
+    height: 130,
     marginBottom: 10,
     marginTop: 10,
     alignContent: "center",
@@ -115,9 +134,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     alignItems: "center",
   },
+  petNameGenderSeeAll:{ 
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 3,
+    alignItems: "center",
+  },
   petName: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 16,
+    color: COLORS.title,
+  },
+  petNameSeeAll: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 12,
     color: COLORS.title,
   },
   petGenderIconMale: {
@@ -136,6 +166,10 @@ const styles = StyleSheet.create({
   ageText: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
+  },
+  seeAllText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
   },
 });
 

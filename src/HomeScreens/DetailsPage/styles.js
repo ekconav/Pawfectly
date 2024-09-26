@@ -40,18 +40,39 @@ const styles = StyleSheet.create({
   petDetails: {
     flexGrow: 1,
   },
+  petNamePriceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   petName: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 24,
     color: COLORS.title,
   },
+  petPriceTitle: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    fontSize: 12,
+  },
+  petPrice: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 20,
+    color: COLORS.title,
+  },
   addressInformation: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 5,
   },
   textAddress: {
     fontFamily: "Poppins_400Regular",
     fontSize: 14,
+    color: COLORS.title,
+  },
+  textAddressAdoptedOn: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 12,
     color: COLORS.title,
   },
   midInfoContainer: {
@@ -136,14 +157,55 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
+  deleteContainer: {
+    width: "48%",
+  },
+  deleteUserPostedButton: {
+    backgroundColor: COLORS.delete,
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    borderRadius: 10,
+    elevation: 1,
+  },
+  buttonText: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 14,
+    color: COLORS.white,
+  },
+  editContainer: {
+    width: "48%",
+  },
+  editButton: {
+    backgroundColor: COLORS.prim,
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    borderRadius: 10,
+    elevation: 1,
+  },
   favoriteContainer: {
     width: "25%",
   },
   adoptMeContainer: {
     width: "73%",
   },
+  petAdoptedContainer: {
+    width: "100%",
+  },
   button: {
     backgroundColor: COLORS.prim,
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    elevation: 1,
+  },
+  deleteButton: {
+    backgroundColor: COLORS.delete,
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
@@ -163,6 +225,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   textButton: {
+    textAlign: "center",
     fontFamily: "Poppins_600SemiBold",
     fontSize: 14,
     color: COLORS.white,
@@ -193,6 +256,94 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
+  },
+  deleteModalButtonContainer: {
+    marginTop: 15,
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  deleteModalCancelButton: {
+    backgroundColor: COLORS.outline,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  deleteModalDeleteButton: {
+    backgroundColor: COLORS.delete,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  deleteCancelText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  deleteModalText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+  adoptedText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
+  },
+  adoptedByContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  adopterImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  adoptedByUserInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  userFullName: {
+    flex: 1,
+    flexWrap: "wrap",
+    fontFamily: "Poppins_600SemiBold",
+    color: COLORS.title,
+  },
+
+  conversationWithContainer: {
+    flex: 1,
+    paddingVertical: 10,
+  },
+  conversationTitle: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.title,
+  },
+  noConversation: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+  },
+  conversationList: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    justifyContent: "space-between",
+    borderColor: COLORS.outline,
+    borderBottomWidth: 1,
+    paddingVertical: 5,
+  },
+  userInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  userAccountPicture: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  userName: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
   },
 });
 

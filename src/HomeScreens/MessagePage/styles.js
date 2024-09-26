@@ -164,6 +164,34 @@ const styles = StyleSheet.create({
     color: COLORS.title,
     flexWrap: "wrap",
   },
+  subHeader: {
+    padding: 8,
+    borderBottomColor: COLORS.outline,
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  subHeaderText: {
+    flex: 1,
+    fontFamily: "Poppins_400Regular",
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    color: COLORS.title,
+    flexWrap: "wrap",
+  },
+  approveButton: {
+    backgroundColor: COLORS.prim,
+    padding: 8,
+    borderRadius: 10,
+    width: "30%",
+    alignItems: "center",
+  },
+  approveText: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.white,
+  },
+
+  // Modal
   modalContainer: {
     backgroundColor: COLORS.white,
     padding: 20,
@@ -185,6 +213,18 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular", 
+  },
+
+  // Image Modal
+  modalOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  expandedImage: {
+    width: '100%',
+    height: '100%',
   },
 });
 

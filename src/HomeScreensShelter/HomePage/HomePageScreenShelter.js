@@ -9,14 +9,7 @@ import {
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  collection,
-  onSnapshot,
-  doc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, onSnapshot, doc, query, where } from "firebase/firestore";
 import { db, auth } from "../../FirebaseConfig";
 import { RefreshControl } from "react-native";
 import { SettingOptionsShelter } from "../SettingsPage/SettingStackShelter";
@@ -27,6 +20,7 @@ import Addpet from "../AddPet/AddPet";
 import SearchBar from "../../HomeScreens/HomePage/SearchBar/SearchBar";
 import catIcon from "../../components/catIcon.png";
 import dogIcon from "../../components/dogIcon.png";
+import turtleIcon from "../../components/turtleIcon.png";
 import styles from "./styles";
 
 const Tab = createBottomTabNavigator();
@@ -39,6 +33,9 @@ const HomeScreenPet = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [seeAllPressed, setSeeAllPressed] = useState(false);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -140,6 +137,10 @@ const HomeScreenPet = () => {
     setRefreshing(false);
   }, []);
 
+  const handleSeeAllPressed = () => {
+    setSeeAllPressed((prevState) => !prevState);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -157,15 +158,16 @@ const HomeScreenPet = () => {
         </TouchableOpacity>
       </View>
 
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onSearch={handleSearch}
-      />
+      {!seeAllPressed && (
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      )}
 
       <View style={styles.categoryContainer}>
-        <Text style={styles.categoriesTitle}>Pets for Adoption</Text>
-        <View style={styles.categoryButtonContainer}>
+        <View style={styles.categoryChoices}>
           <TouchableOpacity
             style={[
               styles.categoryButton,
@@ -203,7 +205,48 @@ const HomeScreenPet = () => {
               Dog
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.categoryButton,
+              activeCategory === "others" && { backgroundColor: COLORS.prim },
+            ]}
+            onPress={() => handleCategoryFilter("others")}
+          >
+            <Image style={styles.categoryIcon} source={turtleIcon} />
+            <Text
+              style={[
+                styles.categoryName,
+                activeCategory === "others" && { color: COLORS.white },
+              ]}
+            >
+              {" "}
+              Others
+            </Text>
+          </TouchableOpacity>
         </View>
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Text style={styles.categoriesTitle}>Pets for Adoption</Text>
+        {!seeAllPressed ? (
+          <TouchableOpacity onPress={handleSeeAllPressed}>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={{ flexDirection: "row", alignItems: "center" }}
+            onPress={handleSeeAllPressed}
+          >
+            <Ionicons name="arrow-back-outline" size={18} color={COLORS.title} />
+            <Text style={styles.seeAllText}>Back</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {pets.length === 0 ? (
@@ -215,29 +258,55 @@ const HomeScreenPet = () => {
       ) : (
         <View style={styles.mainContainer}>
           <FlatList
+            key={seeAllPressed ? "twoColumns" : "oneColumn"}
             data={pets}
             keyExtractor={(item) => item.id}
+            numColumns={seeAllPressed ? 2 : 1}
             renderItem={({ item }) => (
-              <View style={styles.buttonContainer}>
+              <View
+                style={
+                  seeAllPressed
+                    ? styles.buttonContainerSeeAll
+                    : styles.buttonContainer
+                }
+              >
                 <TouchableOpacity
-                  style={styles.petButton}
+                  style={seeAllPressed ? styles.petButtonSeeAll : styles.petButton}
                   onPress={() => navigation.navigate("PetDetails", { pet: item })}
                 >
                   <View style={styles.petContainer}>
-                    <View style={styles.imageContainer}>
+                    <View
+                      style={
+                        seeAllPressed
+                          ? styles.imageContainerSeeAll
+                          : styles.imageContainer
+                      }
+                    >
                       <Image source={{ uri: item.images }} style={styles.petImage} />
                     </View>
 
                     <View style={styles.petDetails}>
-                      <View style={styles.petNameGender}>
-                        <Text style={styles.petName}>{item.name}</Text>
+                      <View
+                        style={
+                          seeAllPressed
+                            ? styles.petNameGenderSeeAll
+                            : styles.petNameGender
+                        }
+                      >
+                        <Text
+                          style={
+                            seeAllPressed ? styles.petNameSeeAll : styles.petName
+                          }
+                        >
+                          {item.name}
+                        </Text>
 
                         {item.gender.toLowerCase() === "male" ? (
                           <View style={styles.genderIconContainer}>
                             <Ionicons
                               style={styles.petGenderIconMale}
                               name="male"
-                              size={24}
+                              size={seeAllPressed ? 12 : 24}
                               color={COLORS.male}
                             />
                           </View>
@@ -246,14 +315,20 @@ const HomeScreenPet = () => {
                             <Ionicons
                               style={styles.petGenderIconFemale}
                               name="female"
-                              size={24}
+                              size={seeAllPressed ? 12 : 24}
                               color={COLORS.female}
                             />
                           </View>
                         )}
                       </View>
                       <View style={styles.ageContainer}>
-                        <Text style={styles.ageText}>Age: {item.age}</Text>
+                        <Text
+                          style={styles.ageText}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          Age: {item.age}
+                        </Text>
                       </View>
                     </View>
                   </View>
