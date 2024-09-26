@@ -7,6 +7,7 @@ import {
   orderBy,
   onSnapshot,
   addDoc,
+  updateDoc,
   getDocs,
   deleteDoc,
   writeBatch,
@@ -195,8 +196,9 @@ const TOSPage = () => {
   const [isDeleteTOSModalOpen, setDeleteTOSModalOpen] = useState(false);
 
   const handleOpenDeleteModal = (tosItem) => {
-    setSelectedTOS(tosItem); // Store the selected TOS item to delete
-    setDeleteTOSModalOpen(true); // Show delete modal
+    setSelectedTOS(tosItem); 
+
+    setDeleteTOSModalOpen(true); 
   };
 
   const handleCloseDeleteModal = () => {
@@ -237,6 +239,81 @@ const TOSPage = () => {
     }
   };
 
+  // Edit TOS
+  const [isEditTOSModalOpen, setEditTOSModalOpen] = useState(false);
+
+  // Open Edit TOS Modal
+  const handleOpenEditTOSModal = (tosItem) => {
+    setSelectedTOS(tosItem); 
+    setCreateTOS({
+      title: tosItem.title,
+      description: tosItem.description,
+    });
+    setEditTOSModalOpen(true); 
+  };
+
+  // Clsoe Edit TOS Modal
+  const handleCloseEditTOSModal = () => {
+    setEditTOSModalOpen(false); 
+  };
+
+  // Edit TOS
+  const handleEditTOS = async () => {
+    if (!createTOS.title || !createTOS.description) {
+      alert("Both fields are required");
+      return;
+    }
+  
+    try {
+      const docRef = doc(db, "TOS", selectedTOS.id);
+      await updateDoc(docRef, {
+        title: createTOS.title,
+        description: createTOS.description,
+      });
+      setEditTOSModalOpen(false);
+    } catch (error) {
+      console.error("Error updating document: ", error);
+      alert("Error updating the Terms of Service: " + error.message);
+    }
+  };
+
+  // Notify Modal
+  const [isNotifyTOSModalOpen, setNotifyTOSModalOpen] = useState(false);
+
+  // Open Notify Modal
+  const handleOpenNotifyTOSModal = () => {
+    setNotifyTOSModalOpen(true); 
+  };
+
+  // Close notify Modal
+  const handleCloseNotifyTOSModal = () => {
+    setNotifyTOSModalOpen(false); 
+  };
+
+  // Turn termsAccpeted to false to all users
+  const handleNotifyTOS = async () => {
+    try {
+      const usersCollectionRef = collection(db, "users");
+      
+      const q = query(usersCollectionRef, where("termsAccepted", "==", true));
+      const querySnapshot = await getDocs(q);
+      
+      const batch = writeBatch(db);
+      
+      querySnapshot.forEach((doc) => {
+        const userDocRef = doc.ref;
+        batch.update(userDocRef, { termsAccepted: false });
+      });
+  
+      await batch.commit();
+  
+      setNotifyTOSModalOpen(false); 
+    } catch (error) {
+      console.error("Error notifying users about new TOS:", error);
+    }
+  };
+  
+
 
 
   if (loading) {
@@ -266,6 +343,7 @@ const TOSPage = () => {
               }}
               variant="warning"
               size="sm"
+              onClick={() => handleOpenNotifyTOSModal()}
             >
               Notify Users
             </Button>
@@ -315,7 +393,7 @@ const TOSPage = () => {
                   <ion-icon
                     name="pencil"
                     style={styles.editIcon}
-                    // onClick={() => handleOpenDeleteModal(TOSitem)}
+                    onClick={() => handleOpenEditTOSModal(TOSitem)}
                   ></ion-icon>
                 </div>
 
@@ -380,6 +458,24 @@ const TOSPage = () => {
         <Modal.DeleteModal onConfirm={handleConfirmDelete} onClose={handleCloseDeleteModal}>
           <h3>Are you sure you want to delete {selectedTOS?.title}?</h3>
         </Modal.DeleteModal>
+      )}
+
+      {/* Edit TOS Modal */}
+      {isEditTOSModalOpen && (
+        <Modal.EditTOSModal
+          createTOS={createTOS}                  
+          handleInputChange={handleInputChange}   
+          handleEditTOS={handleEditTOS}           
+          handleCloseEditTOSModal={handleCloseEditTOSModal}  
+        />
+      )}
+
+      {/* Notify Button Modal */}
+      {isNotifyTOSModalOpen && (
+        <Modal.NotifyModal onConfirm={handleNotifyTOS} onClose={handleCloseNotifyTOSModal}>
+          <h3>NOTIFY ALL ADOPTERS</h3>
+          <h3>for the updated TOS?</h3> 
+        </Modal.NotifyModal>
       )}
     </div>
   );
