@@ -52,7 +52,7 @@ const CreateTOSModal = ({
               value={createTOS.description}
               onChange={handleInputChange}
               as="textarea"
-              rows={3}
+              rows={5}
               placeholder="description"
               required
               style={{
@@ -105,10 +105,83 @@ const CreateTOSModal = ({
   );
 };
 
+// Edit TOS Modal Component
+const EditTOSModal = ({
+  createTOS,
+  handleInputChange,
+  handleEditTOS,
+  handleCloseEditTOSModal,
+}) => {
+  return (
+    <div style={styles.modalOverlay}>
+      <div style={styles.modalContent}>
+        <h2>Edit Terms Of Service</h2>
+        <Form>
+          {/* Select for order */}
+          <Form.Group className="mb-3">
+            <Form.Control
+              type="text"
+              name="title"
+              placeholder="Title"
+              value={createTOS.title}
+              onChange={handleInputChange}
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Control
+              name="description"
+              value={createTOS.description}
+              onChange={handleInputChange}
+              as="textarea"
+              rows={5}
+              placeholder="description"
+              required
+              style={{width: '100%', maxHeight: '50vh', resize: 'vertical'}}
+            />
+          </Form.Group>
+        </Form>
+        <div style={styles.modalButtons}>
+          <button onClick={handleEditTOS} style={styles.confirmButton}>
+            Confirm
+          </button>
+          <button
+            onClick={handleCloseEditTOSModal}
+            style={styles.cancelButton}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Notify Modal Component
+const NotifyModal = ({ onConfirm, onClose, children }) => {
+  return (
+    <div style={styles.modalOverlay}>
+      <div style={styles.modalContent}>
+        {children}
+        <div style={styles.modalButtons}>
+          <button style={styles.confirmButton} onClick={onConfirm}>
+            Confirm
+          </button>
+          <button style={styles.cancelButton} onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Export multiple modals
 const Modal = {
   DeleteModal,
   CreateTOSModal,
+  EditTOSModal,
+  NotifyModal,
 };
 
 export default Modal;
