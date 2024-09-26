@@ -483,7 +483,10 @@ const MessagePageShelter = ({ route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.prim} />
         </TouchableOpacity>
-        <View style={styles.headerContent}>
+        <TouchableOpacity
+          style={styles.headerContent}
+          onPress={() => navigation.navigate("DisplayUserPage", { userId })}
+        >
           <Image
             source={
               userAccountPicture
@@ -495,7 +498,7 @@ const MessagePageShelter = ({ route }) => {
           <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
             {userName}
           </Text>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.callButton} onPress={handleCall}>
           <Ionicons name="call" size={24} color={COLORS.prim} />
         </TouchableOpacity>

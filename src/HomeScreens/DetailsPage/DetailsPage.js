@@ -372,7 +372,6 @@ const DetailsPage = ({ route }) => {
         setAlertModal(true);
       }
     } catch (error) {
-      console.error("Error initiating call:", error);
       setModalMessage("There was an error trying to make a call.");
       setAlertModal(true);
     }
@@ -671,7 +670,14 @@ const DetailsPage = ({ route }) => {
           <View style={userPosted ? null : styles.shelterContainer}>
             <View style={styles.shelterInfo}>
               {!userPosted ? (
-                <>
+                <TouchableOpacity
+                  style={styles.shelterInfo}
+                  onPress={() =>
+                    navigation.navigate("DisplayUserPage", {
+                      userId: petDetails.userId,
+                    })
+                  }
+                >
                   <Image source={shelterImage} style={styles.shelterImage} />
                   <View style={styles.shelterTextContainer}>
                     <Text style={styles.midInfoTitle}>
@@ -685,7 +691,7 @@ const DetailsPage = ({ route }) => {
                     </Text>
                     <Text style={styles.shelterName}>{userDetails.shelterName}</Text>
                   </View>
-                </>
+                </TouchableOpacity>
               ) : (
                 <View style={styles.conversationWithContainer}>
                   <Text style={styles.conversationTitle}>In conversation with:</Text>

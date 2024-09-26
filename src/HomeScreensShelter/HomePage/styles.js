@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   buttonContainerSeeAll: {
     borderRadius: 20,
-    paddingVertical: 5,
+    paddingVertical: 6,
     paddingHorizontal: 5,
   },
   petButton: {

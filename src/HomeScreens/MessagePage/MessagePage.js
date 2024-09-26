@@ -60,6 +60,8 @@ const MessagePage = ({ route }) => {
   const currentUser = auth.currentUser;
   const navigation = useNavigation();
 
+  const [otherParticipantId, setOtherParticipantId] = useState("");
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -158,6 +160,8 @@ const MessagePage = ({ route }) => {
           const otherParticipantId = participants.find(
             (participant) => participant !== currentUser.uid
           );
+
+          setOtherParticipantId(otherParticipantId);
 
           const userDocRef = doc(db, "users", currentUser.uid);
           const shelterDocRef = doc(db, "shelters", otherParticipantId);
@@ -813,7 +817,12 @@ const MessagePage = ({ route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.prim} />
         </TouchableOpacity>
-        <View style={styles.headerContent}>
+        <TouchableOpacity
+          style={styles.headerContent}
+          onPress={() =>
+            navigation.navigate("DisplayUserPage", { userId: otherParticipantId })
+          }
+        >
           <Image
             source={
               shelterAccountPicture
@@ -825,7 +834,7 @@ const MessagePage = ({ route }) => {
           <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
             {shelterName}
           </Text>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.callButton} onPress={handleCall}>
           <Ionicons name="call" size={24} color={COLORS.prim} />
         </TouchableOpacity>
