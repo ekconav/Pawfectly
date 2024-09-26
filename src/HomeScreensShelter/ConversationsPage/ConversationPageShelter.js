@@ -25,6 +25,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import COLORS from "../../const/colors";
 import { Ionicons } from "@expo/vector-icons";
 import styles from "./styles";
+import SearchBar from "../../HomeScreens/HomePage/SearchBar/SearchBar";
 
 const DeleteButton = ({ onDelete }) => (
   <TouchableOpacity style={styles.slideDeleteButton} onPress={onDelete}>
@@ -34,11 +35,16 @@ const DeleteButton = ({ onDelete }) => (
 
 const ConversationPageShelter = ({ navigation }) => {
   const [conversations, setConversations] = useState([]);
+  const [originalConversations, setOriginalConversations] = useState([]);
   const [userNames, setUserNames] = useState({});
   const [userImage, setUserImage] = useState({});
   const [lastMessages, setLastMessages] = useState({});
+  const [originalLastMessages, setOriginalLastMessages] = useState({});
   const [profileImage, setProfileImage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [conversationLoading, setConversationLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const swipeableRefs = useRef({});
 
   useEffect(() => {
@@ -66,6 +72,9 @@ const ConversationPageShelter = ({ navigation }) => {
             ...doc.data(),
           }));
 
+          setOriginalConversations(conversationsData);
+          setConversations(conversationsData);
+
           const userListeners = conversationsData.map((conversation) => {
             const userId = conversation.participants[0];
 
@@ -91,8 +100,8 @@ const ConversationPageShelter = ({ navigation }) => {
             messages[conversationsData[index].id] = messageData;
           });
 
+          setOriginalLastMessages(messages);
           setLastMessages(messages);
-          setConversations(conversationsData);
           setLoading(false);
 
           return () => {
@@ -132,6 +141,131 @@ const ConversationPageShelter = ({ navigation }) => {
         userName: "Pawfectly User",
       });
     }
+  };
+
+  const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  useEffect(() => {
+    handleSearch();
+  }, [debouncedSearchQuery]);
+
+  const escapeSpecialCharacters = (str) => {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  };
+
+  const fetchMessagesAndSearch = async (conversationId, searchQuery) => {
+    const messagesRef = collection(
+      db,
+      "shelters",
+      auth.currentUser.uid,
+      "conversations",
+      conversationId,
+      "messages"
+    );
+    const q = query(messagesRef, orderBy("timestamp", "desc"));
+
+    try {
+      const snapshot = await getDocs(q);
+      const messages = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      return messages.find((message) =>
+        message.text.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      return null;
+    }
+  };
+
+  const handleSearch = useCallback(async () => {
+    setConversationLoading(true);
+    if (!searchQuery.trim()) {
+      setConversations(originalConversations);
+      setLastMessages(originalLastMessages);
+      setConversationLoading(false);
+      return;
+    }
+
+    const lowerCaseSearchQuery = escapeSpecialCharacters(searchQuery.toLowerCase());
+
+    const filteredConversations = await Promise.all(
+      originalConversations.map(async (conversation) => {
+        const userName = userNames[conversation.id]?.toLowerCase() || "";
+        const lastMessage = lastMessages[conversation.id]?.text?.toLowerCase() || "";
+
+        if (
+          userName.includes(lowerCaseSearchQuery) ||
+          lastMessage.includes(lowerCaseSearchQuery)
+        ) {
+          return conversation;
+        }
+
+        const matchingMessage = await fetchMessagesAndSearch(
+          conversation.id,
+          searchQuery
+        );
+
+        if (matchingMessage) {
+          setLastMessages((prev) => ({
+            ...prev,
+            [conversation.id]: {
+              ...prev[conversation.id],
+              text: matchingMessage.text,
+              senderId: matchingMessage.senderId,
+            },
+          }));
+
+          return conversation;
+        }
+
+        return null;
+      })
+    );
+    setConversations(
+      filteredConversations.filter((conversation) => conversation !== null)
+    );
+    setConversationLoading(false);
+  }, [searchQuery, originalConversations, userNames, lastMessages]);
+
+  const HighlightedText = ({ text, searchQuery }) => {
+    if (!searchQuery) return <Text>{text}</Text>;
+
+    const parts = text.split(new RegExp(`(${searchQuery})`, "gi"));
+
+    return (
+      <Text>
+        {parts.map((part, index) =>
+          part.toLowerCase() === searchQuery.toLowerCase() ? (
+            <Text key={index} style={styles.searchMatch}>
+              {part}
+            </Text>
+          ) : (
+            <Text
+              style={{ fontFamily: "Poppins_400Regular", color: COLORS.title }}
+              key={index}
+            >
+              {part}
+            </Text>
+          )
+        )}
+      </Text>
+    );
   };
 
   const getLastMessage = async (conversationId) => {
@@ -269,88 +403,122 @@ const ConversationPageShelter = ({ navigation }) => {
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
       </View>
+      <View style={styles.searchBar}>
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      </View>
       {conversations.length === 0 ? (
         <View style={styles.noConversationsContainer}>
           <Text style={styles.noConversationsText}>You have no conversations.</Text>
         </View>
       ) : (
         <View>
-          <FlatList
-            data={conversations}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              let lastMessageText = item.lastMessage;
-              if (item.lastMessage === "Image") {
-                lastMessageText =
-                  item.participants[1] === lastMessages[item.id]?.senderId
-                    ? "You sent a photo"
-                    : `${userNames[item.id]} sent a photo`;
-              } else {
-                lastMessageText = item.lastMessage;
-              }
+          {conversationLoading ? (
+            <ActivityIndicator
+              style={{ top: 50 }}
+              size="small"
+              color={COLORS.prim}
+            />
+          ) : (
+            <FlatList
+              data={conversations}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                let lastMessageText =
+                  lastMessages[item.id]?.text || item.lastMessage;
 
-              return (
-                <Swipeable
-                  ref={(ref) => {
-                    if (ref) {
-                      swipeableRefs.current[item.id] = ref;
-                    } else {
-                      delete swipeableRefs.current[item.id];
-                    }
-                  }}
-                  renderRightActions={() => (
-                    <DeleteButton
-                      onDelete={() => handleDeleteConversation(item.id)}
-                    />
-                  )}
-                  onSwipeableOpen={() => handleSwipeableOpen(item.id)}
-                >
-                  <TouchableOpacity
-                    style={[
-                      styles.conversationItem,
-                      !item.seen && styles.unreadConversation,
-                    ]}
-                    onPress={() =>
-                      navigateToMessages(item.id, item.petId, item.participants[0])
-                    }
-                  >
-                    <View style={styles.userInfoContainer}>
-                      <Image
-                        source={
-                          userImage[item.id]
-                            ? { uri: userImage[item.id] }
-                            : require("../../components/user.png")
-                        }
-                        style={styles.userImage}
+                if (
+                  lastMessageText === "Image" ||
+                  (lastMessageText && lastMessageText.includes("http"))
+                ) {
+                  const senderId = lastMessages[item.id]?.senderId;
+                  lastMessageText =
+                    senderId === auth.currentUser.uid
+                      ? "You sent a photo"
+                      : `${userNames[item.id]} sent a photo.`;
+                }
+
+                return (
+                  <Swipeable
+                    ref={(ref) => {
+                      if (ref) {
+                        swipeableRefs.current[item.id] = ref;
+                      } else {
+                        delete swipeableRefs.current[item.id];
+                      }
+                    }}
+                    renderRightActions={() => (
+                      <DeleteButton
+                        onDelete={() => handleDeleteConversation(item.id)}
                       />
-                      <View style={styles.textContainer}>
-                        <Text
-                          style={[
-                            styles.userName,
-                            !item.seen && styles.unreadConversation,
-                          ]}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {userNames[item.id]}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.lastMessage,
-                            !item.seen && styles.unreadConversation,
-                          ]}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {lastMessageText}
-                        </Text>
+                    )}
+                    onSwipeableOpen={() => handleSwipeableOpen(item.id)}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.conversationItem,
+                        !item.seen && styles.unreadConversation,
+                      ]}
+                      onPress={() =>
+                        navigateToMessages(item.id, item.petId, item.participants[0])
+                      }
+                    >
+                      <View style={styles.userInfoContainer}>
+                        <Image
+                          source={
+                            userImage[item.id]
+                              ? { uri: userImage[item.id] }
+                              : require("../../components/user.png")
+                          }
+                          style={styles.userImage}
+                        />
+                        <View style={styles.textContainer}>
+                          {!searchQuery ? (
+                            <Text
+                              style={[
+                                styles.userName,
+                                !item.seen && styles.unreadConversation,
+                              ]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {userNames[item.id]}
+                            </Text>
+                          ) : (
+                            <HighlightedText
+                              text={userNames[item.id]}
+                              searchQuery={searchQuery}
+                            />
+                          )}
+
+                          {!searchQuery ? (
+                            <Text
+                              style={[
+                                styles.lastMessage,
+                                !item.seen && styles.unreadConversation,
+                              ]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {lastMessageText}
+                            </Text>
+                          ) : (
+                            <HighlightedText
+                              text={lastMessageText}
+                              searchQuery={searchQuery}
+                            />
+                          )}
+                        </View>
                       </View>
-                    </View>
-                  </TouchableOpacity>
-                </Swipeable>
-              );
-            }}
-          />
+                    </TouchableOpacity>
+                  </Swipeable>
+                );
+              }}
+            />
+          )}
         </View>
       )}
     </View>
