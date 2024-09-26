@@ -52,6 +52,9 @@ const MessagePageShelter = ({ route }) => {
   const [modalMessage, setModalMessage] = useState("");
   const [sendLoading, setSendLoading] = useState(false);
 
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
   const currentUser = auth.currentUser;
   const navigation = useNavigation();
 
@@ -74,7 +77,7 @@ const MessagePageShelter = ({ route }) => {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUserName(userData.firstName);
+          setUserName(`${userData.firstName} ${userData.lastName}`);
           setUserAccountPicture(userData.accountPicture);
           setUserMobileNumber(userData.mobileNumber);
         } else {
@@ -373,6 +376,16 @@ const MessagePageShelter = ({ route }) => {
     }
   };
 
+  const handleImagePress = (uri) => {
+    setSelectedImage(uri);
+    setImageModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setImageModalVisible(false);
+    setSelectedImage(null);
+  };
+
   const renderItem = ({ item }) => {
     const isCurrentUser = item.senderId === currentUser.uid;
     const messageTime = item.timestamp
@@ -424,7 +437,9 @@ const MessagePageShelter = ({ route }) => {
           >
             <View>
               {isImageMessage ? (
-                <Image source={{ uri: item.text }} style={styles.messageImage} />
+                <TouchableOpacity onPress={() => handleImagePress(item.text)}>
+                  <Image source={{ uri: item.text }} style={styles.messageImage} />
+                </TouchableOpacity>
               ) : (
                 <Text
                   style={
@@ -569,6 +584,19 @@ const MessagePageShelter = ({ route }) => {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+      <Modal isVisible={imageModalVisible} onRequestClose={closeModal}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closeModal}
+        >
+          <Image
+            source={{ uri: selectedImage }}
+            style={styles.expandedImage}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
       </Modal>
     </View>
   );
