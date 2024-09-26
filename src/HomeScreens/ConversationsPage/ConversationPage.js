@@ -26,6 +26,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import styles from "./styles";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "../../const/colors";
+import SearchBar from "../HomePage/SearchBar/SearchBar";
 
 const DeleteButton = ({ onDelete }) => (
   <TouchableOpacity style={styles.slideDeleteButton} onPress={onDelete}>
@@ -35,11 +36,16 @@ const DeleteButton = ({ onDelete }) => (
 
 const ConversationPage = ({ navigation }) => {
   const [conversations, setConversations] = useState([]);
+  const [originalConversations, setOriginalConversations] = useState([]);
   const [shelterNames, setShelterNames] = useState({});
   const [shelterImage, setShelterImage] = useState({});
   const [lastMessages, setLastMessages] = useState({});
+  const [originalLastMessages, setOriginalLastMessages] = useState({});
   const [profileImage, setProfileImage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [conversationLoading, setConversationLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const swipeableRefs = useRef({});
 
   const currentUser = auth.currentUser;
@@ -58,7 +64,6 @@ const ConversationPage = ({ navigation }) => {
           "conversations"
         );
 
-        // Fetch conversations involving the current user
         const q = query(
           conversationsRef,
           where("participants", "array-contains", currentUser.uid),
@@ -70,6 +75,9 @@ const ConversationPage = ({ navigation }) => {
             id: doc.id,
             ...doc.data(),
           }));
+
+          setOriginalConversations(conversationsData);
+          setConversations(conversationsData);
 
           const participantsListeners = conversationsData.map((conversation) => {
             const otherParticipantId = conversation.participants.find(
@@ -99,8 +107,8 @@ const ConversationPage = ({ navigation }) => {
             messages[conversationsData[index].id] = messageData;
           });
 
+          setOriginalLastMessages(messages);
           setLastMessages(messages);
-          setConversations(conversationsData);
           setLoading(false);
 
           return () => {
@@ -118,7 +126,6 @@ const ConversationPage = ({ navigation }) => {
     fetchConversations();
   }, []);
 
-  // Listen to data from either "shelters" or "users" based on the participant ID
   const listenToUserOrShelterData = (participantId, onDataChange) => {
     try {
       const shelterRef = doc(db, "shelters", participantId);
@@ -157,6 +164,132 @@ const ConversationPage = ({ navigation }) => {
         image: null,
       });
     }
+  };
+
+  const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  useEffect(() => {
+    handleSearch();
+  }, [debouncedSearchQuery]);
+
+  const escapeSpecialCharacters = (str) => {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  };
+
+  const fetchMessagesAndSearch = async (conversationId, searchQuery) => {
+    const messagesRef = collection(
+      db,
+      "users",
+      auth.currentUser.uid,
+      "conversations",
+      conversationId,
+      "messages"
+    );
+    const q = query(messagesRef, orderBy("timestamp", "desc"));
+
+    try {
+      const snapshot = await getDocs(q);
+      const messages = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      return messages.find((message) =>
+        message.text.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      return null;
+    }
+  };
+
+  const handleSearch = useCallback(async () => {
+    setConversationLoading(true);
+    if (!searchQuery.trim()) {
+      setConversations(originalConversations);
+      setLastMessages(originalLastMessages);
+      setConversationLoading(false);
+      return;
+    }
+
+    const lowerCaseSearchQuery = escapeSpecialCharacters(searchQuery.toLowerCase());
+
+    const filteredConversations = await Promise.all(
+      originalConversations.map(async (conversation) => {
+        const shelterName = shelterNames[conversation.id]?.toLowerCase() || "";
+        const lastMessage = lastMessages[conversation.id]?.text?.toLowerCase() || "";
+
+        if (
+          shelterName.includes(lowerCaseSearchQuery) ||
+          lastMessage.includes(lowerCaseSearchQuery)
+        ) {
+          return conversation;
+        }
+
+        const matchingMessage = await fetchMessagesAndSearch(
+          conversation.id,
+          searchQuery
+        );
+
+        if (matchingMessage) {
+          setLastMessages((prev) => ({
+            ...prev,
+            [conversation.id]: {
+              ...prev[conversation.id],
+              text: matchingMessage.text,
+              senderId: matchingMessage.senderId,
+            },
+          }));
+
+          return conversation;
+        }
+
+        return null;
+      })
+    );
+
+    setConversations(
+      filteredConversations.filter((conversation) => conversation !== null)
+    );
+    setConversationLoading(false);
+  }, [searchQuery, originalConversations, shelterNames, lastMessages]);
+
+  const HighlightedText = ({ text, searchQuery }) => {
+    if (!searchQuery) return <Text>{text}</Text>;
+
+    const parts = text.split(new RegExp(`(${searchQuery})`, "gi"));
+
+    return (
+      <Text>
+        {parts.map((part, index) =>
+          part.toLowerCase() === searchQuery.toLowerCase() ? (
+            <Text key={index} style={styles.searchMatch}>
+              {part}
+            </Text>
+          ) : (
+            <Text
+              style={{ fontFamily: "Poppins_400Regular", color: COLORS.title }}
+              key={index}
+            >
+              {part}
+            </Text>
+          )
+        )}
+      </Text>
+    );
   };
 
   const getLastMessage = async (conversationId) => {
@@ -280,89 +413,125 @@ const ConversationPage = ({ navigation }) => {
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
       </View>
+      <View style={styles.searchBar}>
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+        />
+      </View>
       {conversations.length === 0 ? (
         <View style={styles.noConversationsContainer}>
           <Text style={styles.noConversationsText}>You have no conversations.</Text>
         </View>
       ) : (
         <View>
-          <FlatList
-            data={conversations}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              let lastMessageText = item.lastMessage;
-              if (item.lastMessage === "Image") {
-                const senderId = lastMessages[item.id]?.senderId;
-                lastMessageText =
-                  senderId === currentUser.uid
-                    ? "You sent a photo"
-                    : `${shelterNames[item.id]} sent a photo.`;
-              } else {
-                lastMessageText = item.lastMessage;
-              }
+          {conversationLoading ? (
+            <ActivityIndicator
+              style={{ top: 50 }}
+              size="small"
+              color={COLORS.prim}
+            />
+          ) : (
+            <FlatList
+              data={conversations}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                let lastMessageText =
+                  lastMessages[item.id]?.text || item.lastMessage;
 
-              return (
-                <Swipeable
-                  ref={(ref) => {
-                    if (ref) {
-                      swipeableRefs.current[item.id] = ref;
-                    } else {
-                      delete swipeableRefs.current[item.id];
-                    }
-                  }}
-                  renderRightActions={() => (
-                    <DeleteButton
-                      onDelete={() => handleDeleteConversation(item.id)}
-                    />
-                  )}
-                  onSwipeableOpen={() => handleSwipeableOpen(item.id)}
-                >
-                  <TouchableOpacity
-                    style={[
-                      styles.conversationItem,
-                      !item.seen && styles.unreadConversation,
-                    ]}
-                    onPress={() =>
-                      navigateToMessages(item.id, item.petId, item.participants[1])
-                    }
-                  >
-                    <View style={styles.shelterInfoContainer}>
-                      <Image
-                        source={
-                          shelterImage[item.id]
-                            ? { uri: shelterImage[item.id] }
-                            : require("../../components/user.png")
-                        }
-                        style={styles.shelterImage}
+                if (lastMessageText && lastMessageText.includes("http")) {
+                  const senderId = lastMessages[item.id]?.senderId;
+                  lastMessageText =
+                    senderId === currentUser.uid
+                      ? "You sent a photo"
+                      : `${shelterNames[item.id]} sent a photo.`;
+                } else if (lastMessageText === "Image") {
+                  const senderId = lastMessages[item.id]?.senderId;
+                  lastMessageText =
+                    senderId === currentUser.uid
+                      ? "You sent a photo"
+                      : `${shelterNames[item.id]} sent a photo.`;
+                }
+
+                return (
+                  <Swipeable
+                    ref={(ref) => {
+                      if (ref) {
+                        swipeableRefs.current[item.id] = ref;
+                      } else {
+                        delete swipeableRefs.current[item.id];
+                      }
+                    }}
+                    renderRightActions={() => (
+                      <DeleteButton
+                        onDelete={() => handleDeleteConversation(item.id)}
                       />
-                      <View style={styles.textContainer}>
-                        <Text
-                          style={[
-                            styles.shelterName,
-                            !item.seen && styles.unreadConversation,
-                          ]}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {shelterNames[item.id]}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.lastMessage,
-                            !item.seen && styles.unreadConversation,
-                          ]}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {lastMessageText}
-                        </Text>
+                    )}
+                    onSwipeableOpen={() => handleSwipeableOpen(item.id)}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.conversationItem,
+                        !item.seen && styles.unreadConversation,
+                      ]}
+                      onPress={() =>
+                        navigateToMessages(item.id, item.petId, item.participants[1])
+                      }
+                    >
+                      <View style={styles.shelterInfoContainer}>
+                        <Image
+                          source={
+                            shelterImage[item.id]
+                              ? { uri: shelterImage[item.id] }
+                              : require("../../components/user.png")
+                          }
+                          style={styles.shelterImage}
+                        />
+                        <View style={styles.textContainer}>
+                          {!searchQuery ? (
+                            <Text
+                              style={[
+                                styles.shelterName,
+                                !item.seen && styles.unreadConversation,
+                              ]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {shelterNames[item.id]}
+                            </Text>
+                          ) : (
+                            <HighlightedText
+                              text={shelterNames[item.id]}
+                              searchQuery={searchQuery}
+                            />
+                          )}
+
+                          {!searchQuery ? (
+                            <Text
+                              style={[
+                                styles.lastMessage,
+                                !item.seen && styles.unreadConversation,
+                              ]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {lastMessageText}
+                            </Text>
+                          ) : (
+                            <HighlightedText
+                              text={lastMessageText}
+                              searchQuery={searchQuery}
+                            />
+                          )}
+                        </View>
                       </View>
-                    </View>
-                  </TouchableOpacity>
-                </Swipeable>
-              );
-            }}
-          />
+                    </TouchableOpacity>
+                  </Swipeable>
+                );
+              }}
+            />
+          )}
         </View>
       )}
     </View>
