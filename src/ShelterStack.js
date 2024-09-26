@@ -11,6 +11,8 @@ import EditPet from "./HomeScreensShelter/EditPet/EditPet";
 import AddPet from "./HomeScreensShelter/AddPet/AddPet";
 import OTPPage from "./OTP/OTPPage";
 import ConversationPageShelter from "./HomeScreensShelter/ConversationsPage/ConversationPageShelter";
+import DisplayUserPage from "./HomeScreensShelter/DisplayUser/DisplayUserPage";
+import DetailsPageShelter from "./HomeScreensShelter/DetailsPageShelter/DetailsPageShelter";
 
 const Stack = createStackNavigator();
 
@@ -55,6 +57,16 @@ const ShelterStack = () => {
       <Stack.Screen
         name="ConversationsPage"
         component={ConversationPageShelter}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DisplayUserPage"
+        component={DisplayUserPage}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DetailsPageShelter"
+        component={DetailsPageShelter}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

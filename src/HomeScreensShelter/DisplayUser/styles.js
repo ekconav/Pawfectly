@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 import COLORS from "../../const/colors";
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: COLORS.white,
@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  profileButton: {
+  profile: {
     width: 80,
     height: 80,
     borderRadius: 40,
@@ -31,24 +31,25 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
     elevation: 1,
   },
-  shelterImage: {
+  profileImage: {
     width: "100%",
     height: "100%",
     resizeMode: "cover",
   },
   settingsIcon: {
     marginTop: 50,
+    elevation: 1,
   },
-  shelterDetails: {
+  infoDetails: {
     flexDirection: "column",
     paddingHorizontal: 20,
   },
-  shelterInfoContainer: {
+  infoContainer: {
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
   },
-  shelterName: {
+  infoName: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 20,
     color: COLORS.title,
@@ -63,14 +64,7 @@ export const styles = StyleSheet.create({
     color: COLORS.white,
     borderRadius: 50,
   },
-  shelterOwnerText: {
-    fontFamily: "Poppins_400Regular",
-    fontSize: 12,
-    marginTop: -8,
-    color: COLORS.title,
-    marginBottom: 5,
-  },
-  shelterDetailsContainer: {
+  infoDetailsContainer: {
     flexDirection: "column",
     gap: 5,
     paddingHorizontal: 20,
@@ -80,7 +74,7 @@ export const styles = StyleSheet.create({
     gap: 10,
     alignItems: "center",
   },
-  shelterDetailsText: {
+  infoDetailsText: {
     fontFamily: "Poppins_400Regular",
     fontSize: 14,
     color: COLORS.title,
@@ -95,28 +89,14 @@ export const styles = StyleSheet.create({
     color: COLORS.title,
     fontSize: 18,
   },
-  titleButton: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  choicesButton: {
-    backgroundColor: COLORS.prim,
-    padding: 5,
-    borderRadius: 10,
-    alignItems: "center",
-    width: 40,
-    elevation: 1,
-  },
-  noResultContainer: {
+  noPetsContainer: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  noResultsText: {
-    color: COLORS.title,
+  noPetsText: {
     fontFamily: "Poppins_400Regular",
-    textAlign: "center",
-    marginTop: 140,
+    color: COLORS.title,
   },
   showPetsContainer: {
     flex: 1,
@@ -176,48 +156,20 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 7,
   },
 
-  // Choices Modal
-  modalOverlay: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  choicesOptions: {
-    width: 185,
-    backgroundColor: "white",
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    elevation: 5,
-    height: 181,
-  },
-  choicesDropdown: {
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.outline,
-  },
-  choicesDropdownText: {
-    fontSize: 12,
-    color: COLORS.title,
-    fontFamily: "Poppins_400Regular",
-    textAlign: "center",
-  },
-
   // Settings Modal
-  settingsModalOverlay: {
+  modalOverlay: {
     flex: 1,
     flexDirection: "row",
     justifyContent: "flex-end",
   },
   dropdownMenu: {
-    width: 135,
+    width: 114,
     backgroundColor: "white",
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 10,
     elevation: 5,
-    height: 235,
+    height: 55,
     top: 180,
   },
   dropdownItem: {
@@ -230,3 +182,5 @@ export const styles = StyleSheet.create({
     textAlign: "right",
   },
 });
+
+export default styles;

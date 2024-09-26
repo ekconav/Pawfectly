@@ -11,6 +11,7 @@ import SettingsPage from "./HomeScreens/SettingsPage/SettingsPage";
 import ConversationPage from "./HomeScreens/ConversationsPage/ConversationPage";
 import PostPetPage from "./HomeScreens/PostPetPage/PostPetPage";
 import EditPostPetPage from "./HomeScreens/PostPetPage/EditPostPetPage/EditPostPetPage";
+import DisplayUserPage from "./HomeScreens/DisplayUser/DisplayUser";
 
 const Stack = createStackNavigator();
 
@@ -55,6 +56,11 @@ const UserStack = () => {
       <Stack.Screen
         name="EditPostPetPage"
         component={EditPostPetPage}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DisplayUserPage"
+        component={DisplayUserPage}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
