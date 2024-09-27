@@ -18,6 +18,7 @@ import { db } from "../../../FirebaseConfig";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
 import { Container, Col, Row, Button } from "react-bootstrap";
 import Modal from "./tosModal";
+import Alerts from "./alert";
 
 const TOSPage = () => {
   const [loading, setLoading] = useState(true);
@@ -103,7 +104,8 @@ const TOSPage = () => {
   const handleCreateTOS = async () => {
     // Validation: Ensure that all fields are filled out
     if (!createTOS.title || !createTOS.order || !createTOS.description) {
-      alert("All fields are required");
+      setAlertMessage('All fields are required.');
+      setAlertType('error'); 
       return;
     }
 
@@ -112,7 +114,8 @@ const TOSPage = () => {
 
     // Check if the order number is valid
     if (orderNumber < 1 || orderNumber > availableOrders.length + 1) {
-      alert(`Order number must be between 1 and ${availableOrders.length + 1}`);
+      setAlertMessage(`Order number must be between 1 and ${availableOrders.length + 1}`);
+      setAlertType('error');      
       return;
     }
 
@@ -159,9 +162,12 @@ const TOSPage = () => {
       await addDoc(collection(db, "TOS"), newTOS);
 
       handleCloseCreateTOSModal();
+      setAlertMessage(`New TOS has been added`);
+      setAlertType('success');
+
     } catch (error) {
-      console.error("Error adding document: ", error);
-      alert("Error adding the Terms of Service: " + error.message);
+      setAlertMessage(`Failed to add new TOS`);
+      setAlertType('error');
     }
   };
 
@@ -230,11 +236,14 @@ const TOSPage = () => {
         });
         await batch.commit();
 
+        setAlertMessage(`TOS entry has been deleted`);
+        setAlertType('success');
         setDeleteTOSModalOpen(false);
         
       } catch (error) {
-        console.error("Error deleting document: ", error);
-        alert("Error deleting the TOS entry: " + error.message);
+        setAlertMessage(`Error deleting TOS entry`);
+        setAlertType('error');
+
       }
     }
   };
@@ -260,7 +269,8 @@ const TOSPage = () => {
   // Edit TOS
   const handleEditTOS = async () => {
     if (!createTOS.title || !createTOS.description) {
-      alert("Both fields are required");
+      setAlertMessage('All fields are required.');
+      setAlertType('error'); 
       return;
     }
   
@@ -270,10 +280,12 @@ const TOSPage = () => {
         title: createTOS.title,
         description: createTOS.description,
       });
+      setAlertMessage('TOS entry has been successfully updated.');
+      setAlertType('success'); 
       setEditTOSModalOpen(false);
     } catch (error) {
-      console.error("Error updating document: ", error);
-      alert("Error updating the Terms of Service: " + error.message);
+      setAlertMessage('Failed to update TOS entry.');
+      setAlertType('error'); 
     }
   };
 
@@ -307,11 +319,29 @@ const TOSPage = () => {
   
       await batch.commit();
   
-      setNotifyTOSModalOpen(false); 
+      setNotifyTOSModalOpen(false);
+      setAlertMessage('Users have been successfully notified of the new TOS.'); 
+      setAlertType('success'); 
     } catch (error) {
-      console.error("Error notifying users about new TOS:", error);
+      setAlertMessage('Error notifying users about the new TOS.');
+      setAlertType('error'); 
     }
   };
+
+  //Alert Message and Type
+  const [alertMessage, setAlertMessage] = useState(''); 
+  const [alertType, setAlertType] = useState(''); 
+
+  useEffect(() => {
+    if (alertMessage) {
+      const timer = setTimeout(() => {
+        setAlertMessage(''); // Clear the message
+      }, 3000); // Hide after 3 seconds
+  
+      return () => clearTimeout(timer);
+    }
+  }, [alertMessage]);
+  
   
 
 
@@ -477,6 +507,15 @@ const TOSPage = () => {
           <h3>for the updated TOS?</h3> 
         </Modal.NotifyModal>
       )}
+
+      {/* Alert rendering based on the type */}
+      {alertMessage && alertType === 'success' && (
+        <Alerts.SuccessAlert>{alertMessage}</Alerts.SuccessAlert>
+      )}
+      {alertMessage && alertType === 'error' && (
+        <Alerts.ErrorAlert>{alertMessage}</Alerts.ErrorAlert>
+      )}
+    
     </div>
   );
 };
