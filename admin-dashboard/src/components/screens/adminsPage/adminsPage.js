@@ -17,6 +17,9 @@ import {
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
+import { Container, Col, Row, Button } from "react-bootstrap";
+// import Modal from "./tosModal";
+// import Alerts from "./alert";
 
 const AdminsPage = () => {
   const [admins, setAdmins] = useState([]);
@@ -215,9 +218,115 @@ const AdminsPage = () => {
   return (
     <div>
       <Header />
-      <h1>Admins page</h1>
-      <div style={styles.adminListContainer}>
-        <div style={styles.adminDetails}>
+      <Container>
+        <Row>
+          <Col></Col>
+          <Col xs={5}>
+            <h1>Admins Page</h1>
+          </Col>
+          <Col
+            style={{
+              ...styles.line,
+              justifyContent: "flex-end",
+              height: "10vh",
+            }}
+          >
+            <ion-icon
+              style={{
+                fontSize: "30px",
+                cursor: "pointer",
+                paddingLeft: "10px",
+                paddingRight: "10px",
+                color: "#0080FF",
+              }}
+              name="add-circle-outline"
+              onClick={() => setIsAdminModalOpen(true)}
+            ></ion-icon>
+          </Col>
+        </Row>
+      </Container>
+      {/* TOS LIST */}
+      <div style={styles.adminContainer}>
+        <div style={styles.adminGridCols}>
+          <div style={styles.adminLabelRows}>
+          <div style={styles.line}>
+            <p style={styles.title}>Image</p>
+          </div>
+          <div style={styles.line}>
+            <p style={styles.title}>Name</p>
+          </div>
+          <div style={styles.line}>
+            <p style={styles.title}>Email</p>
+          </div>
+          <div style={styles.line}>
+            <p style={styles.title}>Mobile No.</p>
+          </div>
+
+          </div>
+          
+          {admins.map((admin) => (
+            <div key={admin.id} style={styles.adminGridRows}>
+              <div style={styles.line}>
+                <img
+                  src={
+                    admin.accountPicture || require("../../../const/user.png")
+                  }
+                  alt="Profile"
+                  style={styles.adminPicture}
+                />
+              </div>
+              <div
+                style={{
+                  ...styles.line,
+                  textAlign: "justify",
+                }}
+              >
+                {admin.firstName} {admin.lastName}
+              </div>
+              <div
+                style={{
+                  ...styles.line,
+                  textAlign: "justify",
+                  fontSize: "14px",
+                }}
+              >
+                {admin.email}
+              </div>
+              <div
+                style={{
+                  ...styles.line,
+                  textAlign: "justify",
+                  fontSize: "14px",
+                }}
+              >
+                {admin.mobileNumber}
+              </div>
+              <div style={styles.line}>
+                <div style={styles.editButtonContainer}>
+                  <ion-icon
+                    name="pencil"
+                    style={styles.editIcon}
+                    // onClick={() => handleOpenEditTOSModal(TOSitem)}
+                  ></ion-icon>
+                </div>
+
+                <ion-icon
+                  style={{
+                    margin: "5px",
+                    fontSize: "27px",
+                    color: "red",
+                    cursor: "pointer",
+                  }}
+                  name="trash-outline"
+                  // onClick={() => handleOpenDeleteModal(TOSitem)}
+                ></ion-icon>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* <div style={styles.adminListContainer}> */}
+        {/* <div style={styles.adminDetails}>
           <div style={styles.line}>
             <p style={styles.title}>Image</p>
           </div>
@@ -255,8 +364,8 @@ const AdminsPage = () => {
               </div>
             </React.Fragment>
           ))}
-        </div>
-
+        </div> */}
+{/* 
         <div style={styles.buttons}>
           <button
             className="button"
@@ -282,7 +391,7 @@ const AdminsPage = () => {
             Delete Admin
           </button>
         </div>
-      </div>
+      </div> */}
 
       {isAdminModalOpen && (
         <div style={styles.modalOverlay}>
