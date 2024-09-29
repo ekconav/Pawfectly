@@ -18,6 +18,7 @@ import {
   doc,
   serverTimestamp,
   onSnapshot,
+  runTransaction,
 } from "firebase/firestore";
 import { auth } from "../../FirebaseConfig";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -34,11 +35,12 @@ const AddPet = () => {
   const [petBreed, setPetBreed] = useState("");
   const [petAge, setPetAge] = useState("");
   const [petDescription, setPetDescription] = useState("");
+  const [petWeight, setPetWeight] = useState("");
   const [dogChecked, setDogChecked] = useState(false);
   const [catChecked, setCatChecked] = useState(false);
   const [maleChecked, setMaleChecked] = useState(false);
   const [femaleChecked, setFemaleChecked] = useState(false);
-  const [petRescuedChecked, setPetRescuedChecked] = useState(false);
+  const [petReadyForAdoption, setPetReadyForAdoption] = useState(false);
   const [ageModal, setAgeModal] = useState(false);
   const [shelterAddress, setShelterAddress] = useState("");
   const [alertModal, setAlertModal] = useState(false);
@@ -105,8 +107,8 @@ const AddPet = () => {
     }
   };
 
-  const handlePetRescuedCheck = () => {
-    setPetRescuedChecked((prevChecked) => !prevChecked);
+  const handlePetReadyForAdoption = () => {
+    setPetReadyForAdoption((prevChecked) => !prevChecked);
   };
 
   const handleWithAdoptionFee = () => {
@@ -147,9 +149,10 @@ const AddPet = () => {
     setCatChecked(false);
     setMaleChecked(false);
     setFemaleChecked(false);
-    setPetRescuedChecked(false);
+    setPetReadyForAdoption(false);
     setPriceChecked(false);
     setPetBreed("");
+    setPetWeight("");
     setPetAge("");
     setPetDescription("");
   };
@@ -209,6 +212,7 @@ const AddPet = () => {
       !petName ||
       (!maleChecked && !femaleChecked) ||
       !petBreed ||
+      !petWeight ||
       !petAge ||
       !petDescription
     ) {
@@ -223,7 +227,6 @@ const AddPet = () => {
       const user = auth.currentUser;
       if (user) {
         const petsRef = collection(db, "pets");
-
         const petType = dogChecked ? "Dog" : catChecked ? "Cat" : "Others";
 
         await addDoc(petsRef, {
@@ -239,9 +242,33 @@ const AddPet = () => {
           petPosted: serverTimestamp(),
           petPrice: adoptionFee ? adoptionFee : "",
           type: petType,
-          rescued: petRescuedChecked ? true : false,
+          rescued: true,
+          readyForAdoption: petReadyForAdoption,
           userId: user.uid,
+          weight: petWeight,
         });
+
+        const statsRef = doc(db, "shelters", user.uid, "statistics", user.uid);
+
+        await runTransaction(db, async (transaction) => {
+          const statsDoc = await transaction.get(statsRef);
+
+          if (!statsDoc.exists()) {
+            transaction.set(statsRef, {
+              petsForAdoption: petReadyForAdoption ? 1 : 0,
+              petsAdopted: 0,
+              petsRescued: 1,
+            });
+          } else {
+            const currentStats = statsDoc.data();
+            transaction.update(statsRef, {
+              petsForAdoption:
+                currentStats.petsForAdoption + (petReadyForAdoption ? 1 : 0),
+              petsRescued: currentStats.petsRescued + 1,
+            });
+          }
+        });
+
         navigation.replace("HomePageScreenShelter");
 
         setPetImage("");
@@ -250,10 +277,11 @@ const AddPet = () => {
         setCatChecked(false);
         setMaleChecked(false);
         setFemaleChecked(false);
-        setPetRescuedChecked(false);
+        setPetReadyForAdoption(false);
         setPriceChecked(false);
         setAdoptionFee("");
         setPetBreed("");
+        setPetWeight("");
         setPetAge("");
         setPetDescription("");
       }
@@ -377,12 +405,12 @@ const AddPet = () => {
                 </View>
               </View>
               <View style={styles.inputRescuedCheckboxContainer}>
-                <Text style={styles.typeGender}>Rescued</Text>
+                <Text style={styles.typeGender}>Ready for Adoption?</Text>
                 <View style={styles.checkboxGender}>
                   <View style={styles.checkBoxContainer}>
                     <Checkbox
-                      value={petRescuedChecked}
-                      onValueChange={handlePetRescuedCheck}
+                      value={petReadyForAdoption}
+                      onValueChange={handlePetReadyForAdoption}
                       color={COLORS.prim}
                     />
                     <Text style={styles.addPetText}>Yes</Text>
@@ -419,6 +447,18 @@ const AddPet = () => {
                   style={styles.addPetInput}
                   value={petBreed}
                   onChangeText={(text) => setPetBreed(text)}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.addPetText}>
+                  Weight:{" "}
+                  <Text style={{ color: COLORS.subtitle, fontSize: 12 }}>(kg)</Text>
+                </Text>
+                <TextInput
+                  style={styles.addPetInput}
+                  value={petWeight}
+                  onChangeText={(text) => setPetWeight(text)}
+                  keyboardType="phone-pad"
                 />
               </View>
               <View style={styles.inputContainer}>

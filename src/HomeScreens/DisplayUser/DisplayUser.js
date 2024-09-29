@@ -150,6 +150,12 @@ const DisplayUser = ({ route }) => {
   return (
     <View style={styles.container}>
       <Image source={coverPhoto} style={styles.coverPhoto} />
+      <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.overlayButton}
+        >
+          <Ionicons name="arrow-back-outline" size={24} color={COLORS.title} />
+        </TouchableOpacity>
       <View style={styles.profileImageContainer}>
         <View style={styles.profile}>
           <Image source={profileImage} style={styles.profileImage} />

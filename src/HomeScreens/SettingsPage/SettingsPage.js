@@ -106,7 +106,7 @@ const SettingsPage = () => {
         const furbabiesRef = query(
           collection(db, "pets"),
           where("adopted", "==", false),
-          where("userId", "==", auth.currentUser.uid)
+          where("userId", "==", user.uid)
         );
 
         const unsubscribeFurbabies = onSnapshot(furbabiesRef, async (snapshot) => {
@@ -180,7 +180,7 @@ const SettingsPage = () => {
         const successPawsRef = query(
           collection(db, "pets"),
           where("adopted", "==", true),
-          where("userId", "==", auth.currentUser.uid)
+          where("userId", "==", user.uid)
         );
 
         const unsubscribeSuccessPaws = onSnapshot(
@@ -216,10 +216,12 @@ const SettingsPage = () => {
         return () => {
           unsubscribeFurbabies();
           unsubscribePetsAdopted();
+          unsubscribeSuccessPaws();
         };
       } else {
         setPets([]);
         setPetsAdopted([]);
+        setPetsSuccessPaws([]);
         setLoading(false);
       }
     });
