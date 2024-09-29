@@ -23,6 +23,7 @@ import {
   setDoc,
   where,
   getDocs,
+  runTransaction,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
@@ -354,6 +355,26 @@ const MessagePageShelter = ({ route }) => {
           petPosted: serverTimestamp(),
           type: petData.type,
           userId: petData.userId,
+          weight: petData.weight,
+        });
+
+        const statsRef = doc(
+          db,
+          "shelters",
+          currentUser.uid,
+          "statistics",
+          currentUser.uid
+        );
+        await runTransaction(db, async (transaction) => {
+          const statsDoc = await transaction.get(statsRef);
+
+          if (statsDoc.exists()) {
+            const currentStats = statsDoc.data();
+            transaction.update(statsRef, {
+              petsAdopted: currentStats.petsAdopted + 1,
+              petsForAdoption: currentStats.petsForAdoption - 1,
+            });
+          }
         });
 
         console.log("Pet successfully adopted!");

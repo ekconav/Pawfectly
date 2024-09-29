@@ -15,6 +15,15 @@ const styles = StyleSheet.create({
     height: 160,
     width: "100%",
   },
+  overlayButton: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    backgroundColor: COLORS.white,
+    padding: 7,
+    borderRadius: 10,
+    elevation: 1,
+  },
   profileImageContainer: {
     paddingHorizontal: 20,
     marginTop: -40,

@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
   inputRescuedCheckboxContainer: {
     flexDirection: "row",
-    gap: 101,
+    gap: 18,
   },
   inputCheckboxContainerAdoptionFee: {
     flexDirection: "row",
