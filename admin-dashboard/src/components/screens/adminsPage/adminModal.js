@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./styles";
 
+// Add Modal
 const addAdminModal = ({
   handleInputChange,
   handleCloseAdminModal,
@@ -96,6 +97,7 @@ const addAdminModal = ({
   );
 };
 
+//Confirm Password in Add modal
 const confirmPasswordModal = ({
     handleConfirmPasswordChange,
     handleConfirmPassword,

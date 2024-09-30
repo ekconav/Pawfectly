@@ -24,8 +24,11 @@ import Modal from "./adminModal";
 import Alerts from "./alert";
 
 const AdminsPage = () => {
+
+  // For Pagination
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
+
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -66,6 +69,7 @@ const AdminsPage = () => {
     return () => unsubscribe();
   }, []);
 
+  // Input change for forms
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewAdmin((prevAdmin) => ({
@@ -74,6 +78,7 @@ const AdminsPage = () => {
     }));
   };
 
+  // Add Admin
   const handleAddAdmin = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -219,6 +224,7 @@ const AdminsPage = () => {
     }
   };
 
+  // Close Add admin modal
   const handleCloseAdminModal = () => {
     setIsAdminModalOpen(false);
     setNewAdmin({
@@ -261,6 +267,7 @@ const AdminsPage = () => {
     setUpdateModalOpen(true);
   };
 
+  // Close Edit Admin Form
   const handleCloseEditModal = () => {
     setNewAdmin({
       firstName: "",
@@ -273,6 +280,7 @@ const AdminsPage = () => {
     setUpdateModalOpen(false);
   };
 
+  // on submit edit button
   const handleUpdateAdmin = async () => {
     if (!newAdmin.firstName || !newAdmin.lastName || !newAdmin.mobileNumber) {
       setAlertMessage("All fields are required.");
@@ -326,12 +334,14 @@ const AdminsPage = () => {
     }
   };
 
+  // Delete Modal
   const [isDeleteAdminModalOpen, setDeleteAdminModalOpen] = useState(false);
   const handleDeleteButton = (admin) => {
     setSelectedAdmin(admin);
     setDeleteAdminModalOpen(true);
   };
 
+  // on submit delete button
   const handleDeleteAdmin = async () => {
     if (!selectedAdmin) return;
 
@@ -370,7 +380,6 @@ const AdminsPage = () => {
       setAlertType("error");
     }
   };
-
 
   // Pagination
   // Calculate the total number of pages and current items
