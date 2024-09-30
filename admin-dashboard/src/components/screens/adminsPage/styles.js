@@ -148,7 +148,6 @@ const styles = StyleSheet.create({
     display: "grid", 
     gridTemplateColumns: "10vh 3fr 2fr 2fr 15vh",  
     borderRadius: "8px",
-    backgroundColor: "#FFF", 
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)", 
     backgroundColor: "#F2F2F2",
     padding: "10px",
@@ -214,6 +213,8 @@ const styles = StyleSheet.create({
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
     textAlign: "center",
   },
+
+  // Modal Form
   modalForm: {
     display: "flex",
     flexDirection: "column",
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 20,
   },
-  addAdminButton: {
+  confirmButton: {
     backgroundColor: COLORS.prim,
     borderWidth: 0,
     padding: 20,
@@ -251,6 +252,44 @@ const styles = StyleSheet.create({
   },
   error: {
     color: COLORS.error
+  },
+  mobileNumberContainer: {
+    position: 'relative',  
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  countryCode: {
+    position: 'absolute',  
+    left: '10px',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    color: '#5F5B5B', 
+  },
+
+  // Pagination
+  pagination: {
+    display: 'flex',
+    justifyContent: 'right',
+    alignItems: 'center',
+    marginTop: '20px',
+    marginRight: 50,
+  },
+  paginationButton: {
+    fontFamily: 'inherit',
+    fontWeight: '600',
+    fontSize: '16px',
+    marginLeft: '10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    background: 'transparent',
+    color: '#5F5B5B',
+    border: '2px solid #5F5B5B',
+  },
+  disabledButton: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
   },
 });
 
