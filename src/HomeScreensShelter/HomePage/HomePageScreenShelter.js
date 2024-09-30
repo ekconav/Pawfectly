@@ -12,11 +12,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { collection, onSnapshot, doc, query, where } from "firebase/firestore";
 import { db, auth } from "../../FirebaseConfig";
 import { RefreshControl } from "react-native";
-import { SettingOptionsShelter } from "../SettingsPage/SettingStackShelter";
 import { useNavigation } from "@react-navigation/native";
 import COLORS from "../../const/colors";
 import ConversationPageShelter from "../ConversationsPage/ConversationPageShelter";
 import Addpet from "../AddPet/AddPet";
+import StatisticsPage from "../StatisticsShelter/StatisticsPage";
 import SearchBar from "../../HomeScreens/HomePage/SearchBar/SearchBar";
 import catIcon from "../../components/catIcon.png";
 import dogIcon from "../../components/dogIcon.png";
@@ -386,15 +386,15 @@ const HomePageScreenShelter = () => (
     />
 
     <Tab.Screen
-      name="Set"
-      component={SettingOptionsShelter}
+      name="StatisticsPage"
+      component={StatisticsPage}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <Ionicons name="person-outline" color={color} size={size} />
+          <Ionicons name="stats-chart-outline" color={color} size={size} />
         ),
         tabBarActiveTintColor: COLORS.prim,
         headerShown: false,
-        tabBarLabel: "Profile",
+        tabBarLabel: "Statistics",
       }}
     />
   </Tab.Navigator>

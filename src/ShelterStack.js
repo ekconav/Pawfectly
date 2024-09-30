@@ -13,6 +13,8 @@ import OTPPage from "./OTP/OTPPage";
 import ConversationPageShelter from "./HomeScreensShelter/ConversationsPage/ConversationPageShelter";
 import DisplayUserPage from "./HomeScreensShelter/DisplayUser/DisplayUserPage";
 import DetailsPageShelter from "./HomeScreensShelter/DetailsPageShelter/DetailsPageShelter";
+import StatisticsPage from "./HomeScreensShelter/StatisticsShelter/StatisticsPage";
+import { SettingOptionsShelter } from "./HomeScreensShelter/SettingsPage/SettingStackShelter";
 
 const Stack = createStackNavigator();
 
@@ -67,6 +69,16 @@ const ShelterStack = () => {
       <Stack.Screen
         name="DetailsPageShelter"
         component={DetailsPageShelter}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="StatisticsPage"
+        component={StatisticsPage}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Set"
+        component={SettingOptionsShelter}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
