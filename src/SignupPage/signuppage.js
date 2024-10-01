@@ -181,7 +181,9 @@ const SignupPage = () => {
         if (error.message.includes("auth/email-already-in-use")) {
           setModalMessage("Error signing up. Email already in use.");
         } else if (error.message.includes("auth/weak-password")) {
-          setModalMessage("Password is too weak. Password should be at least 6 characters.");
+          setModalMessage(
+            "Password is too weak. Password should be at least 6 characters."
+          );
         } else {
           setModalMessage("Error logging in. Please try again.");
         }
@@ -211,6 +213,18 @@ const SignupPage = () => {
     setModalVisible(false);
   };
 
+  const handleMobileNumberChange = (text) => {
+    if (text.startsWith("+63")) {
+      const newText = text.slice(3);
+      setMobileNumber(newText);
+    } else if (text.startsWith("0")) {
+      const newText = text.slice(1);
+      setMobileNumber(newText);
+    } else {
+      setMobileNumber(text);
+    }
+  };
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.signUpPageContainer}>
@@ -237,13 +251,12 @@ const SignupPage = () => {
             <Text style={styles.signUpPageCountryCodeOverlay}>+63</Text>
             <TextInput
               style={styles.signUpPageMobileNumberInput}
-              onChangeText={(text) => {
-                if (text.startsWith("0")) {
-                  text = text.slice(1);
-                }
-                setMobileNumber(text);
-              }}
-              value={mobileNumber}
+              value={
+                mobileNumber.startsWith("+63")
+                  ? mobileNumber.slice(3)
+                  : mobileNumber
+              }
+              onChangeText={handleMobileNumberChange}
               keyboardType="phone-pad"
               maxLength={10}
             />

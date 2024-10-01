@@ -32,7 +32,6 @@ const EditPostPetPage = ({ route }) => {
   const [catChecked, setCatChecked] = useState(pet.type === "Cat");
   const [maleChecked, setMaleChecked] = useState(pet.gender === "Male");
   const [femaleChecked, setFemaleChecked] = useState(pet.gender === "Female");
-  const [petRescuedChecked, setPetRescuedChecked] = useState(false);
   const [priceChecked, setPriceChecked] = useState(false);
   const [adoptionFee, setAdoptionFee] = useState("");
   const [ageModal, setAgeModal] = useState(false);
@@ -69,7 +68,6 @@ const EditPostPetPage = ({ route }) => {
         setCatChecked(petData.type === "Cat");
         setMaleChecked(petData.gender === "Male");
         setFemaleChecked(petData.gender === "Female");
-        setPetRescuedChecked(petData.rescued === true);
         setPriceChecked(petData.petPrice ? true : false);
         setAdoptionFee(petData.petPrice);
       } else {
