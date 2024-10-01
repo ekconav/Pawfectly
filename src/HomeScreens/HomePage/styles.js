@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     alignSelf: "flex-start",
     alignItems: "center",
+    elevation: 1,
   },
   adopterButtonText: {
     fontFamily: "Poppins_400Regular",

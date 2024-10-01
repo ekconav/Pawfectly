@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     width: 150,
     borderRadius: 10,
+    elevation: 1,
   },
   listButtonText: {
     fontFamily: "Poppins_400Regular",
