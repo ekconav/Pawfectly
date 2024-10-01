@@ -347,7 +347,7 @@ const EditPet = ({ route }) => {
                 </View>
               </View>
               <View style={styles.inputCheckboxContainerAdoptionFee}>
-                <Text style={styles.typeTextAdoptionFee}>With Adoption Fee</Text>
+                <Text style={styles.typeTextAdoptionFee}>With Adoption Fee?</Text>
                 <View style={styles.checkBoxType}>
                   <View style={styles.checkBoxContainer}>
                     <Checkbox

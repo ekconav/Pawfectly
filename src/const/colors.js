@@ -31,6 +31,7 @@ const COLORS = {
   sentMessage: "#827397CC",
   receivedMessage: "#DFDEDECC",
   sentDateTime: "#D4D4D4",
+  offWhite: "#f0f0f0",
 };
 
 export default COLORS;

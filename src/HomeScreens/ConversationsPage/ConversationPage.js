@@ -23,10 +23,11 @@ import {
 } from "firebase/firestore";
 import { Swipeable } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
-import styles from "./styles";
+import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
 import COLORS from "../../const/colors";
 import SearchBar from "../HomePage/SearchBar/SearchBar";
+import styles from "./styles";
 
 const DeleteButton = ({ onDelete }) => (
   <TouchableOpacity style={styles.slideDeleteButton} onPress={onDelete}>
@@ -45,6 +46,12 @@ const ConversationPage = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [conversationLoading, setConversationLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [checkVerify, setCheckVerify] = useState(false);
+  const [shelters, setShelters] = useState([]);
+  const [shelterModal, setShelterModal] = useState(false);
+  const [shelterListLoading, setShelterListLoading] = useState(false);
 
   const swipeableRefs = useRef({});
 
@@ -125,6 +132,36 @@ const ConversationPage = ({ navigation }) => {
 
     fetchConversations();
   }, []);
+
+  const fetchShelters = async () => {
+    setShelterListLoading(true);
+    try {
+      const sheltersCollectionRef = collection(db, "shelters");
+      const snapshot = await getDocs(sheltersCollectionRef);
+
+      const sheltersData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setShelters(sheltersData);
+      setShelterListLoading(false);
+    } catch (error) {
+      console.error("Error fetching shelters: ", error);
+      setShelterListLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (shelterModal) {
+      fetchShelters();
+    }
+  }, [shelterModal]);
+
+  const handleSelectShelter = (shelterId) => {
+    navigation.navigate("DisplayUserPage", { userId: shelterId });
+    setShelterModal(false);
+  };
 
   const listenToUserOrShelterData = (participantId, onDataChange) => {
     try {
@@ -386,6 +423,7 @@ const ConversationPage = ({ navigation }) => {
             ? { uri: userData.accountPicture }
             : require("../../components/user.png")
         );
+        setCheckVerify(userData.verified === true);
       }
     });
     return () => unsubscribe();
@@ -396,6 +434,15 @@ const ConversationPage = ({ navigation }) => {
       closeAllSwipeables();
     }, [])
   );
+
+  const handleClickListButton = () => {
+    if (!checkVerify) {
+      setModalMessage("Sorry, your account is not yet verified.");
+      setAlertModal(true);
+      return;
+    }
+    setShelterModal(true);
+  };
 
   if (loading) {
     return (
@@ -534,6 +581,89 @@ const ConversationPage = ({ navigation }) => {
           )}
         </View>
       )}
+      <View style={styles.listButtonContainer}>
+        <TouchableOpacity style={styles.listButton} onPress={handleClickListButton}>
+          <Ionicons name="reorder-three-outline" size={24} color={COLORS.title} />
+          <Text style={styles.listButtonText}>List of Shelters</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Alert Modal */}
+      <Modal isVisible={alertModal}>
+        <View style={styles.alertModalContainer}>
+          <Text style={styles.alertModalText}>{modalMessage}</Text>
+          <View style={styles.alertModalButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.alertModalButton}
+            >
+              <Text style={styles.alertModalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Shelter List Modal */}
+      <Modal isVisible={shelterModal} onRequestClose={() => setShelterModal(false)}>
+        <TouchableOpacity
+          style={styles.shelterModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShelterModal(false)}
+        >
+          <View style={styles.shelterModalContainer}>
+            <Text style={styles.shelterListTitle}>List of Shelters</Text>
+            {shelterListLoading ? (
+              <View style={styles.modalLoadingContainer}>
+                <ActivityIndicator size="large" color={COLORS.prim} />
+              </View>
+            ) : shelters.length === 0 && !shelterListLoading ? (
+              <View style={styles.modalLoadingContainer}>
+                <Text style={styles.shelterListEmptyText}>
+                  Sorry, shelter list is empty.
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={shelters}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalShelterItem}
+                    onPress={() => handleSelectShelter(item.id)}
+                  >
+                    <View style={styles.modalShelterInfoContainer}>
+                      <Image
+                        source={
+                          item.accountPicture
+                            ? { uri: item.accountPicture }
+                            : require("../../components/user.png")
+                        }
+                        style={styles.modalShelterPicture}
+                      />
+                      <View>
+                        <Text
+                          style={styles.modalShelterName}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {item.shelterName}
+                        </Text>
+                        <Text
+                          style={styles.modalShelterAddress}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {item.address}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
