@@ -6,13 +6,25 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { collection, onSnapshot, doc, query, where } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  updateDoc,
+} from "firebase/firestore";
 import { db, auth } from "../../FirebaseConfig";
 import { RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import Checkbox from "expo-checkbox";
+import Modal from "react-native-modal";
 import COLORS from "../../const/colors";
 import ConversationPageShelter from "../ConversationsPage/ConversationPageShelter";
 import Addpet from "../AddPet/AddPet";
@@ -22,6 +34,7 @@ import catIcon from "../../components/catIcon.png";
 import dogIcon from "../../components/dogIcon.png";
 import turtleIcon from "../../components/turtleIcon.png";
 import styles from "./styles";
+import { signOut } from "firebase/auth";
 
 const Tab = createBottomTabNavigator();
 
@@ -35,6 +48,13 @@ const HomeScreenPet = () => {
   const [loading, setLoading] = useState(true);
 
   const [seeAllPressed, setSeeAllPressed] = useState(false);
+
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(true);
+  const [updateTermsAccepted, setUpdateTermsAccepted] = useState(false);
+  const [termsModal, setTermsModal] = useState(false);
+  const [tosItems, setTosItems] = useState([]);
 
   const navigation = useNavigation();
 
@@ -51,6 +71,10 @@ const HomeScreenPet = () => {
               ? { uri: userData.accountPicture }
               : require("../../components/user.png")
           );
+          setTermsAccepted(userData.termsAccepted);
+        }
+        if (!termsAccepted) {
+          setUpdateTermsAccepted(false);
         }
       }
     );
@@ -64,6 +88,23 @@ const HomeScreenPet = () => {
   useEffect(() => {
     handleSearch();
   }, [searchQuery]);
+
+  useEffect(() => {
+    const fetchTos = async () => {
+      try {
+        const q = query(collection(db, "TOS"), orderBy("order", "asc"));
+        const querySnapshot = await getDocs(q);
+        const tosData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTosItems(tosData);
+      } catch (error) {
+        console.error("Error fetching TOS: ", error);
+      }
+    };
+    fetchTos();
+  }, []);
 
   const fetchPets = () => {
     const currentUser = auth.currentUser;
@@ -139,6 +180,36 @@ const HomeScreenPet = () => {
 
   const handleSeeAllPressed = () => {
     setSeeAllPressed((prevState) => !prevState);
+  };
+
+  const handleCancel = async () => {
+    try {
+      await signOut(auth);
+      console.log("User signed out successfully!");
+      navigation.replace("LoginPage");
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!updateTermsAccepted) {
+      setModalMessage("You must agree to the terms of service to sign up.");
+      setAlertModal(true);
+    } else {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const userDocRef = doc(db, "shelters", user.uid);
+          await updateDoc(userDocRef, {
+            termsAccepted: true,
+          });
+        }
+        console.log("Terms approved");
+      } catch (error) {
+        console.error("Error approving terms: ", error);
+      }
+    }
   };
 
   if (loading) {
@@ -341,6 +412,79 @@ const HomeScreenPet = () => {
           />
         </View>
       )}
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setAlertModal(false)}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal isVisible={!termsAccepted}>
+        <View style={styles.termsModalVisible}>
+          <Text style={styles.updateTitle}>Update on the Terms of Service</Text>
+          <Text style={styles.updateText}>
+            By using Pawfectly Adoptable, you agree to these{" "}
+            <Text style={styles.updateLink} onPress={() => setTermsModal(true)}>
+              Terms of Service
+            </Text>
+            .
+          </Text>
+          <View style={styles.updateCheckboxContainer}>
+            <Checkbox
+              value={updateTermsAccepted}
+              onValueChange={setUpdateTermsAccepted}
+              color={COLORS.prim}
+            />
+            <Text style={styles.checkboxText}>I agree to the Terms of Service</Text>
+          </View>
+          <View style={styles.updateButtonContainer}>
+            <TouchableOpacity
+              style={styles.updateCancelButton}
+              onPress={handleCancel}
+            >
+              <Text style={styles.updateCancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.updateConfirmButton}
+              onPress={handleConfirm}
+            >
+              <Text style={styles.updateConfirmButtonText}>Confirm</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal isVisible={termsModal}>
+        <View style={styles.termsModalVisible}>
+          <Text style={styles.TOSTitle}>Terms of Service</Text>
+          <ScrollView style={styles.tosScrollView}>
+            {tosItems.map((item) => (
+              <View key={item.id} style={styles.tosContainer}>
+                <Text style={styles.tosTitle}>
+                  {item.order}. {item.title}
+                </Text>
+                <Text style={styles.tosDescription}>{item.description}</Text>
+              </View>
+            ))}
+            <View style={styles.tosContainer}>
+              <Text style={styles.tosDescription}>
+                <Text style={styles.tosEmail}>pawfectly_adoptable@gmail.com</Text>
+              </Text>
+            </View>
+          </ScrollView>
+          <TouchableOpacity
+            style={styles.updateCancelButton}
+            onPress={() => setTermsModal(false)}
+          >
+            <Text style={styles.updateCancelButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };

@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     alignItems: "center",
   },
-  petNameGenderSeeAll:{ 
+  petNameGenderSeeAll: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 3,
@@ -169,6 +169,114 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
+  },
+
+  // Alert Modal
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+
+  // Terms Modal
+  termsModalVisible: {
+    backgroundColor: COLORS.white,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  updateTitle: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  updateText: {
+    fontFamily: "Poppins_500Medium",
+    marginBottom: 20,
+  },
+  updateLink: {
+    color: COLORS.link,
+  },
+  updateCheckboxContainer: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 20,
+  },
+  checkboxText: {
+    fontFamily: "Poppins_600SemiBold",
+  },
+  updateButtonContainer: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  updateCancelButton: {
+    backgroundColor: COLORS.subtitle,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    width: 90,
+    borderRadius: 5,
+  },
+  updateCancelButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
+  },
+  updateConfirmButton: {
+    backgroundColor: COLORS.prim,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    width: 90,
+    borderRadius: 5,
+  },
+  updateConfirmButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
+  },
+
+  
+  TOSTitle: {
+    fontSize: 16,
+    fontFamily: "Poppins_700Bold",
+    marginBottom: 20,
+  },
+  tosScrollView: {
+    maxHeight: 600,
+    marginBottom: 20,
+  },
+  tosContainer: {
+    marginBottom: 10,
+  },
+  tosTitle: {
+    fontFamily: "Poppins_600SemiBold",
+  },
+  tosDescription: {
+    fontFamily: "Poppins_400Regular",
+    textAlign: "justify",
+    paddingLeft: 15,
+  },
+  tosEmail: {
+    color: COLORS.prim,
     fontFamily: "Poppins_500Medium",
   },
 });
