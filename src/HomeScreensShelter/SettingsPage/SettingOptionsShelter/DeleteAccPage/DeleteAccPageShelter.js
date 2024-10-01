@@ -46,11 +46,19 @@ const DeleteAccountPage = () => {
           shelter.uid,
           "conversations"
         );
+        const statisticsDocRef = doc(
+          db,
+          "shelters",
+          shelter.uid,
+          "statistics",
+          shelter.uid
+        );
 
         const deleteSubcollection = async (collectionRef) => {
           const snapshot = await getDocs(collectionRef);
           for (const doc of snapshot.docs) {
             const subcollectionRef = collection(doc.ref, "messages");
+            if (!subcollectionRef) continue;
             await deleteSubcollection(subcollectionRef);
             await deleteDoc(doc.ref);
           }
@@ -62,6 +70,8 @@ const DeleteAccountPage = () => {
           await deleteSubcollection(messagesRef);
           await deleteDoc(conversation.ref);
         }
+
+        await deleteDoc(statisticsDocRef);
 
         const q = query(petsRef, where("userId", "==", shelter.uid));
         const querySnapshot = await getDocs(q);

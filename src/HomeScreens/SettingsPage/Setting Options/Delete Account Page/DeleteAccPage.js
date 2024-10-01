@@ -9,7 +9,14 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../../../FirebaseConfig";
 import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
 import COLORS from "../../../../const/colors";
@@ -31,9 +38,10 @@ const DeleteAccPage = () => {
         const credential = EmailAuthProvider.credential(user.email, password);
         await reauthenticateWithCredential(user, credential);
 
+        const petsRef = collection(db, "pets");
+
         const deleteSubcollection = async (collectionRef) => {
           const snapshot = await getDocs(collectionRef);
-
           for (const doc of snapshot.docs) {
             const subcollectionRef = collection(doc.ref, "messages");
             if (!subcollectionRef) continue;
@@ -55,6 +63,12 @@ const DeleteAccPage = () => {
 
         await deleteSubcollection(favoritesRef);
         await deleteSubcollection(petsAdoptedRef);
+
+        const q = query(petsRef, where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        for (const petDoc of querySnapshot.docs) {
+          await deleteDoc(petDoc.ref);
+        }
 
         await deleteDoc(doc(db, "users", user.uid));
 
