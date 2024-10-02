@@ -44,7 +44,7 @@ const DeleteAccPage = () => {
 
         const favoritesRef = collection(db, "users", user.uid, "favorites");
         const conversationsRef = collection(db, "users", user.uid, "conversations");
-        const furbabiesRef = collection(db, "users", user.uid, "furbabies");
+        const petsAdoptedRef = collection(db, "users", user.uid, "petsAdopted");
 
         const conversationsSnapshot = await getDocs(conversationsRef);
         for (const conversation of conversationsSnapshot.docs) {
@@ -54,7 +54,7 @@ const DeleteAccPage = () => {
         }
 
         await deleteSubcollection(favoritesRef);
-        await deleteSubcollection(furbabiesRef);
+        await deleteSubcollection(petsAdoptedRef);
 
         await deleteDoc(doc(db, "users", user.uid));
 

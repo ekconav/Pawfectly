@@ -41,9 +41,24 @@ export default StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 7,
   },
+  petNamePriceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   petName: {
     fontFamily: "Poppins_600SemiBold",
     fontSize: 24,
+    color: COLORS.title,
+  },
+  petPriceTitle: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    fontSize: 12,
+  },
+  petPrice: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 20,
     color: COLORS.title,
   },
   petPostedDate: {
@@ -97,9 +112,9 @@ export default StyleSheet.create({
     gap: 5,
   },
   userAccountPicture: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   conversationTitle: {
     fontFamily: "Poppins_500Medium",
@@ -110,8 +125,7 @@ export default StyleSheet.create({
     color: COLORS.title,
   },
   userName: {
-    fontFamily: "Poppins_600SemiBold",
-    fontSize: 14,
+    fontFamily: "Poppins_400Regular",
     color: COLORS.title,
   },
   callMessage: {
@@ -211,7 +225,7 @@ export default StyleSheet.create({
   adoptedByContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
   adopterImage: {
     width: 50,

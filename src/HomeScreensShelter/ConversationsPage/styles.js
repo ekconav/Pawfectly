@@ -25,6 +25,11 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
+  searchBar: {
+    paddingHorizontal: 25,
+    borderBottomWidth: 1,
+    borderColor: COLORS.outline,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -83,6 +88,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 75,
     borderRadius: 10,
+  },
+  searchMatch: {
+    fontFamily: "Poppins_600SemiBold",
+    color: COLORS.black,
   },
 });
 

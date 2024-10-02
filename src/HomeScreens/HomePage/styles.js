@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
   },
   mainContainer: {
     flex: 1,
+    paddingBottom: 5,
   },
   header: {
     flexDirection: "row",
@@ -39,9 +40,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
   },
+  buttonContainerSeeAll: {
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+  },
   petButton: {
     borderRadius: 10,
     elevation: 2,
+  },
+  petButtonSeeAll: {
+    elevation: 2,
+    width: 135,
+    height: 200,
   },
   petContainer: {
     backgroundColor: COLORS.background,
@@ -54,10 +65,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.title,
   },
+  petNameSeeAll: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 12,
+    color: COLORS.title,
+  },
   imageContainer: {
     width: "100%",
     paddingHorizontal: 10,
     height: 230,
+    marginBottom: 10,
+    marginTop: 10,
+    alignContent: "center",
+    overflow: "hidden",
+  },
+  imageContainerSeeAll: {
+    width: "100%",
+    paddingHorizontal: 10,
+    height: 130,
     marginBottom: 10,
     marginTop: 10,
     alignContent: "center",
@@ -68,6 +93,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+    alignItems: "center",
   },
   petDetails: {
     paddingHorizontal: 10,
@@ -77,6 +103,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 7,
+    alignItems: "center",
+  },
+  petNameGenderSeeAll:{ 
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 3,
     alignItems: "center",
   },
   genderIconContainer: {
@@ -100,6 +132,11 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
   },
+  petAddressSeeAll: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    fontSize: 11,
+  },
   noResultsContainer: {
     flex: 1,
     justifyContent: "center",
@@ -109,18 +146,27 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_500Medium",
     textAlign: "center",
   },
+  titleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: COLORS.prim,
+    alignSelf: "flex-start",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    marginVertical: 5,
+    borderRadius: 10,
+    elevation: 1,
+  },
   categoriesTitle: {
     fontFamily: "Poppins_600SemiBold",
-    fontSize: 16,
-    color: COLORS.title,
-    marginBottom: 8,
+    fontSize: 14,
+    color: COLORS.white,
   },
-  categoryContainer: {
-    marginBottom: 20,
-  },
-  categoryButtonContainer: {
+  categoryChoices: {
     flexDirection: "row",
-    gap: 15,
+    justifyContent: "space-between",
+    marginBottom: 5,
   },
   categoryButton: {
     flexDirection: "row",
@@ -143,6 +189,93 @@ const styles = StyleSheet.create({
   },
   refreshControl: {
     backgroundColor: COLORS.white,
+  },
+
+  // Adopter Container
+  adopterContainer: {
+    backgroundColor: COLORS.prim,
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  adopterText: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.white,
+    flexWrap: "wrap",
+  },
+  adopterButton: {
+    marginVertical: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    backgroundColor: COLORS.white,
+    alignSelf: "flex-start",
+    alignItems: "center",
+  },
+  adopterButtonText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.prim,
+  },
+  adopterImage: {
+    width: 120,
+    height: 120,
+  },
+
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  modalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+
+  // Choices Modal
+  choicesModalOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  choicesOptions: {
+    width: 185,
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    elevation: 5,
+    height: 123,
+  },
+  choicesDropdown: {
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.outline,
+  },
+  choicesDropdownText: {
+    fontSize: 12,
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
+  },
+  seeAllText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
   },
 });
 

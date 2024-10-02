@@ -33,6 +33,8 @@ const EditPet = ({ route }) => {
   const [maleChecked, setMaleChecked] = useState(pet.gender === "Male");
   const [femaleChecked, setFemaleChecked] = useState(pet.gender === "Female");
   const [petRescuedChecked, setPetRescuedChecked] = useState(false);
+  const [priceChecked, setPriceChecked] = useState(false);
+  const [adoptionFee, setAdoptionFee] = useState("");
   const [ageModal, setAgeModal] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -75,27 +77,42 @@ const EditPet = ({ route }) => {
   };
 
   const handleMaleCheck = () => {
-    setMaleChecked(true);
-    setFemaleChecked(false);
+    setMaleChecked((prevState) => !prevState);
+    if (femaleChecked) {
+      setFemaleChecked(false);
+    }
   };
 
   const handleFemaleCheck = () => {
-    setFemaleChecked(true);
-    setMaleChecked(false);
+    setFemaleChecked((prevState) => !prevState);
+    if (maleChecked) {
+      setMaleChecked(false);
+    }
   };
 
   const handleDogCheck = () => {
-    setDogChecked(true);
-    setCatChecked(false);
+    setDogChecked((prevState) => !prevState);
+    if (catChecked) {
+      setCatChecked(false);
+    }
   };
 
   const handleCatCheck = () => {
-    setCatChecked(true);
-    setDogChecked(false);
+    setCatChecked((prevState) => !prevState);
+    if (dogChecked) {
+      setDogChecked(false);
+    }
   };
 
   const handlePetRescuedCheck = () => {
     setPetRescuedChecked((prevChecked) => !prevChecked);
+  };
+
+  const handleInfoClick = () => {
+    setModalMessage(
+      "Pet type is not required. If both checkboxes are empty, your pet will belong to the 'others' category."
+    );
+    setAlertModal(true);
   };
 
   const handlePickImage = async () => {
@@ -128,22 +145,25 @@ const EditPet = ({ route }) => {
     if (
       !petImage ||
       !petName ||
-      (!dogChecked && !catChecked) ||
       (!maleChecked && !femaleChecked) ||
       !petBreed ||
       !petAge ||
       !petDescription
     ) {
+      setModalMessage("Please fill in all required fields.");
       setAlertModal(true);
-      setModalMessage("Please fill in all fields.");
       return;
     }
+
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
 
     try {
       const user = auth.currentUser;
       if (user) {
         const petsDocRef = doc(db, "pets", pet.id);
+
+        const petType = dogChecked ? "Dog" : catChecked ? "Cat" : "Others";
+
         await updateDoc(petsDocRef, {
           age: petAge,
           breed: petBreed,
@@ -151,7 +171,8 @@ const EditPet = ({ route }) => {
           gender: maleChecked ? "Male" : "Female",
           images: petImageUrl,
           name: petName,
-          type: dogChecked ? "Dog" : "Cat",
+          petPrice: adoptionFee ? adoptionFee : "",
+          type: petType,
           rescued: petRescuedChecked ? true : false,
         });
 
@@ -181,6 +202,8 @@ const EditPet = ({ route }) => {
         setMaleChecked(petData.gender === "Male");
         setFemaleChecked(petData.gender === "Female");
         setPetRescuedChecked(petData.rescued === true);
+        setPriceChecked(petData.petPrice ? true : false);
+        setAdoptionFee(petData.petPrice);
       } else {
         console.log("No such document!");
       }
@@ -189,10 +212,13 @@ const EditPet = ({ route }) => {
     return () => unsubscribe();
   }, [pet.id]);
 
+  const handleWithAdoptionFee = () => {
+    setPriceChecked((prevChecked) => !prevChecked);
+    setAdoptionFee("");
+  };
+
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, paddingBottom: 45, backgroundColor: COLORS.white }}
-    >
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Edit Pet</Text>
@@ -200,125 +226,167 @@ const EditPet = ({ route }) => {
             <Image source={profileImage} style={styles.profileImage} />
           </TouchableOpacity>
         </View>
-        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <View style={styles.addImageContainer}>
-            <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
-              {!petImage ? (
-                <View style={styles.iconAndText}>
-                  <Ionicons name="image-outline" size={20} color={COLORS.title} />
-                  <Text style={styles.addPetText}>Add Image</Text>
-                </View>
-              ) : (
-                <Image source={{ uri: petImage }} style={styles.petPreviewImage} />
-              )}
-            </TouchableOpacity>
-          </View>
-          <View style={styles.addPetInputContainer}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.addPetText}>Name</Text>
-              <TextInput
-                style={styles.addPetInput}
-                value={petName}
-                onChangeText={(text) => setPetName(text)}
-              />
-            </View>
-            <View style={styles.inputCheckboxContainer}>
-              <Text style={styles.typeText}>Type</Text>
-              <View style={styles.checkBoxType}>
-                <View style={styles.checkBoxContainer}>
-                  <Checkbox
-                    value={dogChecked}
-                    onValueChange={handleDogCheck}
-                    color={COLORS.prim}
-                  />
-                  <Text style={styles.addPetText}>Dog</Text>
-                </View>
-                <View style={styles.checkBoxContainer}>
-                  <Checkbox
-                    value={catChecked}
-                    onValueChange={handleCatCheck}
-                    color={COLORS.prim}
-                  />
-                  <Text style={styles.addPetText}>Cat</Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.inputCheckboxContainer}>
-              <Text style={styles.typeGender}>Gender</Text>
-              <View style={styles.checkboxGender}>
-                <View style={styles.checkBoxContainer}>
-                  <Checkbox
-                    value={maleChecked}
-                    onValueChange={handleMaleCheck}
-                    color={COLORS.prim}
-                  />
-                  <Text style={styles.addPetText}>Male</Text>
-                </View>
-                <View style={styles.checkBoxContainer}>
-                  <Checkbox
-                    value={femaleChecked}
-                    onValueChange={handleFemaleCheck}
-                    color={COLORS.prim}
-                  />
-                  <Text style={styles.addPetText}>Female</Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.inputRescuedCheckboxContainer}>
-              <Text style={styles.typeGender}>Rescued</Text>
-              <View style={styles.checkboxGender}>
-                <View style={styles.checkBoxContainer}>
-                  <Checkbox
-                    value={petRescuedChecked}
-                    onValueChange={handlePetRescuedCheck}
-                    color={COLORS.prim}
-                  />
-                  <Text style={styles.addPetText}>Yes</Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.addPetText}>Breed</Text>
-              <TextInput
-                style={styles.addPetInput}
-                value={petBreed}
-                onChangeText={(text) => setPetBreed(text)}
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.addPetText}>Age</Text>
-              <TouchableOpacity onPress={() => setAgeModal(true)}>
-                <TextInput
-                  editable={false}
-                  style={styles.addPetInput}
-                  value={petAge}
-                  onChangeText={(text) => setPetAge(text)}
-                />
+        <View style={styles.editPetContainer}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+            <View style={styles.addImageContainer}>
+              <TouchableOpacity style={styles.imageButton} onPress={handlePickImage}>
+                {!petImage ? (
+                  <View style={styles.iconAndText}>
+                    <Ionicons name="image-outline" size={20} color={COLORS.title} />
+                    <Text style={styles.addPetText}>Add Image</Text>
+                  </View>
+                ) : (
+                  <Image source={{ uri: petImage }} style={styles.petPreviewImage} />
+                )}
               </TouchableOpacity>
             </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.addPetText}>Description</Text>
-              <TextInput
-                style={styles.addPetDescriptionInput}
-                value={petDescription}
-                onChangeText={(text) => setPetDescription(text)}
-                multiline
-                textAlignVertical="top"
-              />
+            <View style={styles.addPetInputContainer}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.addPetText}>Name</Text>
+                <TextInput
+                  style={styles.addPetInput}
+                  value={petName}
+                  onChangeText={(text) => setPetName(text)}
+                />
+              </View>
+              <View style={styles.inputCheckboxContainer}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 4,
+                    marginRight: 25,
+                  }}
+                >
+                  <Text style={styles.typeText}>Type</Text>
+                  <TouchableOpacity onPress={handleInfoClick}>
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={16}
+                      color={COLORS.title}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.checkBoxType}>
+                  <View style={styles.checkBoxContainer}>
+                    <Checkbox
+                      value={dogChecked}
+                      onValueChange={handleDogCheck}
+                      color={COLORS.prim}
+                    />
+                    <Text style={styles.addPetText}>Dog</Text>
+                  </View>
+                  <View style={styles.checkBoxContainer}>
+                    <Checkbox
+                      value={catChecked}
+                      onValueChange={handleCatCheck}
+                      color={COLORS.prim}
+                    />
+                    <Text style={styles.addPetText}>Cat</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.inputCheckboxContainer}>
+                <Text style={styles.typeGender}>Gender</Text>
+                <View style={styles.checkboxGender}>
+                  <View style={styles.checkBoxContainer}>
+                    <Checkbox
+                      value={maleChecked}
+                      onValueChange={handleMaleCheck}
+                      color={COLORS.prim}
+                    />
+                    <Text style={styles.addPetText}>Male</Text>
+                  </View>
+                  <View style={styles.checkBoxContainer}>
+                    <Checkbox
+                      value={femaleChecked}
+                      onValueChange={handleFemaleCheck}
+                      color={COLORS.prim}
+                    />
+                    <Text style={styles.addPetText}>Female</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.inputRescuedCheckboxContainer}>
+                <Text style={styles.typeGender}>Rescued</Text>
+                <View style={styles.checkboxGender}>
+                  <View style={styles.checkBoxContainer}>
+                    <Checkbox
+                      value={petRescuedChecked}
+                      onValueChange={handlePetRescuedCheck}
+                      color={COLORS.prim}
+                    />
+                    <Text style={styles.addPetText}>Yes</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.inputCheckboxContainerAdoptionFee}>
+                <Text style={styles.typeTextAdoptionFee}>With Adoption Fee</Text>
+                <View style={styles.checkBoxType}>
+                  <View style={styles.checkBoxContainer}>
+                    <Checkbox
+                      value={priceChecked}
+                      onValueChange={handleWithAdoptionFee}
+                      color={COLORS.prim}
+                    />
+                    <Text style={styles.addPetText}>Yes</Text>
+                  </View>
+                </View>
+              </View>
+              {priceChecked ? (
+                <View style={styles.inputContainer}>
+                  <Text style={styles.addPetText}>Adoption Fee</Text>
+                  <TextInput
+                    style={styles.addPetInput}
+                    value={adoptionFee}
+                    onChangeText={(text) => setAdoptionFee(text)}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+              ) : null}
+              <View style={styles.inputContainer}>
+                <Text style={styles.addPetText}>Breed</Text>
+                <TextInput
+                  style={styles.addPetInput}
+                  value={petBreed}
+                  onChangeText={(text) => setPetBreed(text)}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.addPetText}>Age</Text>
+                <TouchableOpacity onPress={() => setAgeModal(true)}>
+                  <TextInput
+                    editable={false}
+                    style={styles.addPetInput}
+                    value={petAge}
+                    onChangeText={(text) => setPetAge(text)}
+                  />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.addPetText}>Description</Text>
+                <TextInput
+                  style={styles.addPetDescriptionInput}
+                  value={petDescription}
+                  onChangeText={(text) => setPetDescription(text)}
+                  multiline
+                  textAlignVertical="top"
+                />
+              </View>
             </View>
-          </View>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.uploadButton} onPress={handleEditPet}>
-              <Text style={styles.buttonText}>Save</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.uploadButton} onPress={handleEditPet}>
+            <Text style={styles.buttonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <Modal
         visible={ageModal}

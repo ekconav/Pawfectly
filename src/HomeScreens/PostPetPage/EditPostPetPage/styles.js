@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import COLORS from "../../const/colors";
+import COLORS from "../../../const/colors";
 
 const styles = StyleSheet.create({
   container: {
@@ -75,31 +75,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 8,
   },
-  checkBoxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  inputRescuedCheckboxContainer: {
-    flexDirection: "row",
-    gap: 101,
-  },
-  inputCheckboxContainerAdoptionFee: {
-    flexDirection: "row",
-    gap: 15,
-  },
   typeText: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
   },
-  typeTextAdoptionFee: {
-    fontFamily: "Poppins_400Regular",
-    color: COLORS.title,
-    marginRight: 44,
-  },
   checkBoxType: {
     flexDirection: "row",
     gap: 50,
+  },
+  checkBoxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
   typeGender: {
     fontFamily: "Poppins_400Regular",
@@ -109,6 +96,15 @@ const styles = StyleSheet.create({
   checkboxGender: {
     flexDirection: "row",
     gap: 45,
+  },
+  inputCheckboxContainerAdoptionFee: {
+    flexDirection: "row",
+    gap: 15,
+  },
+  typeTextAdoptionFee: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    marginRight: 44,
   },
   addPetDescriptionInput: {
     borderWidth: 1,

@@ -204,6 +204,18 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
+
+  // Image Modal
+  modalOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  expandedImage: {
+    width: '100%',
+    height: '100%',
+  },
 });
 
 export default styles;

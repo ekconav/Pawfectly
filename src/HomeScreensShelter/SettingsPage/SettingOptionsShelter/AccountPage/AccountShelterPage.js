@@ -110,6 +110,7 @@ const AccountPage = () => {
     }
 
     const shelter = auth.currentUser;
+    const fullMobileNumber = `+63${shelterMobileNumber}`;
 
     if (shelter) {
       const shelterDocRef = doc(db, "shelters", shelter.uid);
@@ -119,7 +120,7 @@ const AccountPage = () => {
           shelterName: shelterName,
           shelterOwner: shelterOwnerName,
           address: shelterAddress,
-          mobileNumber: shelterMobileNumber,
+          mobileNumber: fullMobileNumber,
         });
         navigation.goBack();
       } catch (error) {
@@ -131,6 +132,18 @@ const AccountPage = () => {
       } finally {
         setLoading(false);
       }
+    }
+  };
+
+  const handleMobileNumberChange = (text) => {
+    if (text.startsWith("+63")) {
+      const newText = text.slice(3);
+      setShelterMobileNumber(newText);
+    } else if (text.startsWith("0")) {
+      const newText = text.slice(1);
+      setShelterMobileNumber(newText);
+    } else {
+      setShelterMobileNumber(text);
     }
   };
 
@@ -197,10 +210,14 @@ const AccountPage = () => {
               <Text style={styles.text}>Mobile Number</Text>
               <TextInput
                 style={styles.input}
-                value={shelterMobileNumber}
-                onChangeText={setShelterMobileNumber}
+                value={
+                  shelterMobileNumber.startsWith("+63")
+                    ? shelterMobileNumber.slice(3)
+                    : shelterMobileNumber
+                }
+                onChangeText={handleMobileNumberChange}
                 keyboardType="phone-pad"
-                maxLength={13}
+                maxLength={10}
               />
             </View>
             <View style={styles.buttonContainer}>
