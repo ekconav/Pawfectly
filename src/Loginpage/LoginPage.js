@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth, db } from "../FirebaseConfig";
 import Modal from "react-native-modal";
 import styles from "./style";
@@ -27,11 +27,7 @@ const LoginPage = () => {
       setLoading(true);
 
       try {
-        const userCredential = await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const userUID = userCredential.user.uid;
 
         const userDocRef = doc(db, "users", userUID);
@@ -64,6 +60,34 @@ const LoginPage = () => {
       }
     } else {
       setModalMessage("Please fill in all fields.");
+      setAlertModal(true);
+    }
+  };
+
+  // Handle password reset functionality
+  const handlePasswordReset = async () => {
+    if (email) {
+      try {
+        console.log("Attempting to send reset email to:", email);
+
+        await sendPasswordResetEmail(auth, email);
+  
+        setModalMessage("Password reset email sent! Please check your inbox.");
+      } catch (error) {
+        console.error("Error sending password reset email:", error.message);
+  
+        if (error.code === "auth/user-not-found") {
+          setModalMessage("No account found with this email. Please check and try again.");
+        } else if (error.code === "auth/invalid-email") {
+          setModalMessage("Invalid email format. Please enter a valid email.");
+        } else {
+          setModalMessage("Error sending password reset email. Please try again.");
+        }
+      } finally {
+        setAlertModal(true);
+      }
+    } else {
+      setModalMessage("Please enter your email to reset your password.");
       setAlertModal(true);
     }
   };
@@ -103,7 +127,10 @@ const LoginPage = () => {
       <TouchableOpacity style={styles.loginPageButton} onPress={handleLogin}>
         <Text style={styles.loginPageButtonText}>Login</Text>
       </TouchableOpacity>
-
+      {/* Add Forgot Password text */}
+      <Text style={styles.resetPasswordText} onPress={handlePasswordReset}>
+        Forgot Password?
+      </Text>
       <Text style={styles.loginPageSubtitle}>
         Don't have an account yet?
         <Text onPress={handleChoosePage} style={styles.loginPageLink}>

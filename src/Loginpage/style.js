@@ -58,6 +58,7 @@ const style = StyleSheet.create({
   },
   loginPageSubtitle: {
     fontSize: 12,
+    top: 20,
     fontFamily: "Poppins_500Medium",
     color: COLORS.title,
   },
@@ -87,6 +88,12 @@ const style = StyleSheet.create({
   modalButtonText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
+  },
+  resetPasswordText: {
+    color: COLORS.link,
+    top: -20,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
   },
 });
 

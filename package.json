@@ -59,6 +59,7 @@
     "react-native-vector-icons": "^10.0.3",
     "react-native-web": "~0.19.6",
     "react-navigation": "^5.0.0",
+    "typescript": "~5.3.3",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
