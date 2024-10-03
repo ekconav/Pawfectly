@@ -9,11 +9,11 @@ const DeleteModal = ({ onConfirm, onClose, children }) => {
       <div style={styles.modalContent}>
         {children}
         <div style={styles.modalButtons}>
-          <button style={styles.confirmButton} onClick={onConfirm}>
-            Confirm
-          </button>
           <button style={styles.cancelButton} onClick={onClose}>
             Cancel
+          </button>
+          <button style={styles.confirmButton} onClick={onConfirm}>
+            Confirm
           </button>
         </div>
       </div>
@@ -33,7 +33,7 @@ const CreateTOSModal = ({
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
-        <h2>Add New Terms Of Service</h2>
+        <h2 style={styles.modalTitle}>Add New Terms Of Service</h2>
         <Form>
           {/* Select for order */}
           <Form.Group className="mb-3">
@@ -56,9 +56,9 @@ const CreateTOSModal = ({
               placeholder="description"
               required
               style={{
-                width: '100%', 
-                maxHeight: '50vh', 
-                resize: 'vertical',  
+                width: "100%",
+                maxHeight: "50vh",
+                resize: "vertical",
               }}
             />
           </Form.Group>
@@ -90,14 +90,14 @@ const CreateTOSModal = ({
           </Form.Group>
         </Form>
         <div style={styles.modalButtons}>
-          <button onClick={handleCreateTOS} style={styles.confirmButton}>
-            Confirm
-          </button>
           <button
             onClick={handleCloseCreateTOSModal}
             style={styles.cancelButton}
           >
             Cancel
+          </button>
+          <button onClick={handleCreateTOS} style={styles.confirmButton}>
+            Confirm
           </button>
         </div>
       </div>
@@ -115,7 +115,7 @@ const EditTOSModal = ({
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
-        <h2>Edit Terms Of Service</h2>
+        <h2 style={styles.modalTitle}>Edit Terms Of Service</h2>
         <Form>
           {/* Select for order */}
           <Form.Group className="mb-3">
@@ -137,19 +137,16 @@ const EditTOSModal = ({
               rows={5}
               placeholder="description"
               required
-              style={{width: '100%', maxHeight: '50vh', resize: 'vertical'}}
+              style={{ width: "100%", maxHeight: "50vh", resize: "vertical" }}
             />
           </Form.Group>
         </Form>
         <div style={styles.modalButtons}>
+          <button onClick={handleCloseEditTOSModal} style={styles.cancelButton}>
+            Cancel
+          </button>
           <button onClick={handleEditTOS} style={styles.confirmButton}>
             Confirm
-          </button>
-          <button
-            onClick={handleCloseEditTOSModal}
-            style={styles.cancelButton}
-          >
-            Cancel
           </button>
         </div>
       </div>
@@ -164,11 +161,11 @@ const NotifyModal = ({ onConfirm, onClose, children }) => {
       <div style={styles.modalContent}>
         {children}
         <div style={styles.modalButtons}>
-          <button style={styles.confirmButton} onClick={onConfirm}>
-            Confirm
-          </button>
           <button style={styles.cancelButton} onClick={onClose}>
             Cancel
+          </button>
+          <button style={styles.confirmButton} onClick={onConfirm}>
+            Confirm
           </button>
         </div>
       </div>

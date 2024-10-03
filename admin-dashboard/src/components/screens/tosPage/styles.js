@@ -2,85 +2,81 @@ import { StyleSheet } from "react-native";
 import COLORS from "../../colors";
 
 const styles = StyleSheet.create({
+  pageTitle: {
+    fontSize: "40px",
+    fontWeight: 500,
+    fontFamily: "Poppins",
+    color: COLORS.title,
+    margin: 10,
+  },
   TOScontainer: {
-    display: 'flex',
-    justifyContent: 'center', // Centers horizontally
-    alignItems: 'center', // Centers vertically
+    display: "flex",
+    justifyContent: "center", // Centers horizontally
+    alignItems: "center", // Centers vertically
     paddingLeft: 50,
     paddingRight: 50,
-    marginLeft: 'auto',
-    marginRight: 'auto',
+    marginLeft: "auto",
+    marginRight: "auto",
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
-    height: "65vh",  
-    width:"80vw",
+    height: "65vh",
+    width: "80vw",
   },
   TOSgridCols: {
     display: "grid",
-    gridTemplateRows: 'repeat(4, 1fr)', 
+    gridTemplateRows: "repeat(4, 1fr)",
     gap: "10px",
     height: "60vh",
     width: "80vw",
-    
   },
   TOSgridRows: {
-    display: "grid", 
-    gridTemplateColumns: "10vh 2fr 4fr 15vh",  
+    display: "grid",
+    gridTemplateColumns: "10vh 2fr 4fr 15vh",
     borderRadius: "8px",
-    backgroundColor: "#FFF", 
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)", 
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
     backgroundColor: "#F2F2F2",
     padding: "10px",
-    
   },
   line: {
-    display: "flex",        
-    alignItems: "center",   
-    justifyContent: "center", 
-    height: "100%",         
-  },  
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+  },
   // Pagination
   pagination: {
-    display: 'flex',
-    justifyContent: 'right',
-    alignItems: 'center',
-    marginTop: '20px',
+    display: "flex",
+    justifyContent: "right",
+    alignItems: "center",
+    marginTop: "20px",
     marginRight: 50,
   },
   paginationButton: {
-    fontFamily: 'inherit',
-    fontWeight: '600',
-    fontSize: '16px',
-    marginLeft: '10px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    background: 'transparent',
-    color: '#5F5B5B',
-    border: '2px solid #5F5B5B',
+    fontFamily: "inherit",
+    fontWeight: "600",
+    fontSize: "16px",
+    marginLeft: "10px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    background: "transparent",
+    color: "#5F5B5B",
+    border: "2px solid #5F5B5B",
   },
   disabledButton: {
     opacity: 0.5,
-    cursor: 'not-allowed',
+    cursor: "not-allowed",
   },
 
   // Edit Button
-  editButtonContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-    border: "2px solid #0080FF", 
-    borderRadius: "6px",
-    width: "20px", 
-    height: "20px", 
+
+  editIcon: {
     cursor: "pointer",
     transition: "all 0.3s ease",
-    margin:"5px",
-  },
-  editIcon: {
-    color: "#0080FF",
-    fontSize: "30px",
+    border: `2px solid ${COLORS.prim}`,
+    borderRadius: "6px",
+    color: COLORS.prim,
+    fontSize: "20px",
   },
 
   //Modal Styles
@@ -115,16 +111,16 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     color: COLORS.white,
-    cursor: 'pointer',
+    cursor: "pointer",
   },
   cancelButton: {
-    backgroundColor: COLORS.outline,
-    color: COLORS.black,
+    backgroundColor: COLORS.subtitle,
+    color: COLORS.white,
     padding: 20,
     border: "none",
     borderRadius: 10,
     marginLeft: 10,
-    cursor: 'pointer',
+    cursor: "pointer",
   },
 
   // Modal Edit Forms
@@ -132,7 +128,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     alignItems: "start",
-    gap: 10
+    gap: 10,
   },
   inputField: {
     width: "100%",
@@ -142,8 +138,11 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     boxSizing: "border-box",
   },
-
-
+  modalTitle: {
+    fontWeight: 500,
+    fontFamily: "Poppins",
+    color: COLORS.title,
+  },
 });
 
 export default styles;
