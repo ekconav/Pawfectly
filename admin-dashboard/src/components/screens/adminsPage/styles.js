@@ -2,26 +2,57 @@ import { StyleSheet } from "react-native";
 import COLORS from "../../colors";
 
 const styles = StyleSheet.create({
-  adminListContainer: {
-    display: "flex",
-    gap: 250,
+
+  pageTitle: {
+    fontSize: "40px",
+    fontWeight: 500,
+    fontFamily: "Poppins",
+    color: COLORS.title,
+    margin: 10,
+  },
+
+  //Container
+  adminContainer: {
+    display: 'flex',
+    justifyContent: 'center', // Centers horizontally
     paddingLeft: 50,
     paddingRight: 50,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    borderRadius: "10px",
+    boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
+    height: "70vh",  
+    width:"90vw",
   },
-  labelItem: {
-    fontWeight: 500,
-  },
-  adminDetails: {
+  adminGridCols: {
     display: "grid",
-    gridTemplateColumns: "1fr 2fr 2fr 1fr", 
-    gap: 10,
+    gridTemplateRows: "10vh 1fr 1fr 1fr 1fr", 
+    gap: "10px",
+    height: "67vh",
+    width: "80vw",
+    
   },
-  adminCard: {
-    display: "contents", 
+  adminGridRows: {
+    display: "grid", 
+    gridTemplateColumns: "10vh 3fr 2fr 2fr 15vh",  
+    borderRadius: "8px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)", 
+    backgroundColor: "#F2F2F2",
+    padding: "10px",
+    
+  },
+  adminLabelRows: {
+    display: "grid", 
+    gridTemplateColumns: "10vh 3fr 2fr 2fr 15vh",  
+    padding: "10px",
+    marginTop: "10px",
+    
   },
   line: {
-    display: "flex",
-    alignItems: "center",
+    display: "flex",        
+    alignItems: "center",   
+    justifyContent: "center", 
+    height: "100%",         
   },
   title: {
     fontWeight: 500,
@@ -31,40 +62,17 @@ const styles = StyleSheet.create({
     height:  50,
     borderRadius: 25,
   },
-  buttons: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 40,
-  },
-  addButton: {
-    backgroundColor: COLORS.prim,
-    borderWidth: 0,
-    padding: 20,
-    borderRadius: 10,
-    color: COLORS.white,
-  },
-  addButtonHover: {
-    backgroundColor: COLORS.addButtonHover,
-    borderWidth: 0,
-    padding: 20,
-    borderRadius: 10,
-    color: COLORS.white,
-  },
-  deleteButton: {
-    backgroundColor: COLORS.error,
-    borderWidth: 0,
-    padding: 20,
-    borderRadius: 10,
-    color: COLORS.white,
-  },
-  deleteButtonHover: {
-    backgroundColor: COLORS.deleteButtonHover,
-    borderWidth: 0,
-    padding: 20,
-    borderRadius: 10,
-    color: COLORS.white,
+  // Edit Button
+  editIcon: {
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    border: `2px solid ${COLORS.prim}`,
+    borderRadius: "6px",
+    color: COLORS.prim,
+    fontSize: "20px",
   },
 
+  // Modal Form
   modalOverlay: {
     position: "fixed",
     top: 0,
@@ -84,6 +92,8 @@ const styles = StyleSheet.create({
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
     textAlign: "center",
   },
+
+  // Modal Form
   modalForm: {
     display: "flex",
     flexDirection: "column",
@@ -104,7 +114,7 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 20,
   },
-  addAdminButton: {
+  confirmButton: {
     backgroundColor: COLORS.prim,
     borderWidth: 0,
     padding: 20,
@@ -112,8 +122,8 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   cancelButton: {
-    backgroundColor: COLORS.outline,
-    color: COLORS.black,
+    backgroundColor: COLORS.subtitle,
+    color: COLORS.white,
     padding: 20,
     border: "none",
     borderRadius: 10,
@@ -121,7 +131,50 @@ const styles = StyleSheet.create({
   },
   error: {
     color: COLORS.error
-  }
+  },
+  mobileNumberContainer: {
+    position: 'relative',  
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  countryCode: {
+    position: 'absolute',  
+    left: '10px',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    color: '#5F5B5B', 
+  },
+  modalTitle: {
+    fontWeight: 500,
+    fontFamily: "Poppins",
+    color: COLORS.title,
+  },
+
+  // Pagination
+  pagination: {
+    display: 'flex',
+    justifyContent: 'right',
+    alignItems: 'center',
+    marginTop: '20px',
+    marginRight: 50,
+  },
+  paginationButton: {
+    fontFamily: 'inherit',
+    fontWeight: '600',
+    fontSize: '16px',
+    marginLeft: '10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    background: 'transparent',
+    color: '#5F5B5B',
+    border: '2px solid #5F5B5B',
+  },
+  disabledButton: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
 });
 
 export default styles;
