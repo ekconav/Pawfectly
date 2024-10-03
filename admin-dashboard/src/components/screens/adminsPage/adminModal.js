@@ -11,7 +11,7 @@ const addAdminModal = ({
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
-        <h2>Add New Admin</h2>
+        <h2 style={styles.modalTitle}>Add New Admin</h2>
         <div style={styles.modalForm}>
           <input
             type="text"
@@ -77,19 +77,20 @@ const addAdminModal = ({
           />
           <div style={styles.modalButtons}>
             <button
-              onClick={handleAddAdmin}
-              className="button"
-              style={styles.confirmButton}
-            >
-              Add Admin
-            </button>
-            <button
               onClick={handleCloseAdminModal}
               className="button"
               style={styles.cancelButton}
             >
               Cancel
             </button>
+            <button
+              onClick={handleAddAdmin}
+              className="button"
+              style={styles.confirmButton}
+            >
+              Add Admin
+            </button>
+            
           </div>
         </div>
       </div>
@@ -108,7 +109,7 @@ const confirmPasswordModal = ({
     return (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
-            <h2>Confirm Admin Password</h2>
+            <h2 style={styles.modalTitle}>Confirm Admin Password</h2>
             <input
               type="password"
               placeholder="Enter your password"
@@ -119,19 +120,20 @@ const confirmPasswordModal = ({
             />
             {passwordError && <p style={styles.error}>{passwordError}</p>}
             <div style={styles.modalButtons}>
-              <button
-                onClick={handleConfirmPassword}
-                className="button"
-                style={styles.addAdminButton}
-              >
-                Confirm
-              </button>
+      
               <button
                 onClick={handleCloseConfirmPasswordModal}
                 className="button"
                 style={styles.cancelButton}
               >
                 Cancel
+              </button>
+              <button       
+                onClick={handleConfirmPassword}
+                className="button"
+                style={styles.confirmButton}
+              >
+                Confirm
               </button>
             </div>
           </div>
@@ -146,11 +148,12 @@ const DeleteModal = ({ onConfirm, onClose, children }) => {
       <div style={styles.modalContent}>
         {children}
         <div style={styles.modalButtons}>
-          <button style={styles.confirmButton} onClick={onConfirm}>
-            Confirm
-          </button>
+          
           <button style={styles.cancelButton} onClick={onClose}>
             Cancel
+          </button>
+          <button style={styles.confirmButton} onClick={onConfirm}>
+            Confirm
           </button>
         </div>
       </div>
@@ -168,7 +171,7 @@ const UpdateModal = ({
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
-        <h2>Edit Admin Information</h2>
+        <h2 style={styles.modalTitle}>Edit Admin Information</h2>
         <div style={styles.modalForm}>
           <input
             type="text"
@@ -202,15 +205,15 @@ const UpdateModal = ({
           </div>
           <div style={styles.modalButtons}>
             <button
-             onClick={handleUpdateAdmin} 
-            style={styles.confirmButton}>
-              Confirm
-            </button>
-            <button
               onClick={handleCloseEditModal}
               style={styles.cancelButton}
             >
               Cancel
+            </button>
+            <button
+             onClick={handleUpdateAdmin} 
+            style={styles.confirmButton}>
+              Confirm
             </button>
           </div>
         </div>

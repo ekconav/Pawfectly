@@ -3,6 +3,14 @@ import COLORS from "../../colors";
 
 const styles = StyleSheet.create({
 
+  pageTitle: {
+    fontSize: "40px",
+    fontWeight: 500,
+    fontFamily: "Poppins",
+    color: COLORS.title,
+    margin: 10,
+  },
+
   //Container
   adminContainer: {
     display: 'flex',
@@ -55,22 +63,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   // Edit Button
-  editButtonContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-    border: "2px solid #0080FF", 
-    borderRadius: "6px",
-    width: "20px", 
-    height: "20px", 
+  editIcon: {
     cursor: "pointer",
     transition: "all 0.3s ease",
-    margin:"5px",
-  },
-  editIcon: {
-    color: "#0080FF",
-    fontSize: "30px",
+    border: `2px solid ${COLORS.prim}`,
+    borderRadius: "6px",
+    color: COLORS.prim,
+    fontSize: "20px",
   },
 
   // Modal Form
@@ -123,8 +122,8 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   cancelButton: {
-    backgroundColor: COLORS.outline,
-    color: COLORS.black,
+    backgroundColor: COLORS.subtitle,
+    color: COLORS.white,
     padding: 20,
     border: "none",
     borderRadius: 10,
@@ -145,6 +144,11 @@ const styles = StyleSheet.create({
     fontSize: '14px',
     fontWeight: 'bold',
     color: '#5F5B5B', 
+  },
+  modalTitle: {
+    fontWeight: 500,
+    fontFamily: "Poppins",
+    color: COLORS.title,
   },
 
   // Pagination
