@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
+  TextInput,
 } from "react-native";
 import { auth, db, storage } from "../../FirebaseConfig";
 import {
@@ -15,13 +16,20 @@ import {
   onSnapshot,
   query,
   where,
+  addDoc,
 } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { getDownloadURL, ref } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import * as ImagePicker from "expo-image-picker";
 import Modal from "react-native-modal";
 import COLORS from "../../const/colors";
 import styles from "./styles";
+
+const truncateFilename = (filename, maxLength = 20) => {
+  if (filename.length <= maxLength) return filename;
+  return filename.substring(0, maxLength) + "...";
+};
 
 const DisplayUserPage = ({ route }) => {
   const { userId } = route.params;
@@ -33,6 +41,16 @@ const DisplayUserPage = ({ route }) => {
   const [petsLoading, setPetsLoading] = useState(false);
   const [isSettingModalVisible, setIsSettingModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmReportLoading, setConfirmReportLoading] = useState(false);
+
+  const [openReportModal, setOpenReportModal] = useState(false);
+  const [subjectTitle, setSubjectTitle] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [screenshotImage, setScreenshotImage] = useState("");
+  const [reason, setReason] = useState("");
+
+  const [alertModal, setAlertModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -115,6 +133,102 @@ const DisplayUserPage = ({ route }) => {
     }
   }, []);
 
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: null,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const { uri } = result.assets[0];
+      setScreenshotImage(uri);
+      setFileName(truncateFilename(result.assets[0].fileName));
+    }
+  };
+
+  const handleConfirmReport = async () => {
+    setConfirmReportLoading(true);
+
+    try {
+      if (!subjectTitle || !reason) {
+        setModalMessage("Please fill in all fields.");
+        setAlertModal(true);
+        return;
+      }
+
+      if (!screenshotImage) {
+        setModalMessage("Please upload a screenshot for us to verify.");
+        setAlertModal(true);
+        return;
+      }
+
+      const user = auth.currentUser;
+      const reportsRef = collection(db, "reports");
+      let screenshotUrl = "";
+
+      if (screenshotImage) {
+        try {
+          const response = await fetch(screenshotImage);
+          const blob = await response.blob();
+
+          const fileRef = ref(storage, `screenshots/${user.uid}`);
+          await uploadBytes(fileRef, blob);
+          screenshotUrl = await getDownloadURL(fileRef);
+        } catch (error) {
+          setModalMessage("Error uploading image. Please try again.");
+          setAlertModal(true);
+          return;
+        }
+      }
+
+      await addDoc(reportsRef, {
+        reportedBy: user.uid,
+        reportedAccount: userId,
+        subject: subjectTitle,
+        reason: reason,
+        screenshot: screenshotUrl,
+        status: "Pending",
+      });
+
+      setModalMessage(
+        "Thank you for submitting this report. Our team will review your report and take the necessary actions. We appreciate your help in keeping Pawfectly safe."
+      );
+      setAlertModal(true);
+
+      setSubjectTitle("");
+      setReason("");
+      setFileName("");
+      setScreenshotImage("");
+      setOpenReportModal(false);
+    } catch (error) {
+      console.error("Error confirming report: ", error);
+      setModalMessage(
+        "An error occurred while submitting the report. Please try again."
+      );
+      setAlertModal(true);
+    } finally {
+      setConfirmReportLoading(false);
+    }
+  };
+
+  const handleOptionSelect = (option) => {
+    setIsSettingModalVisible(false);
+    if (option === "Report Account") {
+      setOpenReportModal(true);
+    }
+  };
+
+  const handleCancelButton = () => {
+    setSubjectTitle("");
+    setReason("");
+    setFileName("");
+    setScreenshotImage("");
+
+    setOpenReportModal(false);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -126,6 +240,12 @@ const DisplayUserPage = ({ route }) => {
   return (
     <View style={styles.container}>
       <Image source={coverPhoto} style={styles.coverPhoto} />
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.overlayButton}
+      >
+        <Ionicons name="arrow-back-outline" size={24} color={COLORS.title} />
+      </TouchableOpacity>
       <View style={styles.profileImageContainer}>
         <View style={styles.profile}>
           <Image source={profileImage} style={styles.profileImage} />
@@ -240,12 +360,92 @@ const DisplayUserPage = ({ route }) => {
         >
           <View style={styles.dropdownMenu}>
             {["Report Account"].map((option, index) => (
-              <TouchableOpacity key={index} style={styles.dropdownItem}>
+              <TouchableOpacity
+                key={index}
+                style={styles.dropdownItem}
+                onPress={() => handleOptionSelect(option)}
+              >
                 <Text style={styles.dropdownText}>{option}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </TouchableOpacity>
+      </Modal>
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.alertButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        isVisible={openReportModal}
+        onRequestClose={() => setOpenReportModal(false)}
+      >
+        <View style={styles.reportModalContainer}>
+          <Text style={styles.reportTitle}>Report Account</Text>
+          <View style={styles.reportMainInputContainer}>
+            <View style={styles.reportInputContainer}>
+              <Text style={styles.reportInputTitle}>Subject</Text>
+              <TextInput
+                style={styles.reportInput}
+                value={subjectTitle}
+                onChangeText={(text) => setSubjectTitle(text)}
+              />
+            </View>
+            <View style={styles.reportInputContainer}>
+              <Text style={styles.reportInputTitle}>Reason</Text>
+              <TextInput
+                style={styles.reportInputReason}
+                value={reason}
+                onChangeText={(text) => setReason(text)}
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
+            <View style={styles.reportInputContainer}>
+              <Text style={styles.reportInputTitle}>
+                Please attach a screenshot for proof
+              </Text>
+              <TouchableOpacity
+                style={styles.reportUploadScreenshot}
+                onPress={handlePickImage}
+              >
+                <Ionicons
+                  style={styles.reportCloudIcon}
+                  name="cloud-upload-outline"
+                />
+                <Text style={styles.reportFileUploadText}>
+                  {fileName ? fileName : "File Upload"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.reportButtonContainer}>
+              <TouchableOpacity
+                style={styles.reportCancelButton}
+                onPress={handleCancelButton}
+              >
+                <Text style={styles.reportButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.reportConfirmButton}
+                onPress={handleConfirmReport}
+              >
+                {confirmReportLoading ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <Text style={styles.reportButtonText}>Confirm</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );

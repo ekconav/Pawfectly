@@ -28,6 +28,7 @@ const EditPostPetPage = ({ route }) => {
   const [petBreed, setPetBreed] = useState(pet.breed);
   const [petAge, setPetAge] = useState(pet.age);
   const [petDescription, setPetDescription] = useState(pet.description);
+  const [petWeight, setPetWeight] = useState("");
   const [dogChecked, setDogChecked] = useState(pet.type === "Dog");
   const [catChecked, setCatChecked] = useState(pet.type === "Cat");
   const [maleChecked, setMaleChecked] = useState(pet.gender === "Male");
@@ -70,6 +71,7 @@ const EditPostPetPage = ({ route }) => {
         setFemaleChecked(petData.gender === "Female");
         setPriceChecked(petData.petPrice ? true : false);
         setAdoptionFee(petData.petPrice);
+        setPetWeight(petData.weight);
       } else {
         console.log("No such document!");
       }
@@ -169,6 +171,7 @@ const EditPostPetPage = ({ route }) => {
       !petName ||
       (!maleChecked && !femaleChecked) ||
       !petBreed ||
+      !petWeight ||
       !petAge ||
       !petDescription
     ) {
@@ -195,6 +198,7 @@ const EditPostPetPage = ({ route }) => {
           name: petName,
           petPrice: adoptionFee ? adoptionFee : "",
           type: petType,
+          weight: petWeight,
         });
         setPetName(petName);
 
@@ -326,6 +330,18 @@ const EditPostPetPage = ({ route }) => {
                   style={styles.addPetInput}
                   value={petBreed}
                   onChangeText={(text) => setPetBreed(text)}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.addPetText}>
+                  Weight:{" "}
+                  <Text style={{ color: COLORS.subtitle, fontSize: 12 }}>(kg)</Text>
+                </Text>
+                <TextInput
+                  style={styles.addPetInput}
+                  value={petWeight}
+                  onChangeText={(text) => setPetWeight(text)}
+                  keyboardType="phone-pad"
                 />
               </View>
               <View style={styles.inputContainer}>

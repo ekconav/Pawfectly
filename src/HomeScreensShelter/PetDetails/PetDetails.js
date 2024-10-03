@@ -300,11 +300,11 @@ const PetDetails = ({ route }) => {
           <Text style={styles.petPostedDate}>Pet Posted: {formattedDate}</Text>
           {petDetails.readyForAdoption && !adopted ? (
             <Text style={styles.readyForAdoption}>Ready for Adoption</Text>
-          ) : (
+          ) : !adopted ? (
             <Text style={styles.notYetReadyForAdoption}>
               Not yet ready for adoption
             </Text>
-          )}
+          ) : null}
           {adopted && adoptedByUser && (
             <View style={styles.adoptedContainer}>
               <Text style={styles.adoptedText}>Adopted By:</Text>
