@@ -89,11 +89,17 @@ const style = StyleSheet.create({
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
+  forgotPasswordContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: -20,
+    marginBottom: 20,
+  },
   resetPasswordText: {
     color: COLORS.link,
-    top: -20,
-    fontFamily: "Poppins_400Regular",
-    textAlign: "center",
+    fontSize: 12,
+    fontFamily: "Poppins_500Medium",
+    textDecorationLine: "underline"
   },
 });
 
