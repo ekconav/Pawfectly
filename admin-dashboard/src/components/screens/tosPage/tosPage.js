@@ -7,14 +7,19 @@ import {
   orderBy,
   onSnapshot,
   addDoc,
+  updateDoc,
   getDocs,
+  deleteDoc,
   writeBatch,
   doc,
+  where,
 } from "firebase/firestore";
 import { db } from "../../../FirebaseConfig";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
 import { Container, Col, Row, Button } from "react-bootstrap";
 import Modal from "./tosModal";
+import Alerts from "./alert";
+import COLORS from "../../colors";
 
 const TOSPage = () => {
   const [loading, setLoading] = useState(true);
@@ -80,7 +85,7 @@ const TOSPage = () => {
   const handleOpenCreateTOSModal = () => {
     setCreateTOS({
       title: "",
-      order: availableOrders.length + 1, 
+      order: availableOrders.length + 1,
       description: "",
     });
     setIsCreateTOSModalOpen(true);
@@ -95,12 +100,13 @@ const TOSPage = () => {
       description: "",
     });
   };
-  
+
   // Create TOS Submit Button
   const handleCreateTOS = async () => {
     // Validation: Ensure that all fields are filled out
     if (!createTOS.title || !createTOS.order || !createTOS.description) {
-      alert("All fields are required");
+      setAlertMessage("All fields are required.");
+      setAlertType("error");
       return;
     }
 
@@ -109,14 +115,17 @@ const TOSPage = () => {
 
     // Check if the order number is valid
     if (orderNumber < 1 || orderNumber > availableOrders.length + 1) {
-      alert(`Order number must be between 1 and ${availableOrders.length + 1}`);
+      setAlertMessage(
+        `Order number must be between 1 and ${availableOrders.length + 1}`
+      );
+      setAlertType("error");
       return;
     }
 
     // Prepare the TOS data object
     const newTOS = {
       title: createTOS.title,
-      order: orderNumber, 
+      order: orderNumber,
       description: createTOS.description,
     };
 
@@ -124,8 +133,8 @@ const TOSPage = () => {
       // Check if the order number already exists
       const existingTOS = await getDocs(collection(db, "TOS"));
       const existingEntries = existingTOS.docs.map((doc) => ({
-        id: doc.id, 
-        ...doc.data(), 
+        id: doc.id,
+        ...doc.data(),
       }));
 
       // Find if the order already exists
@@ -146,7 +155,11 @@ const TOSPage = () => {
         const batch = writeBatch(db);
         updatedEntries.forEach((entry) => {
           const docRef = doc(collection(db, "TOS"), entry.id);
-          batch.set(docRef, entry); 
+          batch.set(docRef, {
+            title: entry.title,
+            order: entry.order,
+            description: entry.description,
+          });
         });
 
         await batch.commit();
@@ -156,9 +169,12 @@ const TOSPage = () => {
       await addDoc(collection(db, "TOS"), newTOS);
 
       handleCloseCreateTOSModal();
+      setAlertMessage(`New TOS has been added`);
+      setAlertType("success");
     } catch (error) {
-      console.error("Error adding document: ", error);
-      alert("Error adding the Terms of Service: " + error.message);
+      console.error("Error adding TOS:", error); // Log the error
+      setAlertMessage(`Failed to add new TOS`);
+      setAlertType("error");
     }
   };
 
@@ -171,14 +187,14 @@ const TOSPage = () => {
     return [...Array(maxOrder + 1).keys()].slice(1);
   };
 
-    // Input Change for forms
-    const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      setCreateTOS((prev) => ({
-        ...prev,
-        [name]: value, 
-      }));
-    };
+  // Input Change for forms
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCreateTOS((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
   // Handle order selection from dropdown
   const handleOrderChange = (e) => {
     const { value } = e.target;
@@ -187,6 +203,165 @@ const TOSPage = () => {
       order: value,
     }));
   };
+
+  const [selectedTOS, setSelectedTOS] = useState(null);
+
+  const [isDeleteTOSModalOpen, setDeleteTOSModalOpen] = useState(false);
+
+  const handleOpenDeleteModal = (tosItem) => {
+    setSelectedTOS(tosItem);
+
+    setDeleteTOSModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setDeleteTOSModalOpen(false); // Close modal
+  };
+
+  // Function to handle TOS deletion
+  const handleConfirmDelete = async () => {
+    if (selectedTOS?.id) {
+      try {
+        // delete the selected in the firebase
+        const docRef = doc(db, "TOS", selectedTOS.id);
+        await deleteDoc(docRef);
+
+        const higherOrderQuery = query(
+          collection(db, "TOS"),
+          where("order", ">", selectedTOS.order)
+        );
+
+        const querySnapshot = await getDocs(higherOrderQuery);
+
+        //Decrement the order of TOS entries with higher orders
+        const batch = writeBatch(db);
+        querySnapshot.forEach((docSnapshot) => {
+          const docRef = doc(db, "TOS", docSnapshot.id);
+          const newOrder = docSnapshot.data().order - 1;
+          batch.update(docRef, { order: newOrder });
+        });
+        await batch.commit();
+
+        setAlertMessage(`TOS entry has been deleted`);
+        setAlertType("success");
+        setDeleteTOSModalOpen(false);
+      } catch (error) {
+        setAlertMessage(`Error deleting TOS entry`);
+        setAlertType("error");
+      }
+    }
+  };
+
+  // Edit TOS
+  const [isEditTOSModalOpen, setEditTOSModalOpen] = useState(false);
+
+  // Open Edit TOS Modal
+  const handleOpenEditTOSModal = (tosItem) => {
+    setSelectedTOS(tosItem);
+    setCreateTOS({
+      title: tosItem.title,
+      description: tosItem.description,
+    });
+    setEditTOSModalOpen(true);
+  };
+
+  // Clsoe Edit TOS Modal
+  const handleCloseEditTOSModal = () => {
+    setEditTOSModalOpen(false);
+  };
+
+  // Edit TOS
+  const handleEditTOS = async () => {
+    if (!createTOS.title || !createTOS.description) {
+      setAlertMessage("All fields are required.");
+      setAlertType("error");
+      return;
+    }
+
+    try {
+      const docRef = doc(db, "TOS", selectedTOS.id);
+      await updateDoc(docRef, {
+        title: createTOS.title,
+        description: createTOS.description,
+      });
+      setAlertMessage("TOS entry has been successfully updated.");
+      setAlertType("success");
+      setEditTOSModalOpen(false);
+    } catch (error) {
+      setAlertMessage("Failed to update TOS entry.");
+      setAlertType("error");
+    }
+  };
+
+  // Notify Modal
+  const [isNotifyTOSModalOpen, setNotifyTOSModalOpen] = useState(false);
+
+  // Open Notify Modal
+  const handleOpenNotifyTOSModal = () => {
+    setNotifyTOSModalOpen(true);
+  };
+
+  // Close notify Modal
+  const handleCloseNotifyTOSModal = () => {
+    setNotifyTOSModalOpen(false);
+  };
+
+  // Turn termsAccpeted to false to all users
+  const handleNotifyTOS = async () => {
+    try {
+      const usersCollectionRef = collection(db, "users");
+      const sheltersCollectionRef = collection(db, "shelters");
+
+      const usersQuery = query(
+        usersCollectionRef,
+        where("termsAccepted", "==", true)
+      );
+      const usersSnapshot = await getDocs(usersQuery);
+
+      // Query shelters where termsAccepted is true
+      const sheltersQuery = query(
+        sheltersCollectionRef,
+        where("termsAccepted", "==", true)
+      );
+      const sheltersSnapshot = await getDocs(sheltersQuery);
+
+      const batch = writeBatch(db);
+
+      usersSnapshot.forEach((doc) => {
+        const userDocRef = doc.ref;
+        batch.update(userDocRef, { termsAccepted: false });
+      });
+
+      // Update shelters
+      sheltersSnapshot.forEach((doc) => {
+        const shelterDocRef = doc.ref;
+        batch.update(shelterDocRef, { termsAccepted: false });
+      });
+
+      await batch.commit();
+
+      setNotifyTOSModalOpen(false);
+      setAlertMessage("Users have been successfully notified of the new TOS.");
+      setAlertType("success");
+    } catch (error) {
+      setAlertMessage("Error notifying users about the new TOS.");
+      setAlertType("error");
+    }
+  };
+
+  //Alert Message and Type
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("");
+
+  useEffect(() => {
+    if (alertMessage) {
+      const timer = setTimeout(() => {
+        setAlertMessage(""); // Clear the message
+      }, 3000); // Hide after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [alertMessage]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -199,22 +374,35 @@ const TOSPage = () => {
         <Row>
           <Col></Col>
           <Col xs={5}>
-            <h1>Terms Of Service</h1>
+            <div style={styles.pageTitle}>Terms Of Service</div>
           </Col>
           <Col
             style={{
               ...styles.line,
               justifyContent: "flex-end",
               height: "10vh",
+              margin: 10,
             }}
           >
             <Button
               style={{
                 paddingLeft: "10px",
                 paddingRight: "10px",
+                backgroundColor: COLORS.prim,
+                border: COLORS.prim,
+                color: COLORS.white,
+                transition: "background-color 0.3s ease, color 0.3s ease",
               }}
-              variant="warning"
               size="sm"
+              onClick={() => handleOpenNotifyTOSModal()}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = COLORS.hover;
+                e.target.style.color = COLORS.white;
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = COLORS.prim;
+                e.target.style.color = COLORS.white;
+              }}
             >
               Notify Users
             </Button>
@@ -224,10 +412,16 @@ const TOSPage = () => {
                 cursor: "pointer",
                 paddingLeft: "10px",
                 paddingRight: "10px",
-                color: "#0080FF",
+                color: COLORS.prim,
               }}
               name="add-circle-outline"
               onClick={() => handleOpenCreateTOSModal()} // Function for click
+              onMouseOver={(e) => {
+                e.target.style.color = COLORS.hover;
+              }}
+              onMouseOut={(e) => {
+                e.target.style.color = COLORS.prim;
+              }}
             ></ion-icon>
           </Col>
         </Row>
@@ -260,23 +454,35 @@ const TOSPage = () => {
                   : TOSitem.description}
               </div>
               <div style={styles.line}>
-                <div style={styles.editButtonContainer}>
-                  <ion-icon
-                    name="pencil"
-                    style={styles.editIcon}
-                    // onClick={() => handleEditUser(selectedUser)}
-                  ></ion-icon>
-                </div>
+                <ion-icon
+                  name="pencil"
+                  style={styles.editIcon}
+                  onClick={() => handleOpenEditTOSModal(TOSitem)}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.color = COLORS.hover;
+                    e.currentTarget.style.borderColor = COLORS.hover;
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.color = COLORS.prim;
+                    e.currentTarget.style.borderColor = COLORS.prim;
+                  }}
+                ></ion-icon>
 
                 <ion-icon
                   style={{
                     margin: "5px",
                     fontSize: "27px",
-                    color: "red",
+                    color: COLORS.prim,
                     cursor: "pointer",
                   }}
                   name="trash-outline"
-                  // onClick={() => handleDeleteButton(users)}
+                  onClick={() => handleOpenDeleteModal(TOSitem)}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.color = COLORS.error;
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.color = COLORS.prim;
+                  }}
                 ></ion-icon>
               </div>
             </div>
@@ -322,6 +528,46 @@ const TOSPage = () => {
           handleOrderChange={handleOrderChange}
           availableOrders={availableOrders}
         />
+      )}
+
+      {/* Delete Button Modal */}
+      {isDeleteTOSModalOpen && (
+        <Modal.DeleteModal
+          onConfirm={handleConfirmDelete}
+          onClose={handleCloseDeleteModal}
+        >
+          <h3 style={styles.modalTitle}>
+            Are you sure you want to delete {selectedTOS?.title}?
+          </h3>
+        </Modal.DeleteModal>
+      )}
+
+      {/* Edit TOS Modal */}
+      {isEditTOSModalOpen && (
+        <Modal.EditTOSModal
+          createTOS={createTOS}
+          handleInputChange={handleInputChange}
+          handleEditTOS={handleEditTOS}
+          handleCloseEditTOSModal={handleCloseEditTOSModal}
+        />
+      )}
+
+      {/* Notify Button Modal */}
+      {isNotifyTOSModalOpen && (
+        <Modal.NotifyModal
+          onConfirm={handleNotifyTOS}
+          onClose={handleCloseNotifyTOSModal}
+        >
+          <h3 style={styles.modalTitle}>NOTIFY ALL USERS?</h3>
+        </Modal.NotifyModal>
+      )}
+
+      {/* Alert rendering based on the type */}
+      {alertMessage && alertType === "success" && (
+        <Alerts.SuccessAlert>{alertMessage}</Alerts.SuccessAlert>
+      )}
+      {alertMessage && alertType === "error" && (
+        <Alerts.ErrorAlert>{alertMessage}</Alerts.ErrorAlert>
       )}
     </div>
   );
