@@ -12,6 +12,9 @@ const COLORS = {
 
   // proper final colors
   prim: "#827397",
+  pie1: "#42a5f5",
+  pie2: "#f5cf86",
+  pie3: "#9c6d9c",
   title: "#5F5B5B",
   subtitle: "#ADA8A8",
   white: "#FFFFFF",
@@ -28,6 +31,7 @@ const COLORS = {
   sentMessage: "#827397CC",
   receivedMessage: "#DFDEDECC",
   sentDateTime: "#D4D4D4",
+  offWhite: "#f0f0f0",
 };
 
 export default COLORS;

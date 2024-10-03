@@ -32,6 +32,7 @@ const PostPetPage = () => {
   const [petBreed, setPetBreed] = useState("");
   const [petAge, setPetAge] = useState("");
   const [petDescription, setPetDescription] = useState("");
+  const [petWeight, setPetWeight] = useState("");
   const [dogChecked, setDogChecked] = useState(false);
   const [catChecked, setCatChecked] = useState(false);
   const [maleChecked, setMaleChecked] = useState(false);
@@ -110,6 +111,7 @@ const PostPetPage = () => {
     setFemaleChecked(false);
     setPriceChecked(false);
     setPetBreed("");
+    setPetWeight("");
     setPetAge("");
     setPetDescription("");
     navigation.goBack();
@@ -166,6 +168,7 @@ const PostPetPage = () => {
       !petName ||
       (!maleChecked && !femaleChecked) ||
       !petBreed ||
+      !petWeight ||
       !petAge ||
       !petDescription
     ) {
@@ -197,6 +200,7 @@ const PostPetPage = () => {
           petPrice: adoptionFee ? adoptionFee : "",
           type: petType,
           userId: user.uid,
+          weight: petWeight,
         });
         navigation.replace("HomeScreen");
 
@@ -209,6 +213,7 @@ const PostPetPage = () => {
         setPriceChecked(false);
         setAdoptionFee("");
         setPetBreed("");
+        setPetWeight("");
         setPetAge("");
         setPetDescription("");
       }
@@ -309,7 +314,7 @@ const PostPetPage = () => {
                 </View>
               </View>
               <View style={styles.inputCheckboxContainerAdoptionFee}>
-                <Text style={styles.typeTextAdoptionFee}>With Adoption Fee</Text>
+                <Text style={styles.typeTextAdoptionFee}>With Adoption Fee?</Text>
                 <View style={styles.checkBoxType}>
                   <View style={styles.checkBoxContainer}>
                     <Checkbox
@@ -338,6 +343,18 @@ const PostPetPage = () => {
                   style={styles.addPetInput}
                   value={petBreed}
                   onChangeText={(text) => setPetBreed(text)}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.addPetText}>
+                  Weight:{" "}
+                  <Text style={{ color: COLORS.subtitle, fontSize: 12 }}>(kg)</Text>
+                </Text>
+                <TextInput
+                  style={styles.addPetInput}
+                  value={petWeight}
+                  onChangeText={(text) => setPetWeight(text)}
+                  keyboardType="phone-pad"
                 />
               </View>
               <View style={styles.inputContainer}>

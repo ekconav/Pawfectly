@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   inputRescuedCheckboxContainer: {
     flexDirection: "row",
-    gap: 101,
+    gap: 18,
   },
   inputCheckboxContainerAdoptionFee: {
     flexDirection: "row",
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   typeTextAdoptionFee: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
-    marginRight: 44,
+    marginRight: 37,
   },
   checkBoxType: {
     flexDirection: "row",

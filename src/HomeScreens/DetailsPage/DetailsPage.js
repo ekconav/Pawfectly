@@ -55,6 +55,8 @@ const DetailsPage = ({ route }) => {
   const [users, setUsers] = useState([]);
   const [conversations, setConversations] = useState([]);
 
+  const [readyForAdoption, setReadyForAdoption] = useState(false);
+
   const navigation = useNavigation();
 
   const { pet } = route.params;
@@ -86,8 +88,11 @@ const DetailsPage = ({ route }) => {
               }
             }
           }
-        } else {
-          console.log("No such document");
+          if (petData.readyForAdoption) {
+            setReadyForAdoption(true);
+          } else {
+            setReadyForAdoption(false);
+          }
         }
       } catch (error) {
         console.error("Error checking adoption status: ", error);
@@ -163,6 +168,8 @@ const DetailsPage = ({ route }) => {
   }, [conversations]);
 
   useEffect(() => {
+    setPetDeleted(false);
+
     const fetchPetDetails = async () => {
       try {
         if (auth.currentUser.uid === pet.userId) {
@@ -245,6 +252,7 @@ const DetailsPage = ({ route }) => {
         const unsubscribePetAdopted = onSnapshot(petAdoptedRef, (petAdoptedSnap) => {
           if (petAdoptedSnap.exists()) {
             const petAdoptedData = petAdoptedSnap.data();
+            setPetDetails(petAdoptedData);
             setPetAdopted(petAdoptedData.adopted === true);
 
             if (petAdoptedData.petPosted) {
@@ -659,6 +667,10 @@ const DetailsPage = ({ route }) => {
               <Text style={styles.midInfoTitle}>Sex</Text>
             </View>
             <View style={styles.midInfo}>
+              <Text style={styles.midInfoDetail}>{petDetails.weight}kg</Text>
+              <Text style={styles.midInfoTitle}>Weight</Text>
+            </View>
+            <View style={styles.midInfo}>
               <Text style={styles.midInfoDetail}>{petDetails.breed}</Text>
               <Text style={styles.midInfoTitle}>Breed</Text>
             </View>
@@ -783,12 +795,12 @@ const DetailsPage = ({ route }) => {
           >
             <TouchableOpacity
               style={
-                !messageSent && !petAdopted && !petDeleted
+                !messageSent && !petAdopted && !petDeleted && readyForAdoption
                   ? styles.adoptButton
                   : styles.adoptButtonSent
               }
               onPress={handleAdoption}
-              disabled={messageSent || petAdopted || petDeleted}
+              disabled={!readyForAdoption || messageSent || petAdopted || petDeleted}
             >
               <Text style={styles.textButton}>
                 {youAdopted && petAdopted
@@ -799,6 +811,8 @@ const DetailsPage = ({ route }) => {
                   ? "Pet data has been deleted"
                   : messageSent
                   ? "Message Sent"
+                  : !readyForAdoption
+                  ? "Not ready for adoption"
                   : "Adopt Me"}
               </Text>
             </TouchableOpacity>

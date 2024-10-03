@@ -64,6 +64,11 @@ const MessagePage = ({ route }) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setUserToUserAdoptionSuccess(false);
+      setUserToUser(false);
+      setAdoptionMessageSent(false);
+      setPetPostedByMe(false);
+
       setLoading(true);
       try {
         const conversationRef = doc(

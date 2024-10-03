@@ -15,6 +15,15 @@ const styles = StyleSheet.create({
     height: 160,
     width: "100%",
   },
+  overlayButton: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    backgroundColor: COLORS.white,
+    padding: 7,
+    borderRadius: 10,
+    elevation: 1,
+  },
   profileImageContainer: {
     paddingHorizontal: 20,
     marginTop: -40,
@@ -170,6 +179,16 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   dropdownMenu: {
+    width: 126,
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    elevation: 5,
+    height: 90,
+    top: 180,
+  },
+  dropdownMenuUserToUser: {
     width: 114,
     backgroundColor: "white",
     borderRadius: 8,
@@ -187,6 +206,119 @@ const styles = StyleSheet.create({
     color: COLORS.title,
     fontFamily: "Poppins_400Regular",
     textAlign: "right",
+  },
+
+  // Report Modal
+  reportModalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 15,
+    borderRadius: 10,
+  },
+  reportTitle: {
+    textAlign: "center",
+    fontFamily: "Poppins_500Medium",
+    fontSize: 18,
+    color: COLORS.title,
+  },
+  reportMainInputContainer: {
+    marginTop: 20,
+    flexDirection: "column",
+    gap: 13,
+  },
+  reportInputContainer: {
+    flexDirection: "column",
+  },
+  reportInputTitle: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+  },
+  reportInput: {
+    borderWidth: 1,
+    borderColor: COLORS.outline,
+    borderRadius: 10,
+    padding: 5,
+    paddingHorizontal: 10,
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.black,
+  },
+  reportInputReason: {
+    borderWidth: 1,
+    borderColor: COLORS.outline,
+    borderRadius: 10,
+    padding: 5,
+    paddingHorizontal: 10,
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.black,
+    height: 150,
+  },
+  reportUploadScreenshot: {
+    backgroundColor: COLORS.input,
+    borderRadius: 10,
+    height: 35,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  reportCloudIcon: {
+    color: COLORS.title,
+    fontSize: 20,
+    marginRight: 10,
+  },
+  reportFileUploadText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  reportButtonContainer: {
+    flexDirection: "row",
+    marginTop: 20,
+    gap: 10,
+    justifyContent: "center",
+  },
+  reportCancelButton: {
+    backgroundColor: COLORS.subtitle,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    width: 90,
+    borderRadius: 5,
+  },
+  reportButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontFamily: "Poppins_500Medium",
+  },
+  reportConfirmButton: {
+    backgroundColor: COLORS.prim,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    width: 90,
+    borderRadius: 5,
+  },
+
+  // Alert Modal
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  alertButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "justify",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

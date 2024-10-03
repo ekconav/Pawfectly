@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   midInfoContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 10,
+    gap: 5,
     marginTop: 20,
   },
   midInfo: {
@@ -92,14 +92,14 @@ const styles = StyleSheet.create({
   },
   midInfoDetail: {
     fontFamily: "Poppins_500Medium",
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.prim,
     flexWrap: "wrap",
     textAlign: "center",
   },
   midInfoTitle: {
     fontFamily: "Poppins_400Regular",
-    fontSize: 12,
+    fontSize: 10,
     color: COLORS.title,
   },
   shelterContainer: {
