@@ -22,6 +22,7 @@ import LoadingSpinner from "../loadingPage/loadingSpinner";
 import { Container, Col, Row } from "react-bootstrap";
 import Modal from "./adminModal";
 import Alerts from "./alert";
+import COLORS from "../../colors";
 
 const AdminsPage = () => {
 
@@ -421,7 +422,7 @@ const AdminsPage = () => {
         <Row>
           <Col></Col>
           <Col xs={5}>
-            <h1>Admins Page</h1>
+            <h1 style={styles.pageTitle}>Admins Page</h1>
           </Col>
           <Col
             style={{
@@ -436,10 +437,16 @@ const AdminsPage = () => {
                 cursor: "pointer",
                 paddingLeft: "10px",
                 paddingRight: "10px",
-                color: "#0080FF",
+                color: COLORS.prim,
               }}
               name="add-circle-outline"
               onClick={() => setIsAdminModalOpen(true)}
+              onMouseOver={(e) => {
+                e.target.style.color = COLORS.hover;
+              }}
+              onMouseOut={(e) => {
+                e.target.style.color = COLORS.prim;
+              }}
             ></ion-icon>
           </Col>
         </Row>
@@ -500,23 +507,34 @@ const AdminsPage = () => {
                 {admin.mobileNumber}
               </div>
               <div style={styles.line}>
-                <div style={styles.editButtonContainer}>
                   <ion-icon
                     name="pencil"
                     style={styles.editIcon}
                     onClick={() => handleEditModalOpen(admin)}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.color = COLORS.hover;
+                      e.currentTarget.style.borderColor = COLORS.hover;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.color = COLORS.prim;
+                      e.currentTarget.style.borderColor = COLORS.prim;
+                    }}
                   ></ion-icon>
-                </div>
-
                 <ion-icon
                   style={{
                     margin: "5px",
                     fontSize: "27px",
-                    color: "red",
+                    color: COLORS.prim,
                     cursor: "pointer",
                   }}
                   name="trash-outline"
                   onClick={() => handleDeleteButton(admin)}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.color = COLORS.error;
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.color = COLORS.prim;
+                  }}
                 ></ion-icon>
               </div>
             </div>
@@ -589,7 +607,7 @@ const AdminsPage = () => {
           onConfirm={handleDeleteAdmin}
           onClose={() => setDeleteAdminModalOpen(false)}
         >
-          <p>Are you sure you want to delete {selectedAdmin.firstName}?</p>
+          <h3 style={styles.modalTitle}>Are you sure you want to delete {selectedAdmin.firstName}?</h3>
         </Modal.DeleteModal>
       )}
 
