@@ -15,7 +15,7 @@ import {
 } from "firebase/firestore";
 import Modal from "./usersModal";
 import Alerts from "./alert";
-
+import COLORS from "../../colors";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
 
 // Number of items per page
@@ -151,8 +151,8 @@ const UsersPage = () => {
       !updateUser.lastName ||
       !updateUser.mobileNumber
     ) {
-      setAlertMessage('All fields are required.');
-      setAlertType('error');
+      setAlertMessage("All fields are required.");
+      setAlertType("error");
       return;
     }
 
@@ -161,8 +161,8 @@ const UsersPage = () => {
       updateUser.mobileNumber.length !== 10 ||
       !updateUser.mobileNumber.startsWith("9")
     ) {
-      setAlertMessage('Improper mobile number according to the Country Code');
-      setAlertType('error');
+      setAlertMessage("Improper mobile number according to the Country Code");
+      setAlertType("error");
       return;
     }
 
@@ -196,13 +196,12 @@ const UsersPage = () => {
         return updatedUsers;
       });
 
-      setIsUpdateUserModalOpen(false); 
-      setAlertMessage('Adopter has been successdully updated.');
-      setAlertType('success');
+      setIsUpdateUserModalOpen(false);
+      setAlertMessage("Adopter has been successdully updated.");
+      setAlertType("success");
     } catch (error) {
-      setAlertMessage('Error updating user.');
-      setAlertType('error');
-      
+      setAlertMessage("Error updating user.");
+      setAlertType("error");
     }
   };
 
@@ -301,11 +300,10 @@ const UsersPage = () => {
 
       // If the backend call fails, don't proceed with Firestore deletion
       if (!response.ok) {
-        setAlertMessage('Failed to delete user from Firebase Authentication.');
-        setAlertType('error');
+        setAlertMessage("Failed to delete user from Firebase Authentication.");
+        setAlertType("error");
         throw new Error("Failed to delete user from Firebase Authentication.");
       }
-      
 
       // Now proceed with deleting the user's sub-collections from Firestore
       await deleteSubCollection(selectedUser.id, "conversations", "messages");
@@ -325,11 +323,11 @@ const UsersPage = () => {
       // Close modal and reset selected user
       setDeleteUserModalOpen(false);
       setSelectedUser(null);
-      setAlertMessage('Adopter has been successfully deleted.');
-      setAlertType('success');
+      setAlertMessage("Adopter has been successfully deleted.");
+      setAlertType("success");
     } catch (error) {
-      setAlertMessage('Failed to delete user and associated data.');
-      setAlertType('error');
+      setAlertMessage("Failed to delete user and associated data.");
+      setAlertType("error");
     }
   };
 
@@ -364,7 +362,7 @@ const UsersPage = () => {
   return (
     <div>
       <Header />
-      <h1>Adopters Page</h1>
+      <h1 style={styles.pageTitle}>Adopters Page</h1>
       <div style={styles.container}>
         <div style={styles.userListContainer}>
           <div style={styles.userDetailsLabel}>
@@ -397,7 +395,7 @@ const UsersPage = () => {
                   style={{ ...styles.line, cursor: "pointer" }}
                   onClick={() => handleRowClick(users)}
                 >
-                  <p>
+                  <p style={{ margin: 0 }}>
                     {users.lastName} , {users.firstName}
                   </p>
                 </div>
@@ -405,19 +403,33 @@ const UsersPage = () => {
                   style={{ ...styles.line, cursor: "pointer" }}
                   onClick={() => handleRowClick(users)}
                 >
-                  <p style={{ color: getStatusColor(users.verified) }}>
+                  <p
+                    style={{ margin: 0, color: getStatusColor(users.verified) }}
+                  >
                     {getVerificationStatus(users.verified)}
                   </p>
                 </div>
-                <div style={styles.line}>
+                <div
+                  style={{
+                    ...styles.line,
+                    justifyContent: "center",
+                    height: "100%",
+                  }}
+                >
                   <ion-icon
                     style={{
                       fontSize: "30px",
-                      color: "red",
+                      color: COLORS.prim,
                       cursor: "pointer",
                     }}
                     name="trash-outline"
                     onClick={() => handleDeleteButton(users)}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.color = COLORS.error;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.color = COLORS.prim;
+                    }}
                   ></ion-icon>
                 </div>
               </React.Fragment>
@@ -435,6 +447,14 @@ const UsersPage = () => {
                   name="pencil"
                   style={styles.editIcon} // Add styling as needed
                   onClick={() => handleEditUser(selectedUser)}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.color = COLORS.hover;
+                    e.currentTarget.style.borderColor = COLORS.hover;
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.color = COLORS.prim;
+                    e.currentTarget.style.borderColor = COLORS.prim;
+                  }}
                 ></ion-icon>
               </div>
             </div>
@@ -462,7 +482,9 @@ const UsersPage = () => {
                 <p style={styles.userInfoTitleLabel}>{selectedUser.email}</p>
               </div>
               <div style={styles.line}>
-                <p style={styles.userInfoTitleLabel}>Mobile Number:</p>
+                <p style={{ ...styles.userInfoTitleLabel, textAlign: "left" }}>
+                  Mobile Number:
+                </p>
               </div>
               <div style={styles.line}>
                 <p style={styles.userInfoTitleLabel}>
@@ -553,7 +575,9 @@ const UsersPage = () => {
           onConfirm={handleDeleteUser}
           onClose={() => setDeleteUserModalOpen(false)}
         >
-          <p>Are you sure you want to delete {selectedUser.firstName}?</p>
+          <h3 style={styles.modalTitle}>
+            Are you sure you want to delete {selectedUser.firstName}?
+          </h3>
         </Modal.DeleteModal>
       )}
 
