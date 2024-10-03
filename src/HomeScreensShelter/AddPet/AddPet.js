@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { storage, db } from "../../FirebaseConfig";
@@ -49,6 +50,7 @@ const AddPet = () => {
   const [shelterVerifiedModal, setShelterVerifiedModal] = useState(false);
   const [priceChecked, setPriceChecked] = useState(false);
   const [adoptionFee, setAdoptionFee] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -222,7 +224,7 @@ const AddPet = () => {
     }
 
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
-
+    setLoading(true);
     try {
       const user = auth.currentUser;
       if (user) {
@@ -284,10 +286,14 @@ const AddPet = () => {
         setPetWeight("");
         setPetAge("");
         setPetDescription("");
+        setLoading(false);
       }
       console.log("Pet uploaded");
     } catch (error) {
       console.error("Error uploading pet details:", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -491,7 +497,11 @@ const AddPet = () => {
             <Text style={styles.buttonText}>Clear</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
-            <Text style={styles.buttonText}>Upload</Text>
+            {loading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <Text style={styles.buttonText}>Upload</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
