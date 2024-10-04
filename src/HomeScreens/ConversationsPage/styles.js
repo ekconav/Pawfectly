@@ -93,6 +93,102 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_600SemiBold",
     color: COLORS.black,
   },
+
+  listButtonContainer: {
+    position: "absolute",
+    right: 20,
+    bottom: 20,
+  },
+  listButton: {
+    flexDirection: "row",
+    gap: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.offWhite,
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+    width: 150,
+    borderRadius: 10,
+    elevation: 1,
+  },
+  listButtonText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+  },
+
+  // Shelter Modal
+  modalLoadingContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  shelterListEmptyText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+  },
+  shelterModalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  shelterModalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+    height: 600,
+    borderRadius: 10,
+  },
+  shelterListTitle: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 16,
+    marginBottom: 15,
+  },
+  modalShelterItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.outline,
+    paddingVertical: 10,
+  },
+  modalShelterInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  modalShelterPicture: {
+    height: 50,
+    width: 50,
+    borderRadius: 25,
+  },
+  modalShelterName: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+  },
+  modalShelterAddress: {
+    fontSize: 12,
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.subtitle,
+  },
+
+  // Alert Modal
+  alertModalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  alertModalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  alertModalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  alertModalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  alertModalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
 });
 
 export default styles;

@@ -17,6 +17,7 @@ import {
   where,
   getDocs,
   onSnapshot,
+  runTransaction,
 } from "firebase/firestore";
 import { auth, db } from "../../FirebaseConfig";
 import { useNavigation } from "@react-navigation/native";
@@ -222,9 +223,46 @@ const PetDetails = ({ route }) => {
   const handleDeletePress = async () => {
     const { id } = pet;
     try {
-      await deleteDoc(doc(db, "pets", id));
-      navigation.goBack();
-      console.log("Pet deleted successfully!");
+      const user = auth.currentUser;
+      const statsRef = doc(db, "shelters", user.uid, "statistics", user.uid);
+      const petRef = doc(db, "pets", id);
+      const petSnap = await getDoc(petRef);
+
+      if (petSnap.exists()) {
+        const petData = petSnap.data();
+        const petReadyForAdoption = petData.readyForAdoption;
+
+        await runTransaction(db, async (transaction) => {
+          const statsDoc = await transaction.get(statsRef);
+
+          if (statsDoc.exists()) {
+            const currentStats = statsDoc.data();
+
+            let petsForAdoption = currentStats.petsForAdoption;
+            let petsRescued = currentStats.petsRescued;
+
+            if (petReadyForAdoption) {
+              petsForAdoption -= 1;
+            }
+
+            petsRescued -= 1;
+
+            transaction.update(statsRef, {
+              petsForAdoption: petsForAdoption,
+              petsRescued: petsRescued,
+            });
+          }
+        });
+
+        await deleteDoc(petRef);
+
+        navigation.goBack();
+        console.log("Pet deleted successfully!");
+      } else {
+        console.log("Pet not found!");
+        setModalMessage("Pet not found.");
+        setAlertModal(true);
+      }
     } catch (error) {
       console.error("Error deleting pet:", error);
       setModalMessage("Failed to delete pet. Please try again.");
@@ -260,6 +298,13 @@ const PetDetails = ({ route }) => {
           </View>
 
           <Text style={styles.petPostedDate}>Pet Posted: {formattedDate}</Text>
+          {petDetails.readyForAdoption && !adopted ? (
+            <Text style={styles.readyForAdoption}>Ready for Adoption</Text>
+          ) : !adopted ? (
+            <Text style={styles.notYetReadyForAdoption}>
+              Not yet ready for adoption
+            </Text>
+          ) : null}
           {adopted && adoptedByUser && (
             <View style={styles.adoptedContainer}>
               <Text style={styles.adoptedText}>Adopted By:</Text>
@@ -302,6 +347,10 @@ const PetDetails = ({ route }) => {
             <View style={styles.midInfo}>
               <Text style={styles.midInfoDetail}>{petDetails.gender}</Text>
               <Text style={styles.midInfoTitle}>Sex</Text>
+            </View>
+            <View style={styles.midInfo}>
+              <Text style={styles.midInfoDetail}>{petDetails.weight}kg</Text>
+              <Text style={styles.midInfoTitle}>Weight</Text>
             </View>
             <View style={styles.midInfo}>
               <Text style={styles.midInfoDetail}>{petDetails.breed}</Text>

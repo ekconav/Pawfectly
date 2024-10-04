@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   typeTextAdoptionFee: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
-    marginRight: 44,
+    marginRight: 37,
   },
   addPetDescriptionInput: {
     borderWidth: 1,
