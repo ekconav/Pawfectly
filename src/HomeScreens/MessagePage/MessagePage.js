@@ -367,6 +367,9 @@ const MessagePage = ({ route }) => {
   const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
     setSendLoading(true);
+    setNewMessage("");
+
+    const message = newMessage;
     try {
       const conversationRef = doc(
         db,
@@ -398,13 +401,13 @@ const MessagePage = ({ route }) => {
 
         await Promise.all([
           addDoc(userMessagesRef, {
-            text: newMessage,
+            text: message,
             senderId: currentUser.uid,
             receiverId: shelterId,
             timestamp: serverTimestamp(),
           }),
           addDoc(shelterMessagesRef, {
-            text: newMessage,
+            text: message,
             senderId: currentUser.uid,
             receiverId: shelterId,
             timestamp: serverTimestamp(),
@@ -414,26 +417,24 @@ const MessagePage = ({ route }) => {
         await Promise.all([
           updateConversation(
             doc(db, "users", currentUser.uid, "conversations", conversationId),
-            newMessage,
+            message,
             true,
             shelterId
           ),
           userToUser
             ? updateConversation(
                 doc(db, "users", shelterId, "conversations", conversationId),
-                newMessage,
+                message,
                 false,
                 shelterId
               )
             : updateConversation(
                 doc(db, "shelters", shelterId, "conversations", conversationId),
-                newMessage,
+                message,
                 false,
                 shelterId
               ),
         ]);
-
-        setNewMessage("");
       } else {
         const conversationData = conversationDoc.data();
         const participants = conversationData.participants;
@@ -475,13 +476,13 @@ const MessagePage = ({ route }) => {
 
         await Promise.all([
           addDoc(userMessagesRef, {
-            text: newMessage,
+            text: message,
             senderId: currentUser.uid,
             receiverId: otherParticipantId,
             timestamp: serverTimestamp(),
           }),
           addDoc(recipientMessagesRef, {
-            text: newMessage,
+            text: message,
             senderId: currentUser.uid,
             receiverId: otherParticipantId,
             timestamp: serverTimestamp(),
@@ -491,7 +492,7 @@ const MessagePage = ({ route }) => {
         await Promise.all([
           updateConversation(
             doc(db, "users", currentUser.uid, "conversations", conversationId),
-            newMessage,
+            message,
             true,
             userToUser ? otherParticipantId : shelterId
           ),
@@ -504,19 +505,17 @@ const MessagePage = ({ route }) => {
                   "conversations",
                   conversationId
                 ),
-                newMessage,
+                message,
                 false,
                 currentUser.uid
               )
             : updateConversation(
                 doc(db, "shelters", shelterId, "conversations", conversationId),
-                newMessage,
+                message,
                 false,
                 currentUser.uid
               ),
         ]);
-
-        setNewMessage("");
       }
     } catch (error) {
       console.error("Error sending message:", error);
