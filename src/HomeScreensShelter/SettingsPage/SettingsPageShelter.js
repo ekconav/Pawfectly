@@ -34,6 +34,8 @@ const SettingsPageShelter = () => {
   const [petsAdopted, setPetsAdopted] = useState([]);
   const [petsRescued, setPetsRescued] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [alertModal, setAlertModal] = useState(false);
 
   // Setting Modal
   const [isSettingModalVisible, setIsSettingModalVisible] = useState(false);
@@ -250,6 +252,13 @@ const SettingsPageShelter = () => {
       navigation.navigate("About");
     } else if (option === "Change Password") {
       navigation.navigate("Change Password");
+    } else if (option === "Setup Donations") {
+      if (checkVerify) {
+        navigation.navigate("SetupDonations");
+      } else {
+        setModalMessage("Sorry, your account is not yet verified.");
+        setAlertModal(true);
+      }
     } else if (option === "Terms of Service") {
       navigation.navigate("Terms of Service");
     } else if (option === "Privacy Policy") {
@@ -452,6 +461,21 @@ const SettingsPageShelter = () => {
         </TouchableOpacity>
       </Modal>
 
+      {/* Alert Modal */}
+      <Modal isVisible={alertModal}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={styles.alertButtonContainer}>
+            <TouchableOpacity
+              onPress={() => setAlertModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Settings Dropdown Modal */}
       <Modal
         visible={isSettingModalVisible}
@@ -467,6 +491,7 @@ const SettingsPageShelter = () => {
             {[
               "About Pawfectly",
               "Change Password",
+              "Setup Donations",
               "Terms of Service",
               "Privacy Policy",
               "Delete Account",

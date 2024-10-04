@@ -22,6 +22,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
 import Modal from "react-native-modal";
 import COLORS from "../../const/colors";
 import styles from "./styles";
@@ -52,6 +54,10 @@ const DisplayUser = ({ route }) => {
 
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+
+  const [donationModal, setDonationModal] = useState(false);
+  const [qrForDonation, setQrForDonation] = useState(null);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -81,6 +87,8 @@ const DisplayUser = ({ route }) => {
               ? { uri: shelterData.coverPhoto }
               : require("../../components/landingpage.png")
           );
+
+          setQrForDonation({ uri: shelterData.qrCode });
 
           setCheckVerify(shelterData.verified === true);
         } else if (userDoc.exists()) {
@@ -156,6 +164,33 @@ const DisplayUser = ({ route }) => {
       setPetsLoading(false);
     }
   }, []);
+
+  const handleDownloadQR = async () => {
+    if (qrForDonation && qrForDonation.uri) {
+      try {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        if (status !== "granted") {
+          setModalMessage("Permission to access media library is required.");
+          setAlertModal(true);
+          return;
+        }
+
+        const fileUri = `${FileSystem.documentDirectory}qrCode.png`;
+        const { uri } = await FileSystem.downloadAsync(qrForDonation.uri, fileUri);
+        await MediaLibrary.createAssetAsync(uri);
+
+        setModalMessage("QR Code downloaded and saved to your photo gallery!");
+        setAlertModal(true);
+      } catch (error) {
+        console.error("Error downloading the file: ", error);
+        setModalMessage("There was an error downloading the QR code.");
+        setAlertModal(true);
+      }
+    } else {
+      setModalMessage("No QR code to download.");
+      setAlertModal(true);
+    }
+  };
 
   const handlePickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -241,6 +276,8 @@ const DisplayUser = ({ route }) => {
     setIsSettingModalVisible(false);
     if (option === "Report Account") {
       setOpenReportModal(true);
+    } else if (option === "Donate to Shelter") {
+      setDonationModal(true);
     }
   };
 
@@ -490,6 +527,41 @@ const DisplayUser = ({ route }) => {
                 )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        isVisible={donationModal}
+        onRequestClose={() => setDonationModal(false)}
+      >
+        <View style={styles.donationModalContainer}>
+          <View style={styles.donationHeader}>
+            <Ionicons
+              name="arrow-back-outline"
+              size={20}
+              color={COLORS.prim}
+              onPress={() => setDonationModal(false)}
+            />
+            <Text style={styles.donationTitle}>Donate to Shelter</Text>
+          </View>
+          <View style={styles.qrImageContainer}>
+            {qrForDonation && qrForDonation.uri ? (
+              <Image source={qrForDonation} style={styles.qrImage} />
+            ) : (
+              <Text style={styles.noQrCodeText}>
+                Sorry, the shelter hasn't set up their donation details.
+              </Text>
+            )}
+          </View>
+          <View style={styles.donationButtonContainer}>
+            {qrForDonation && qrForDonation.uri && (
+              <TouchableOpacity
+                style={styles.donationButton}
+                onPress={handleDownloadQR}
+              >
+                <Text style={styles.donationText}>Download QR Code</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </Modal>

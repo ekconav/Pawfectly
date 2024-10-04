@@ -320,6 +320,59 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
   },
+
+  // Donation Modal
+  donationModalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 15,
+    borderRadius: 10,
+  },
+  donationHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  donationTitle: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 16,
+    color: COLORS.title,
+  },
+  qrImageContainer: {
+    width: "100%",
+    height: "75%",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+    borderColor: COLORS.outline,
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+  qrImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+    borderRadius: 10,
+  },
+  noQrCodeText: {
+    fontFamily: "Poppins_400Regular",
+    textAlign: "center",
+    color: COLORS.title,
+  },
+  donationButtonContainer: {
+    marginTop: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  donationButton: {
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: COLORS.prim,
+    alignItems: "center",
+  },
+  donationText: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.white,
+  },
 });
 
 export default styles;
