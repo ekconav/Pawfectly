@@ -200,6 +200,9 @@ const MessagePageShelter = ({ route }) => {
       return;
     }
     setSendLoading(true);
+    setNewMessage("");
+
+    const message = newMessage;
     try {
       const shelterMessagesRef = collection(
         db,
@@ -220,13 +223,13 @@ const MessagePageShelter = ({ route }) => {
 
       await Promise.all([
         addDoc(shelterMessagesRef, {
-          text: newMessage,
+          text: message,
           senderId: currentUser.uid,
           receiverId: userId,
           timestamp: serverTimestamp(),
         }),
         addDoc(userMessagesRef, {
-          text: newMessage,
+          text: message,
           senderId: currentUser.uid,
           receiverId: userId,
           timestamp: serverTimestamp(),
@@ -236,17 +239,15 @@ const MessagePageShelter = ({ route }) => {
       await Promise.all([
         updateConversation(
           doc(db, "shelters", currentUser.uid, "conversations", conversationId),
-          newMessage,
+          message,
           true
         ),
         updateConversation(
           doc(db, "users", userId, "conversations", conversationId),
-          newMessage,
+          message,
           false
         ),
       ]);
-
-      setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
