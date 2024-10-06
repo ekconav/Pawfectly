@@ -4,7 +4,6 @@ import COLORS from "../../colors";
 const styles = StyleSheet.create({
 
   pageTitle: {
-    fontSize: "40px",
     fontWeight: 500,
     fontFamily: "Poppins",
     color: COLORS.title,
