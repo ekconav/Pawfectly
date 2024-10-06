@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 import COLORS from "../../colors";
 
 const styles = StyleSheet.create({
-
   pageTitle: {
     // fontSize: "40px",
     fontWeight: 500,
@@ -10,43 +9,39 @@ const styles = StyleSheet.create({
     color: COLORS.title,
     margin: 10,
   },
-
   container: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 2fr', // Two equal columns
-    gap: '10px', // Space between columns
-    padding: '10px',
+    display: "grid",
+    gridTemplateColumns: "1fr 2fr", 
+    gap: "10px", 
+    padding: "10px",
   },
-
   graphCard: {
     display: "flex",
     paddingLeft: 40,
     paddingRight: 40,
     marginLeft: 30,
-    marginRight: 10,  
+    marginRight: 10,
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
-    height: "50vh",  
-    width:"35vw",
+    height: "50vh",
+    width: "35vw",
     flexDirection: "column",
   },
-
   summaryCard: {
     display: "flex",
     paddingLeft: 40,
     paddingRight: 40,
     marginLeft: 10,
-    marginRight: 30,  
+    marginRight: 30,
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
-    height: "100vh",  
+    height: "100vh",
     width: "auto",
     flexDirection: "column",
   },
-
   summaryGridCols: {
     display: "grid",
-    gridTemplateRows: "7vh repeat(7, 8vh)", 
+    gridTemplateRows: "7vh repeat(7, 8vh)",
     gap: "5px",
     height: "80vh",
     width: "auto",
@@ -54,47 +49,43 @@ const styles = StyleSheet.create({
     maxHeight: "80vh",
   },
   summaryGridRows: {
-    display: "grid", 
+    display: "grid",
     gridTemplateColumns: "repeat(6, 1fr) 1.3fr 0.7fr",
     borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)", 
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
     backgroundColor: "#F2F2F2",
     height: "8vh",
     gap: "3pvw",
-    
-    
   },
   summaryLabelRows: {
-    display: "grid", 
-    gridTemplateColumns: "repeat(6, 1fr) 1.3fr 0.7fr",  
-    // padding: "10px",
+    display: "grid",
+    gridTemplateColumns: "repeat(6, 1fr) 1.3fr 0.7fr",
     marginTop: "10px",
-    position: "sticky", // Make sure it stays visible during scroll
-    top: 0, // Stick the labels at the top
-    zIndex: 1, // Ensure it stays on top
+    position: "sticky", 
+    top: 0, 
+    zIndex: 1,
     backgroundColor: COLORS.white,
-    
   },
   IDline: {
-    display: "flex",        
-    alignItems: "center",   
-    justifyContent: "center", 
-    height: "100%",     
-    margin: 0,  
-    whiteSpace: "normal", // Allow text to wrap
-    overflowWrap: "break-word", // Allow long words to break
-    wordBreak: "break-all", // Break long IDs that have no spaces
-    textAlign: "center", // Center text within the cell
-    fontSize: '12px', // Keep font size as 7px
-    lineHeight: '1.2', // Adjust line height for better readability
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    margin: 0,
+    whiteSpace: "normal", 
+    overflowWrap: "break-word", 
+    wordBreak: "break-all",
+    textAlign: "center", 
+    fontSize: "12px", 
+    lineHeight: "1.2", 
     overflow: "hidden",
   },
   line: {
-    display: "flex",        
-    alignItems: "center",   
-    justifyContent: "center", 
-    height: "100%",     
-    margin: 0,  
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    margin: 0,
   },
   title: {
     fontWeight: 500,
@@ -102,48 +93,11 @@ const styles = StyleSheet.create({
   },
   adminPicture: {
     width: 40,
-    height:  40,
+    height: 40,
     borderRadius: 15,
-  },
-  // Pagination
-  pagination: {
-    display: 'flex',
-    justifyContent: 'right',
-    alignItems: 'center',
-    marginTop: '20px',
-    marginRight: 50,
-  },
-  paginationButton: {
-    fontFamily: 'inherit',
-    fontWeight: '600',
-    fontSize: '16px',
-    marginLeft: '10px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    background: 'transparent',
-    color: '#5F5B5B',
-    border: '2px solid #5F5B5B',
-  },
-  disabledButton: {
-    opacity: 0.5,
-    cursor: 'not-allowed',
   },
 
   // Edit Button
-  editButtonContainer: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "white",
-    border: "2px solid #0080FF", 
-    borderRadius: "6px",
-    width: "20px", 
-    height: "20px", 
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-    margin:"5px",
-  },
   editIcon: {
     cursor: "pointer",
     transition: "all 0.3s ease",
@@ -185,7 +139,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     color: COLORS.white,
-    cursor: 'pointer',
+    cursor: "pointer",
   },
   cancelButton: {
     backgroundColor: COLORS.outline,
@@ -194,7 +148,7 @@ const styles = StyleSheet.create({
     border: "none",
     borderRadius: 10,
     marginLeft: 10,
-    cursor: 'pointer',
+    cursor: "pointer",
   },
 
   // Modal Edit Forms
@@ -202,7 +156,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     alignItems: "start",
-    gap: 10
+    gap: 10,
   },
   inputField: {
     width: "100%",
@@ -214,28 +168,26 @@ const styles = StyleSheet.create({
   },
 
   dropdownScrollable: {
-    position: 'absolute',
-    backgroundColor: 'white',
+    position: "absolute",
+    backgroundColor: "white",
     border: `1px solid ${COLORS.prim}`,
-    borderRadius: '4px',
-    maxHeight: '30vh', // Set maximum height for the dropdown
-    overflowY: 'auto',  // Enable vertical scroll
-    width: '20vw',      // Match the width of the input
-    zIndex: 1000,       // Ensure it stays above other elements
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Add shadow for depth
+    borderRadius: "4px",
+    maxHeight: "30vh", // Set maximum height for the dropdown
+    overflowY: "auto", // Enable vertical scroll
+    width: "20vw", // Match the width of the input
+    zIndex: 1000, // Ensure it stays above other elements
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Add shadow for depth
   },
-  
   dropdownItem: {
-    paddingLeft: '8px',
-    paddingTop: '4px',
-    cursor: 'pointer',
-    textAlign: 'left',
-    transition: 'background-color 0.2s ease', // Smooth transition for hover
-    backgroundColor: COLORS.white, 
+    paddingLeft: "8px",
+    paddingTop: "4px",
+    cursor: "pointer",
+    textAlign: "left",
+    transition: "background-color 0.2s ease", // Smooth transition for hover
+    backgroundColor: COLORS.white,
     color: COLORS.black,
   },
-
-  searchIcon:{
+  searchIcon: {
     cursor: "pointer",
     transition: "all 0.3s ease",
     border: `2px solid ${COLORS.prim}`,
@@ -243,14 +195,7 @@ const styles = StyleSheet.create({
     color: COLORS.prim,
     fontSize: "25px",
     fontWeight: 100,
-
   },
-  
-  
- 
-  
-
-
 });
 
 export default styles;

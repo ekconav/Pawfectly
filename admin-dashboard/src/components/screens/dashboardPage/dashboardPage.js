@@ -17,7 +17,14 @@ import {
 } from "firebase/firestore";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
 import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
-import { Form, InputGroup, Container, Row, Col, Button } from "react-bootstrap";
+import {
+  Form,
+  InputGroup,
+  Container,
+  Row,
+  Col,
+  Offcanvas,
+} from "react-bootstrap";
 import COLORS from "../../colors";
 
 const DashboardPage = () => {
@@ -125,6 +132,20 @@ const DashboardPage = () => {
       setFilteredPets(pets);
     }
   };
+
+  // State to hold the search input for pets
+  const [petSearch, setPetSearch] = useState("");
+
+  const filteredPetsByName = petSearch
+    ? filteredPets.filter((pet) =>
+        pet.name.toLowerCase().includes(petSearch.toLowerCase())
+      )
+    : filteredPets;
+
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const toggleShow = () => setShow((s) => !s);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -255,26 +276,59 @@ const DashboardPage = () => {
                   style={styles.searchIcon}
                   name="search-outline"
                   onClick={handleSearchPets}
+                  onMouseOver={(e) => {
+                    e.target.style.color = COLORS.hover;
+                    e.target.style.borderColor = COLORS.hover;
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.color = COLORS.prim;
+                    e.target.style.borderColor = COLORS.prim;
+                  }}
                 ></ion-icon>
               </Col>
+
               <Row>
-                <Col className="p-0">
+                <Col className="p-0 mt-3">
                   <InputGroup
                     size="sm"
                     style={{
                       border: `1px solid ${COLORS.prim}`,
                       borderRadius: "4px",
                       padding: 0,
-                      marginTop: 10,
                     }}
                   >
                     <InputGroup.Text id="pet">
                       <ion-icon name="paw-outline"></ion-icon>
                     </InputGroup.Text>
-                    <Form.Control placeholder="Pet" />
+                    <Form.Control
+                      placeholder="Pet"
+                      value={petSearch}
+                      onChange={(e) => setPetSearch(e.target.value)}
+                    />
                   </InputGroup>
                 </Col>
-                <Col lg={8}></Col>
+                <Col className="d-flex align-items-center justify-content-end mt-3">
+                  <ion-icon
+                    style={{
+                      fontSize: "30px",
+                      cursor: "pointer",
+                      paddingLeft: "10px",
+                      paddingRight: "10px",
+                      color: COLORS.prim,
+                    }}
+                    name="add-circle-outline"
+                    onClick={toggleShow}
+                    onMouseOver={(e) => {
+                      e.target.style.color = COLORS.hover;
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.color = COLORS.prim;
+                    }}
+                  ></ion-icon>
+                  <p style={{ margin: 0, fontWeight: 30, color: COLORS.prim }}>
+                    Add Pet
+                  </p>
+                </Col>
               </Row>
               <div style={{ justifyContent: "center" }}>
                 <div style={styles.summaryGridCols}>
@@ -302,62 +356,79 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
-                  {filteredPets.map((pet) => (
-                    <div key={pet.id} style={styles.summaryGridRows}>
-                      <p style={styles.IDline}>{pet.id}</p>
-                      <p style={styles.line}>{pet.type}</p>
-                      <div style={styles.line}>
-                        <img
-                          src={pet.images || require("../../../const/user.png")}
-                          alt="Profile"
-                          style={styles.adminPicture}
-                        />
+                  {filteredPetsByName.length > 0 ? (
+                    filteredPetsByName.map((pet) => (
+                      <div key={pet.id} style={styles.summaryGridRows}>
+                        <p style={styles.IDline}>{pet.id}</p>
+                        <p style={styles.line}>{pet.type}</p>
+                        <div style={styles.line}>
+                          <img
+                            src={
+                              pet.images || require("../../../const/user.png")
+                            }
+                            alt="Profile"
+                            style={styles.adminPicture}
+                          />
+                        </div>
+                        <p style={styles.line}>{pet.name}</p>
+                        <p style={styles.line}>{pet.gender.charAt(0)}</p>
+                        <p style={styles.line}>{pet.age}</p>
+                        <p style={styles.line}>
+                          {pet.adopted ? "Adopted" : "Up for Adoption"}
+                        </p>
+                        <div style={styles.line}>
+                          <ion-icon
+                            name="pencil"
+                            style={styles.editIcon}
+                            // onClick={() => handleEditModalOpen(admin)}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.color = COLORS.hover;
+                              e.currentTarget.style.borderColor = COLORS.hover;
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.color = COLORS.prim;
+                              e.currentTarget.style.borderColor = COLORS.prim;
+                            }}
+                          ></ion-icon>
+                          <ion-icon
+                            style={{
+                              margin: "5px",
+                              fontSize: "27px",
+                              color: COLORS.prim,
+                              cursor: "pointer",
+                            }}
+                            name="trash-outline"
+                            // onClick={() => handleDeleteButton(admin)}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.color = COLORS.error;
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.color = COLORS.prim;
+                            }}
+                          ></ion-icon>
+                        </div>
                       </div>
-                      <p style={styles.line}>{pet.name}</p>
-                      <p style={styles.line}>{pet.gender.charAt(0)}</p>
-                      <p style={styles.line}>{pet.age}</p>
-                      <p style={styles.line}>
-                        {pet.adopted ? "Adopted" : "Up for Adoption"}
-                      </p>
-                      <div style={styles.line}>
-                        <ion-icon
-                          name="pencil"
-                          style={styles.editIcon}
-                          // onClick={() => handleEditModalOpen(admin)}
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.color = COLORS.hover;
-                            e.currentTarget.style.borderColor = COLORS.hover;
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.color = COLORS.prim;
-                            e.currentTarget.style.borderColor = COLORS.prim;
-                          }}
-                        ></ion-icon>
-                        <ion-icon
-                          style={{
-                            margin: "5px",
-                            fontSize: "27px",
-                            color: COLORS.prim,
-                            cursor: "pointer",
-                          }}
-                          name="trash-outline"
-                          // onClick={() => handleDeleteButton(admin)}
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.color = COLORS.error;
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.color = COLORS.prim;
-                          }}
-                        ></ion-icon>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p>No matching pets found</p>
+                  )}
                 </div>
               </div>
             </Row>
           </Container>
         </div>
       </div>
+
+      {/* Off Canvas Form for Add */}
+      <Offcanvas show={show} onHide={handleClose} scroll={true} backdrop={true}>
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Offcanvas</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          Some text as placeholder. In real life you can have the elements you
+          have chosen. Like, text, images, lists, etc.
+        </Offcanvas.Body>
+      </Offcanvas>
     </div>
   );
 };
