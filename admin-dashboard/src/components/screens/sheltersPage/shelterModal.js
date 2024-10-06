@@ -1,92 +1,19 @@
-import React from 'react';
-import styles from './styles';
+import React from "react";
+import styles from "./styles";
+import Switch from "@mui/material/Switch";
 
-
-const ShelterModal = ({ shelter, onUpdate, onClose }) => {
-    const [formData, setFormData] = React.useState({
-        firstName: shelter.firstName || '',
-        lastName: shelter.lastName || '',
-        mobileNumber: shelter.mobileNumber || '',
-        verified: shelter.verified || false,
-    });
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const handleCheckboxChange = (e) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      verified: e.target.checked,
-    }));
-  };
-
-  const handleSubmit = () => {
-    if (!formData.firstName || !formData.lastName || !formData.mobileNumber) {
-      alert("All fields are required.");
-      return;
-    }
-    onUpdate(formData);
-  };
-
+// Delete Modal Component
+const DeleteModal = ({ onConfirm, onClose, children }) => {
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
-        <h2>Edit Shelter Information</h2>
-
-        <div style={styles.formGroup}>
-          <label>First Name:</label>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleInputChange}
-            style={styles.inputField}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label>Last Name:</label>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleInputChange}
-            style={styles.inputField}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label>Mobile Number:</label>
-          <input
-            type="text"
-            name="mobileNumber"
-            value={formData.mobileNumber}
-            onChange={handleInputChange}
-            style={styles.inputField}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label>Verified:</label>
-          <input
-            type="checkbox"
-            checked={formData.verified}
-            onChange={handleCheckboxChange}
-            style={styles.checkbox}
-          />
-        </div>
-
-        <div style={styles.modalActions}>
-          <button onClick={handleSubmit} style={styles.updateButton}>
-            Update Shelter
+        {children}
+        <div style={styles.modalButtons}>
+          <button style={styles.cancelButton} onClick={onClose}>
+            Cancel
           </button>
-          <button onClick={onClose} style={styles.closeButton}>
-            Close
+          <button style={styles.confirmButton} onClick={onConfirm}>
+            Confirm
           </button>
         </div>
       </div>
@@ -94,4 +21,85 @@ const ShelterModal = ({ shelter, onUpdate, onClose }) => {
   );
 };
 
-export default ShelterModal;
+// Update Modal Component
+const UpdateModal = ({
+  updateShelter,
+  handleInputChange,
+  handleSwitchChange,
+  handleUpdateShelter,
+  handleCloseUpdateShelterModal,
+}) => {
+  return (
+    <div style={styles.modalOverlay}>
+      <div style={styles.modalContent}>
+        <h2 style={styles.modalTitle}>Edit Shelter Information</h2>
+        <div style={styles.modalForm}>
+          <input
+            type="text"
+            name="shelterName"
+            placeholder="Shelter Name"
+            value={updateShelter.shelterName}
+            onChange={handleInputChange}
+            style={styles.inputField}
+            required
+          />
+          <div style={styles.mobileNumberContainer}>
+            <span style={styles.countryCode}>+63</span>
+            <input
+              type="text"
+              name="mobileNumber"
+              placeholder="Mobile Number"
+              value={updateShelter.mobileNumber}
+              onChange={handleInputChange}
+              style={{ ...styles.inputField, paddingLeft: "50px" }} // Adding padding to avoid overlap
+              required
+            />
+          </div>
+          <div style={styles.SwitchLine}>
+            <label style={styles.title}>Verified:</label>
+            <Switch
+              checked={updateShelter.verified}
+              onChange={handleSwitchChange}
+              inputProps={{ "aria-label": "User verification switch" }}
+            />
+          </div>
+          <div style={styles.modalButtons}>
+            <button
+              onClick={handleCloseUpdateShelterModal}
+              style={styles.cancelButton}
+            >
+              Cancel
+            </button>
+            <button onClick={handleUpdateShelter} style={styles.confirmButton}>
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+// Image Modal Component
+const ImageModal = ({ isOpen, imageUrl, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <img src={imageUrl} alt="Full View" style={styles.fullImage} />
+        <button onClick={onClose} style={styles.closeButton}>
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Export multiple modals
+const Modal = {
+  DeleteModal,
+  UpdateModal,
+  ImageModal,
+};
+
+export default Modal;
