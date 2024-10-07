@@ -505,7 +505,7 @@ const ShelterPage = () => {
                 </p>
               </div>
               <div style={styles.line}>
-                <p style={styles.userInfoTitleLabel}>Gov't ID:</p>
+                <p style={styles.userInfoTitleLabel}>Gov't ID & Permit:</p>
               </div>
               <div style={styles.line}>
                 <img
@@ -520,7 +520,36 @@ const ShelterPage = () => {
                     setIsImageModalOpen(true);
                   }}
                 />
+                <img
+                  src={
+                    selectedShelter.businessPermit ||
+                    require("../../../const/user.png")
+                  }
+                  alt="ID"
+                  style={styles.govtPicture}
+                  onClick={() => {
+                    setSelectedImageUrl(selectedShelter.businessPermit);
+                    setIsImageModalOpen(true);
+                  }}
+                />
               </div>
+              {/* <div style={styles.line}>
+                <p style={styles.userInfoTitleLabel}>Business Permit:</p>
+              </div>
+              <div style={styles.line}>
+                <img
+                  src={
+                    selectedShelter.businessPermit ||
+                    require("../../../const/user.png")
+                  }
+                  alt="ID"
+                  style={styles.govtPicture}
+                  onClick={() => {
+                    setSelectedImageUrl(selectedShelter.businessPermit);
+                    setIsImageModalOpen(true);
+                  }}
+                />
+              </div> */}
             </div>
           </div>
         )}
