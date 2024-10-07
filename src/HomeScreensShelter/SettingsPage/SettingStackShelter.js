@@ -8,6 +8,7 @@ import TOSPage from "./SettingOptionsShelter/TOSPage/TOSPageShelter";
 import PrivacyPolicyScreen from "./SettingOptionsShelter/PrivacyPolicyPage/PrivacyPolicyPageShelter";
 import DeleteAccScreen from "./SettingOptionsShelter/DeleteAccPage/DeleteAccPageShelter";
 import PetDetailsScreen from "../PetDetails/PetDetails";
+import SetupDonationsScreen from "./SettingOptionsShelter/SetupDonationsPage/SetupDonationsPage";
 
 const Stack = createStackNavigator();
 
@@ -52,6 +53,11 @@ export const SettingOptionsShelter = () => {
       <Stack.Screen
         name="Pet Details"
         component={PetDetailsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SetupDonations"
+        component={SetupDonationsScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

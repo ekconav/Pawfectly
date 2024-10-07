@@ -203,6 +203,31 @@ export const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     textAlign: "center",
   },
+  
+  // Alert Modal
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+  },
+  alertButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  modalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+    textAlign: "justify",
+  },
+  modalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
 
   // Settings Modal
   settingsModalOverlay: {
@@ -217,7 +242,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 10,
     elevation: 5,
-    height: 235,
+    height: 275,
     top: 180,
   },
   dropdownItem: {
