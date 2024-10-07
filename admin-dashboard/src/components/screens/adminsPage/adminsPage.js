@@ -254,6 +254,7 @@ const AdminsPage = () => {
   const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
 
   const handleEditModalOpen = (admin) => {
+    setSelectedAdmin(admin);
     // Must not include country code in the display
     const mobileNumberWithoutCountryCode = admin.mobileNumber.startsWith("+63")
       ? admin.mobileNumber.slice(3)
@@ -330,6 +331,7 @@ const AdminsPage = () => {
       setAlertMessage("Admin has been successdully updated.");
       setAlertType("success");
     } catch (error) {
+      console.log(error);
       setAlertMessage("Error updating admin.");
       setAlertType("error");
     }
