@@ -118,7 +118,8 @@ const HomeScreenPet = () => {
       const petsQuery = query(
         petsCollection,
         where("userId", "==", currentUser.uid),
-        where("adopted", "==", false)
+        where("adopted", "==", false),
+        orderBy("petPosted", "desc")
       );
 
       const unsubscribe = onSnapshot(petsQuery, (querySnapshot) => {
@@ -392,14 +393,29 @@ const HomeScreenPet = () => {
                           </View>
                         )}
                       </View>
-                      <View style={styles.ageContainer}>
+                      <View style={!seeAllPressed ? styles.ageContainer : styles.ageContainerSeeAll}>
                         <Text
-                          style={styles.ageText}
+                          style={!seeAllPressed ? styles.ageText : styles.ageTextSeeAll}
                           numberOfLines={1}
                           ellipsizeMode="tail"
                         >
                           Age: {item.age}
                         </Text>
+                        {item.readyForAdoption ? (
+                          <Text
+                            style={!seeAllPressed ? styles.ready : styles.readySeeAll}
+                          >
+                            Ready
+                          </Text>
+                        ) : (
+                          <Text
+                            style={
+                              !seeAllPressed ? styles.notReady : styles.notReadySeeAll
+                            }
+                          >
+                            Not Ready
+                          </Text>
+                        )}
                       </View>
                     </View>
                   </View>

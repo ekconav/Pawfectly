@@ -50,6 +50,7 @@ const SignupPage = () => {
     useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [triggerRequired, setTriggerRequired] = useState(false);
   const navigation = useNavigation();
 
   const addUserToFirestore = async (userId, userData) => {
@@ -81,6 +82,12 @@ const SignupPage = () => {
   }, []);
 
   const handlePickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      setModalMessage("Permission to access camera roll is required.");
+      setAlertModal(true);
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -120,6 +127,7 @@ const SignupPage = () => {
       if (!imageUri) {
         setModalMessage("Please upload a government ID picture before registering.");
         setAlertModal(true);
+        setTriggerRequired(true);
         return;
       }
 
@@ -127,6 +135,8 @@ const SignupPage = () => {
     } else {
       setModalMessage("Please fill in all fields.");
       setAlertModal(true);
+      setTriggerRequired(true);
+      return;
     }
   };
 
@@ -220,6 +230,22 @@ const SignupPage = () => {
     } else if (text.startsWith("0")) {
       const newText = text.slice(1);
       setMobileNumber(newText);
+    } else if (
+      text.includes("(") ||
+      text.includes("/") ||
+      text.includes(")") ||
+      text.includes("N") ||
+      text.includes(",") ||
+      text.includes(".") ||
+      text.includes("*") ||
+      text.includes(";") ||
+      text.includes("#") ||
+      text.includes("-") ||
+      text.includes("+") ||
+      text.includes(" ")
+    ) {
+      const newText = text.slice(0, -1);
+      setMobileNumber(newText);
     } else {
       setMobileNumber(text);
     }
@@ -230,7 +256,14 @@ const SignupPage = () => {
       <ScrollView contentContainerStyle={styles.signUpPageContainer}>
         <Text style={styles.signUpPageTitle}>SIGN UP</Text>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>First Name</Text>
+          <Text style={styles.signUpPageLabel}>
+            First Name{" "}
+            <Text
+              style={triggerRequired && firstName === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.signUpPageinput}
             onChangeText={(text) => setFirstName(text)}
@@ -238,7 +271,14 @@ const SignupPage = () => {
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>Last Name</Text>
+          <Text style={styles.signUpPageLabel}>
+            Last Name{" "}
+            <Text
+              style={triggerRequired && lastName === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.signUpPageinput}
             onChangeText={(text) => setLastName(text)}
@@ -246,16 +286,19 @@ const SignupPage = () => {
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>Mobile Number</Text>
+          <Text style={styles.signUpPageLabel}>
+            Mobile Number{" "}
+            <Text
+              style={triggerRequired && mobileNumber === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <View style={styles.signUpPageMobileInput}>
             <Text style={styles.signUpPageCountryCodeOverlay}>+63</Text>
             <TextInput
               style={styles.signUpPageMobileNumberInput}
-              value={
-                mobileNumber.startsWith("+63")
-                  ? mobileNumber.slice(3)
-                  : mobileNumber
-              }
+              value={mobileNumber}
               onChangeText={handleMobileNumberChange}
               keyboardType="phone-pad"
               maxLength={10}
@@ -263,7 +306,12 @@ const SignupPage = () => {
           </View>
         </View>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>Address</Text>
+          <Text style={styles.signUpPageLabel}>
+            Address{" "}
+            <Text style={triggerRequired && address === "" ? styles.required : null}>
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.signUpPageinput}
             onChangeText={(text) => setAddress(text)}
@@ -271,7 +319,12 @@ const SignupPage = () => {
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>Email Address</Text>
+          <Text style={styles.signUpPageLabel}>
+            Email Address{" "}
+            <Text style={triggerRequired && email === "" ? styles.required : null}>
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.signUpPageinput}
             onChangeText={(value) => setEmail(value)}
@@ -281,7 +334,14 @@ const SignupPage = () => {
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>Password</Text>
+          <Text style={styles.signUpPageLabel}>
+            Password{" "}
+            <Text
+              style={triggerRequired && password === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.signUpPageinput}
             onChangeText={(value) => setPassword(value)}
@@ -291,7 +351,16 @@ const SignupPage = () => {
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>Confirm Password</Text>
+          <Text style={styles.signUpPageLabel}>
+            Confirm Password{" "}
+            <Text
+              style={
+                triggerRequired && confirmPassword === "" ? styles.required : null
+              }
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.signUpPageinput}
             onChangeText={(text) => setConfirmPassword(text)}
@@ -301,7 +370,14 @@ const SignupPage = () => {
           />
         </View>
         <View style={styles.signUpPageInputContainer}>
-          <Text style={styles.signUpPageLabel}>Picture of any Government ID</Text>
+          <Text style={styles.signUpPageLabel}>
+            Picture of any Government ID{" "}
+            <Text
+              style={triggerRequired && fileName === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TouchableOpacity
             style={styles.signUpPageFileUpload}
             onPress={handlePickImage}

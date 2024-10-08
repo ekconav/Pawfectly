@@ -15,6 +15,9 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_700Bold",
     color: COLORS.title,
   },
+  required: {
+    color: COLORS.delete,
+  },
   signUpPageLabel: {
     fontSize: 12,
     fontFamily: "Poppins_500Medium",

@@ -30,6 +30,7 @@ const AccountPage = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [required, setRequired] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -59,7 +60,7 @@ const AccountPage = () => {
   const handlePickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
-      setModalMessage("Permission to access camera roll is required!");
+      setModalMessage("Permission to access camera roll is required.");
       setAlertModal(true);
       return;
     }
@@ -101,6 +102,7 @@ const AccountPage = () => {
     if (!firstName || !lastName || !address || !mobileNumber) {
       setModalMessage("Please fill in all required fields.");
       setAlertModal(true);
+      setRequired(true);
       return;
     }
 
@@ -136,6 +138,22 @@ const AccountPage = () => {
       setMobileNumber(newText);
     } else if (text.startsWith("0")) {
       const newText = text.slice(1);
+      setMobileNumber(newText);
+    } else if (
+      text.includes("(") ||
+      text.includes("/") ||
+      text.includes(")") ||
+      text.includes("N") ||
+      text.includes(",") ||
+      text.includes(".") ||
+      text.includes("*") ||
+      text.includes(";") ||
+      text.includes("#") ||
+      text.includes("-") ||
+      text.includes("+") ||
+      text.includes(" ")
+    ) {
+      const newText = text.slice(0, -1);
       setMobileNumber(newText);
     } else {
       setMobileNumber(text);
@@ -179,7 +197,14 @@ const AccountPage = () => {
           <View style={styles.textInputContainers}>
             <View style={styles.firstLastName}>
               <View>
-                <Text style={styles.text}>First Name</Text>
+                <Text style={styles.text}>
+                  First Name{" "}
+                  <Text
+                    style={required && firstName === "" ? styles.required : null}
+                  >
+                    *
+                  </Text>
+                </Text>
                 <TextInput
                   style={styles.firstLastInput}
                   value={firstName}
@@ -187,7 +212,12 @@ const AccountPage = () => {
                 />
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.text}>Last Name</Text>
+                <Text style={styles.text}>
+                  Last Name{" "}
+                  <Text style={required && lastName === "" ? styles.required : null}>
+                    *
+                  </Text>
+                </Text>
                 <TextInput
                   style={styles.firstLastInput}
                   value={lastName}
@@ -196,7 +226,12 @@ const AccountPage = () => {
               </View>
             </View>
             <View>
-              <Text style={styles.text}>Address</Text>
+              <Text style={styles.text}>
+                Address{" "}
+                <Text style={required && address === "" ? styles.required : null}>
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 value={address}
@@ -204,7 +239,14 @@ const AccountPage = () => {
               />
             </View>
             <View>
-              <Text style={styles.text}>Mobile Number</Text>
+              <Text style={styles.text}>
+                Mobile Number{" "}
+                <Text
+                  style={required && mobileNumber === "" ? styles.required : null}
+                >
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 value={

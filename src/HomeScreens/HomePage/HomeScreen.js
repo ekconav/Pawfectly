@@ -145,13 +145,15 @@ const HomeScreen = () => {
       const otherPetsQuery = query(
         petsCollectionRef,
         where("adopted", "==", false),
-        where("userId", "!=", auth.currentUser.uid)
+        where("userId", "!=", auth.currentUser.uid),
+        orderBy("petPosted", "desc")
       );
 
       const myPetsQuery = query(
         petsCollectionRef,
         where("adopted", "==", false),
-        where("userId", "==", auth.currentUser.uid)
+        where("userId", "==", auth.currentUser.uid),
+        orderBy("petPosted", "desc")
       );
 
       const unsubscribeOtherPets = onSnapshot(
