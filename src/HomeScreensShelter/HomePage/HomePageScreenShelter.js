@@ -393,9 +393,17 @@ const HomeScreenPet = () => {
                           </View>
                         )}
                       </View>
-                      <View style={!seeAllPressed ? styles.ageContainer : styles.ageContainerSeeAll}>
+                      <View
+                        style={
+                          !seeAllPressed
+                            ? styles.ageContainer
+                            : styles.ageContainerSeeAll
+                        }
+                      >
                         <Text
-                          style={!seeAllPressed ? styles.ageText : styles.ageTextSeeAll}
+                          style={
+                            !seeAllPressed ? styles.ageText : styles.ageTextSeeAll
+                          }
                           numberOfLines={1}
                           ellipsizeMode="tail"
                         >
@@ -403,14 +411,18 @@ const HomeScreenPet = () => {
                         </Text>
                         {item.readyForAdoption ? (
                           <Text
-                            style={!seeAllPressed ? styles.ready : styles.readySeeAll}
+                            style={
+                              !seeAllPressed ? styles.ready : styles.readySeeAll
+                            }
                           >
                             Ready
                           </Text>
                         ) : (
                           <Text
                             style={
-                              !seeAllPressed ? styles.notReady : styles.notReadySeeAll
+                              !seeAllPressed
+                                ? styles.notReady
+                                : styles.notReadySeeAll
                             }
                           >
                             Not Ready
