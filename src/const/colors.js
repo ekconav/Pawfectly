@@ -12,9 +12,9 @@ const COLORS = {
 
   // proper final colors
   prim: "#827397",
-  pie1: "#42a5f5",
-  pie2: "#f5cf86",
-  pie3: "#9c6d9c",
+  pie1: "#b800d8",
+  pie2: "#2e96ff",
+  pie3: "#02b2af",
   title: "#5F5B5B",
   subtitle: "#ADA8A8",
   white: "#FFFFFF",

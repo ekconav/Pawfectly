@@ -8,6 +8,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 25,
   },
+  required: {
+    color: COLORS.delete,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -102,6 +105,11 @@ const styles = StyleSheet.create({
     gap: 50,
   },
   typeGender: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    marginRight: 16,
+  },
+  typeReady: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
     marginRight: 26,

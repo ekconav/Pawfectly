@@ -7,6 +7,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     padding: 20,
   },
+  required: {
+    color: COLORS.delete,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

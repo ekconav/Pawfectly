@@ -8,6 +8,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 25,
   },
+  required: {
+    color: COLORS.delete,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -105,7 +108,7 @@ const styles = StyleSheet.create({
   typeGender: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
-    marginRight: 26,
+    marginRight: 16,
   },
   checkboxGender: {
     flexDirection: "row",

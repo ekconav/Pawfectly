@@ -52,6 +52,7 @@ const SignupShelter = () => {
   const [loading, setLoading] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [triggerRequired, setTriggerRequired] = useState(false);
   const navigation = useNavigation();
 
   const addShelterToFirestore = async (userId, userData) => {
@@ -83,6 +84,12 @@ const SignupShelter = () => {
   }, []);
 
   const handleGovtId = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      setModalMessage("Permission to access camera roll is required.");
+      setAlertModal(true);
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -98,6 +105,12 @@ const SignupShelter = () => {
   };
 
   const handleBusinessPermit = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      setModalMessage("Permission to access camera roll is required.");
+      setAlertModal(true);
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -143,6 +156,8 @@ const SignupShelter = () => {
     } else {
       setModalMessage("Please fill in all fields.");
       setAlertModal(true);
+      setTriggerRequired(true);
+      return;
     }
   };
 
@@ -243,6 +258,22 @@ const SignupShelter = () => {
     } else if (text.startsWith("0")) {
       const newText = text.slice(1);
       setMobileNumber(newText);
+    } else if (
+      text.includes("(") ||
+      text.includes("/") ||
+      text.includes(")") ||
+      text.includes("N") ||
+      text.includes(",") ||
+      text.includes(".") ||
+      text.includes("*") ||
+      text.includes(";") ||
+      text.includes("#") ||
+      text.includes("-") ||
+      text.includes("+") ||
+      text.includes(" ")
+    ) {
+      const newText = text.slice(0, -1);
+      setMobileNumber(newText);
     } else {
       setMobileNumber(text);
     }
@@ -253,7 +284,14 @@ const SignupShelter = () => {
       <ScrollView contentContainerStyle={styles.shelterSignUpContainer}>
         <Text style={styles.shelterSignUpTitle}>SIGN UP</Text>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>Name of Shelter</Text>
+          <Text style={styles.shelterSignUpLabel}>
+            Name of Shelter{" "}
+            <Text
+              style={triggerRequired && shelterName === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.shelterSignUpInput}
             onChangeText={(text) => setShelterName(text)}
@@ -261,7 +299,12 @@ const SignupShelter = () => {
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>Address of Shelter</Text>
+          <Text style={styles.shelterSignUpLabel}>
+            Address of Shelter{" "}
+            <Text style={triggerRequired && address === "" ? styles.required : null}>
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.shelterSignUpInput}
             onChangeText={(text) => setAddress(text)}
@@ -269,16 +312,19 @@ const SignupShelter = () => {
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>Mobile Number</Text>
+          <Text style={styles.shelterSignUpLabel}>
+            Mobile Number{" "}
+            <Text
+              style={triggerRequired && mobileNumber === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <View style={styles.shelterSignUpMobileInput}>
             <Text style={styles.shelterSignUpCountryCode}>+63</Text>
             <TextInput
               style={styles.shelterSignUpMobileNumberInput}
-              value={
-                mobileNumber.startsWith("+63")
-                  ? mobileNumber.slice(3)
-                  : mobileNumber
-              }
+              value={mobileNumber}
               onChangeText={handleMobileNumberChange}
               keyboardType="phone-pad"
               maxLength={10}
@@ -286,7 +332,14 @@ const SignupShelter = () => {
           </View>
         </View>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>Name of Owner</Text>
+          <Text style={styles.shelterSignUpLabel}>
+            Name of Owner{" "}
+            <Text
+              style={triggerRequired && ownerName === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.shelterSignUpInput}
             onChangeText={(text) => setOwnerName(text)}
@@ -294,7 +347,12 @@ const SignupShelter = () => {
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>Email Address</Text>
+          <Text style={styles.shelterSignUpLabel}>
+            Email Address{" "}
+            <Text style={triggerRequired && email === "" ? styles.required : null}>
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.shelterSignUpInput}
             onChangeText={(value) => setEmail(value)}
@@ -304,7 +362,14 @@ const SignupShelter = () => {
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>Password</Text>
+          <Text style={styles.shelterSignUpLabel}>
+            Password{" "}
+            <Text
+              style={triggerRequired && password === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.shelterSignUpInput}
             onChangeText={(value) => setPassword(value)}
@@ -314,7 +379,16 @@ const SignupShelter = () => {
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>Confirm Password</Text>
+          <Text style={styles.shelterSignUpLabel}>
+            Confirm Password{" "}
+            <Text
+              style={
+                triggerRequired && confirmPassword === "" ? styles.required : null
+              }
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.shelterSignUpInput}
             onChangeText={(text) => setConfirmPassword(text)}
@@ -324,7 +398,18 @@ const SignupShelter = () => {
           />
         </View>
         <View style={styles.shelterSignUpInputContainer}>
-          <Text style={styles.shelterSignUpLabel}>Picture of any Government ID</Text>
+          <Text style={styles.shelterSignUpLabel}>
+            Picture of any Government ID{" "}
+            <Text
+              style={
+                triggerRequired && governmentIdFilename === ""
+                  ? styles.required
+                  : null
+              }
+            >
+              *
+            </Text>
+          </Text>
           <TouchableOpacity
             style={styles.shelterSignUpFileUpload}
             onPress={handleGovtId}
@@ -340,7 +425,16 @@ const SignupShelter = () => {
         </View>
         <View style={styles.shelterSignUpInputContainer}>
           <Text style={styles.shelterSignUpLabel}>
-            Picture of Shelter Business Permit
+            Picture of Shelter Business Permit{" "}
+            <Text
+              style={
+                triggerRequired && businessPermitFilename === ""
+                  ? styles.required
+                  : null
+              }
+            >
+              *
+            </Text>
           </Text>
           <TouchableOpacity
             style={styles.shelterSignUpFileUpload}

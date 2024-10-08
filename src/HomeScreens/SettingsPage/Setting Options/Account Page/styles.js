@@ -11,6 +11,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center"
   },
+  required: {
+    color: COLORS.delete,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

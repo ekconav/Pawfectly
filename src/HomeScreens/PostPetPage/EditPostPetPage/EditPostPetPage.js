@@ -38,6 +38,7 @@ const EditPostPetPage = ({ route }) => {
   const [ageModal, setAgeModal] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [required, setRequired] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -140,6 +141,12 @@ const EditPostPetPage = ({ route }) => {
   };
 
   const handlePickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      setModalMessage("Permission to access camera roll is required.");
+      setAlertModal(true);
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -177,6 +184,7 @@ const EditPostPetPage = ({ route }) => {
     ) {
       setModalMessage("Please fill in all required fields.");
       setAlertModal(true);
+      setRequired(true);
       return;
     }
 
@@ -210,6 +218,51 @@ const EditPostPetPage = ({ route }) => {
     }
   };
 
+  const handleAdoptionFeeChange = (text) => {
+    if (
+      text.includes("(") ||
+      text.includes("/") ||
+      text.includes(")") ||
+      text.includes("N") ||
+      text.includes(",") ||
+      text.includes(".") ||
+      text.includes("*") ||
+      text.includes(";") ||
+      text.includes("#") ||
+      text.includes("-") ||
+      text.includes("+") ||
+      text.includes(" ") ||
+      text.startsWith("0")
+    ) {
+      const newText = text.slice(0, -1);
+      setAdoptionFee(newText);
+    } else {
+      setAdoptionFee(text);
+    }
+  };
+
+  const handleWeightChange = (text) => {
+    if (
+      text.includes("(") ||
+      text.includes("/") ||
+      text.includes(")") ||
+      text.includes("N") ||
+      text.includes(",") ||
+      text.includes("*") ||
+      text.includes(";") ||
+      text.includes("#") ||
+      text.includes("-") ||
+      text.includes("+") ||
+      text.includes(" ") ||
+      text.startsWith("0")
+    ) {
+      const newText = text.slice(0, -1);
+      setPetWeight(newText);
+    } else {
+      setPetWeight(text);
+    }
+  }
+
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: COLORS.white }}>
       <View style={styles.container}>
@@ -235,7 +288,12 @@ const EditPostPetPage = ({ route }) => {
             </View>
             <View style={styles.addPetInputContainer}>
               <View style={styles.inputContainer}>
-                <Text style={styles.addPetText}>Name</Text>
+                <Text style={styles.addPetText}>
+                  Name{" "}
+                  <Text style={required && petName === "" ? styles.required : null}>
+                    *
+                  </Text>
+                </Text>
                 <TextInput
                   style={styles.addPetInput}
                   value={petName}
@@ -280,7 +338,18 @@ const EditPostPetPage = ({ route }) => {
                 </View>
               </View>
               <View style={styles.inputCheckboxContainer}>
-                <Text style={styles.typeGender}>Gender</Text>
+                <Text style={styles.typeGender}>
+                  Gender{" "}
+                  <Text
+                    style={
+                      required && !maleChecked && !femaleChecked
+                        ? styles.required
+                        : null
+                    }
+                  >
+                    *
+                  </Text>
+                </Text>
                 <View style={styles.checkboxGender}>
                   <View style={styles.checkBoxContainer}>
                     <Checkbox
@@ -319,13 +388,18 @@ const EditPostPetPage = ({ route }) => {
                   <TextInput
                     style={styles.addPetInput}
                     value={adoptionFee}
-                    onChangeText={(text) => setAdoptionFee(text)}
+                    onChangeText={handleAdoptionFeeChange}
                     keyboardType="phone-pad"
                   />
                 </View>
               ) : null}
               <View style={styles.inputContainer}>
-                <Text style={styles.addPetText}>Breed</Text>
+                <Text style={styles.addPetText}>
+                  Breed{" "}
+                  <Text style={required && petBreed === "" ? styles.required : null}>
+                    *
+                  </Text>
+                </Text>
                 <TextInput
                   style={styles.addPetInput}
                   value={petBreed}
@@ -334,18 +408,28 @@ const EditPostPetPage = ({ route }) => {
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.addPetText}>
-                  Weight:{" "}
-                  <Text style={{ color: COLORS.subtitle, fontSize: 12 }}>(kg)</Text>
+                  Weight{" "}
+                  <Text
+                    style={required && petWeight === "" ? styles.required : null}
+                  >
+                    *
+                  </Text>
+                  <Text style={{ color: COLORS.subtitle, fontSize: 12 }}> (kg)</Text>
                 </Text>
                 <TextInput
                   style={styles.addPetInput}
                   value={petWeight}
-                  onChangeText={(text) => setPetWeight(text)}
+                  onChangeText={handleWeightChange}
                   keyboardType="phone-pad"
                 />
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.addPetText}>Age</Text>
+                <Text style={styles.addPetText}>
+                  Age{" "}
+                  <Text style={required && petAge === "" ? styles.required : null}>
+                    *
+                  </Text>
+                </Text>
                 <TouchableOpacity onPress={() => setAgeModal(true)}>
                   <TextInput
                     editable={false}
@@ -356,7 +440,16 @@ const EditPostPetPage = ({ route }) => {
                 </TouchableOpacity>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.addPetText}>Description</Text>
+                <Text style={styles.addPetText}>
+                  Description{" "}
+                  <Text
+                    style={
+                      required && petDescription === "" ? styles.required : null
+                    }
+                  >
+                    *
+                  </Text>
+                </Text>
                 <TextInput
                   style={styles.addPetDescriptionInput}
                   value={petDescription}
