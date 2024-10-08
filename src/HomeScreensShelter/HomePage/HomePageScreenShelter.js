@@ -230,13 +230,15 @@ const HomeScreenPet = () => {
         </TouchableOpacity>
       </View>
 
-      {!seeAllPressed && (
-        <SearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          onSearch={handleSearch}
-        />
-      )}
+      <View style={{ width: "99%" }}>
+        {!seeAllPressed && (
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onSearch={handleSearch}
+          />
+        )}
+      </View>
 
       <View style={styles.categoryContainer}>
         <View style={styles.categoryChoices}>
@@ -517,59 +519,127 @@ const HomeScreenPet = () => {
   );
 };
 
-const HomePageScreenShelter = () => (
-  <Tab.Navigator>
-    <Tab.Screen
-      name="Home"
-      component={HomeScreenPet}
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="home-outline" color={color} size={size} />
-        ),
-        tabBarActiveTintColor: COLORS.prim,
-        headerShown: false,
-        tabBarLabel: "Home",
-      }}
-    />
-    <Tab.Screen
-      name="Add"
-      component={Addpet}
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="add-circle-outline" color={color} size={size} />
-        ),
-        tabBarActiveTintColor: COLORS.prim,
-        headerShown: false,
-        tabBarLabel: "Add Pet",
-      }}
-    />
+const HomePageScreenShelter = () => {
+  const userId = auth.currentUser.uid;
+  const [counter, setCounter] = useState(0);
+  useEffect(() => {
+    if (userId) {
+      const conversationsRef = collection(db, "shelters", userId, "conversations");
+      const q = query(conversationsRef, where("seen", "==", false));
 
-    <Tab.Screen
-      name="Message"
-      component={ConversationPageShelter}
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="chatbubble-outline" color={color} size={size} />
-        ),
-        tabBarActiveTintColor: COLORS.prim,
-        headerShown: false,
-        tabBarLabel: "Message",
-      }}
-    />
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const count = snapshot.docs.length;
+        setCounter(count);
+      });
+      return () => unsubscribe();
+    }
+  }, [userId]);
 
-    <Tab.Screen
-      name="StatisticsPage"
-      component={StatisticsPage}
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="stats-chart-outline" color={color} size={size} />
-        ),
-        tabBarActiveTintColor: COLORS.prim,
-        headerShown: false,
-        tabBarLabel: "Statistics",
-      }}
-    />
-  </Tab.Navigator>
-);
+  return (
+    <Tab.Navigator>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreenPet}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              style={styles.icons}
+              name="home-outline"
+              color={color}
+              size={size}
+            />
+          ),
+          tabBarLabelStyle: {
+            fontFamily: "Poppins_400Regular",
+          },
+          tabBarItemStyle: {
+            marginBottom: -2,
+          },
+          tabBarActiveTintColor: COLORS.prim,
+          headerShown: false,
+          tabBarLabel: "Home",
+        }}
+      />
+      <Tab.Screen
+        name="Add"
+        component={Addpet}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              style={styles.icons}
+              name="add-circle-outline"
+              color={color}
+              size={size}
+            />
+          ),
+          tabBarLabelStyle: {
+            fontFamily: "Poppins_400Regular",
+          },
+          tabBarItemStyle: {
+            marginBottom: -2,
+          },
+          tabBarActiveTintColor: COLORS.prim,
+          headerShown: false,
+          tabBarLabel: "Add Pet",
+        }}
+      />
+
+      <Tab.Screen
+        name="Message"
+        component={ConversationPageShelter}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <View style={{ position: "relative" }}>
+              <Ionicons
+                style={styles.icons}
+                name="chatbubbles-outline"
+                color={color}
+                size={size}
+              />
+              {counter > 0 && (
+                <View style={styles.counter}>
+                  <Text style={styles.counterText}>{counter}</Text>
+                </View>
+              )}
+            </View>
+          ),
+          tabBarLabelStyle: {
+            fontFamily: "Poppins_400Regular",
+          },
+          tabBarItemStyle: {
+            marginBottom: -2,
+          },
+          tabBarActiveTintColor: COLORS.prim,
+          headerShown: false,
+          tabBarLabel: "Messages",
+        }}
+      />
+
+      <Tab.Screen
+        name="StatisticsPage"
+        component={StatisticsPage}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              style={styles.icons}
+              name="stats-chart-outline"
+              color={color}
+              size={size}
+            />
+          ),
+          tabBarLabelStyle: {
+            fontFamily: "Poppins_400Regular",
+          },
+          tabBarItemStyle: {
+            marginBottom: -2,
+          },
+          tabBarActiveTintColor: COLORS.prim,
+          headerShown: false,
+          tabBarLabel: "Statistics",
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 export default HomePageScreenShelter;

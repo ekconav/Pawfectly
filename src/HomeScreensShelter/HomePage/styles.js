@@ -324,6 +324,27 @@ const styles = StyleSheet.create({
     color: COLORS.prim,
     fontFamily: "Poppins_500Medium",
   },
+
+  // For App
+  icons: {
+    marginBottom: -8,
+  },
+  counter: {
+    position: "absolute",
+    right: -6,
+    top: -5,
+    backgroundColor: COLORS.prim,
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  counterText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontFamily: "Poppins_400Regular",
+  },
 });
 
 export default styles;
