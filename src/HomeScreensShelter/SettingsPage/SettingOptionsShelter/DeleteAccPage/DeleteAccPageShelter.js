@@ -53,6 +53,7 @@ const DeleteAccountPage = () => {
           "statistics",
           shelter.uid
         );
+        const adoptedByRef = collection(db, "shelters", shelter.uid, "adoptedBy");
 
         const deleteSubcollection = async (collectionRef) => {
           const snapshot = await getDocs(collectionRef);
@@ -70,6 +71,8 @@ const DeleteAccountPage = () => {
           await deleteSubcollection(messagesRef);
           await deleteDoc(conversation.ref);
         }
+
+        await deleteSubcollection(adoptedByRef);
 
         await deleteDoc(statisticsDocRef);
 

@@ -85,6 +85,25 @@ const DetailsPage = ({ route }) => {
                   uid: petData.adoptedBy,
                   mobileNumber: adopterData.mobileNumber,
                 });
+              } else {
+                const adoptedByRef = doc(
+                  db,
+                  "users",
+                  auth.currentUser.uid,
+                  "adoptedBy",
+                  petData.adoptedBy
+                );
+                const adoptedBySnap = await getDoc(adoptedByRef);
+                if (adoptedBySnap.exists()) {
+                  const adopterData = adoptedBySnap.data();
+                  setAdoptedByUser({
+                    firstName: adopterData.firstName,
+                    lastName: adopterData.lastName,
+                    accountPicture: adopterData.accountPicture,
+                    uid: petData.adoptedBy,
+                    mobileNumber: adopterData.mobileNumber,
+                  });
+                }
               }
             }
           }
@@ -185,8 +204,21 @@ const DetailsPage = ({ route }) => {
           docSnap = await getDoc(userRef);
 
           if (!docSnap.exists()) {
-            console.log("No such document in users either!");
-            return;
+            console.log("No such document in users and shelters!");
+            const adoptedFromRef = doc(
+              db,
+              "users",
+              auth.currentUser.uid,
+              "adoptedFrom",
+              pet.userId
+            );
+            docSnap = await getDoc(adoptedFromRef);
+            if (!docSnap.exists()) {
+              console.log(
+                "No such document in users and shelters and adoptedFrom collection!"
+              );
+              return;
+            }
           } else {
             setUserToUser(true);
             console.log("User to user true");
@@ -627,7 +659,14 @@ const DetailsPage = ({ route }) => {
             <View style={styles.adoptedContainer}>
               <Text style={styles.adoptedText}>Adopted By:</Text>
               <View style={styles.adoptedByContainer}>
-                <View style={styles.adoptedByUserInfo}>
+                <TouchableOpacity
+                  style={styles.adoptedByUserInfo}
+                  onPress={() =>
+                    navigation.navigate("DisplayUserPage", {
+                      userId: adoptedByUser.uid,
+                    })
+                  }
+                >
                   <Image
                     source={
                       adoptedByUser.accountPicture
@@ -639,7 +678,7 @@ const DetailsPage = ({ route }) => {
                   <Text style={styles.userFullName}>
                     {adoptedByUser.firstName} {adoptedByUser.lastName}
                   </Text>
-                </View>
+                </TouchableOpacity>
                 <View style={styles.callMessage}>
                   <TouchableOpacity
                     style={styles.actionButton}
