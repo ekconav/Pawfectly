@@ -7,6 +7,7 @@ import {
   View,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { auth, db, storage } from "../../../FirebaseConfig";
 import { onSnapshot, doc, updateDoc } from "firebase/firestore";
@@ -39,6 +40,8 @@ const EditPostPetPage = ({ route }) => {
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [required, setRequired] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -190,6 +193,7 @@ const EditPostPetPage = ({ route }) => {
 
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
 
+    setLoading(true);
     try {
       const user = auth.currentUser;
       if (user) {
@@ -215,6 +219,9 @@ const EditPostPetPage = ({ route }) => {
       console.log("Pet updated!");
     } catch (error) {
       console.error("Error uploading pet details: ", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -261,7 +268,7 @@ const EditPostPetPage = ({ route }) => {
     } else {
       setPetWeight(text);
     }
-  }
+  };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: COLORS.white }}>
@@ -469,7 +476,11 @@ const EditPostPetPage = ({ route }) => {
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.uploadButton} onPress={handleEditPet}>
-            <Text style={styles.buttonText}>Save</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <Text style={styles.buttonText}>Save</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>

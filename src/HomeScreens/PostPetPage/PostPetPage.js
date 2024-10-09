@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -45,6 +46,7 @@ const PostPetPage = () => {
 
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
 
@@ -188,6 +190,7 @@ const PostPetPage = () => {
 
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
 
+    setLoading(true);
     try {
       const user = auth.currentUser;
       if (user) {
@@ -207,6 +210,7 @@ const PostPetPage = () => {
           name: petName,
           petPosted: serverTimestamp(),
           petPrice: adoptionFee ? adoptionFee : "",
+          readyForAdoption: true,
           type: petType,
           userId: user.uid,
           weight: petWeight,
@@ -229,6 +233,9 @@ const PostPetPage = () => {
       console.log("Pet uploaded");
     } catch (error) {
       console.error("Error uploading pet details:", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -275,7 +282,7 @@ const PostPetPage = () => {
     } else {
       setPetWeight(text);
     }
-  }
+  };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: COLORS.white }}>
@@ -487,7 +494,11 @@ const PostPetPage = () => {
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
-            <Text style={styles.buttonText}>Upload</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <Text style={styles.buttonText}>Upload</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>

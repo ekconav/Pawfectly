@@ -51,6 +51,8 @@ const DisplayUserPage = ({ route }) => {
 
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [accountDeleted, setAccountDeleted] = useState(false);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -79,6 +81,31 @@ const DisplayUserPage = ({ route }) => {
           setCheckVerify(userData.verified === true);
         } else {
           console.log("User doesn't exist");
+          const adoptedByRef = doc(
+            db,
+            "shelters",
+            auth.currentUser.uid,
+            "adoptedBy",
+            userId
+          );
+          const adoptedByDoc = await getDoc(adoptedByRef);
+          if (adoptedByDoc.exists()) {
+            setAccountDeleted(true);
+            const userData = adoptedByDoc.data();
+            setUserDetails(userData);
+
+            setProfileImage(
+              userData.accountPicture
+                ? { uri: userData.accountPicture }
+                : require("../../components/user.png")
+            );
+
+            setCoverPhoto(
+              userData.coverPhoto
+                ? { uri: userData.coverPhoto }
+                : require("../../components/landingpage.png")
+            );
+          }
         }
       } catch (error) {
         setLoading(false);
@@ -215,8 +242,11 @@ const DisplayUserPage = ({ route }) => {
 
   const handleOptionSelect = (option) => {
     setIsSettingModalVisible(false);
-    if (option === "Report Account") {
+    if (option === "Report Account" && !accountDeleted) {
       setOpenReportModal(true);
+    } else {
+      setModalMessage("Account has been deleted.");
+      setAlertModal(true);
     }
   };
 
@@ -287,7 +317,11 @@ const DisplayUserPage = ({ route }) => {
         <Text style={styles.furbabiesText}>My Furbabies</Text>
         {pets.length === 0 && !petsLoading ? (
           <View style={styles.noPetsContainer}>
-            <Text style={styles.noPetsText}>No pets posted at the moment.</Text>
+            <Text style={styles.noPetsText}>
+              {accountDeleted
+                ? "Sorry, account has been deleted."
+                : "No pets posted at the moment."}
+            </Text>
           </View>
         ) : (
           <View style={styles.showPetsContainer}>
