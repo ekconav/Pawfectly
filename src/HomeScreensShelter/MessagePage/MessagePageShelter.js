@@ -611,7 +611,7 @@ const MessagePageShelter = ({ route }) => {
       {!userExist ? (
         <View style={styles.userExist}>
           <Text style={styles.userExistText}>
-            You can't reply to this conversation.
+            Sorry, user has deleted their account.
           </Text>
         </View>
       ) : !petExist ? (
