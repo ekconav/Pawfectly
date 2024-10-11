@@ -112,7 +112,10 @@ const AccountPage = () => {
     }
 
     const shelter = auth.currentUser;
-    const fullMobileNumber = `+63${shelterMobileNumber}`;
+
+    const fullMobileNumber = shelterMobileNumber.startsWith("+63")
+      ? shelterMobileNumber
+      : `+63${shelterMobileNumber}`;
 
     if (shelter) {
       const shelterDocRef = doc(db, "shelters", shelter.uid);
