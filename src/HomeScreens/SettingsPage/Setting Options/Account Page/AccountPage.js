@@ -107,7 +107,8 @@ const AccountPage = () => {
     }
 
     const user = auth.currentUser;
-    const fullMobileNumber = `+63${mobileNumber}`;
+    
+    const fullMobileNumber = mobileNumber.startsWith("+63") ? mobileNumber : `+63${mobileNumber}`;
 
     if (user) {
       const userDocRef = doc(db, "users", user.uid);
