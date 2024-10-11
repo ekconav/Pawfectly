@@ -300,6 +300,8 @@ const MessagePage = ({ route }) => {
     try {
       const petRef = doc(db, "pets", petId);
       const petSnap = await getDoc(petRef);
+      const usersRef = doc(db, "users", currentUser.uid);
+      const usersSnap = await getDoc(usersRef);
 
       const conversationDocRef = doc(
         db,
@@ -311,7 +313,54 @@ const MessagePage = ({ route }) => {
       const conversationSnap = await getDoc(conversationDocRef);
 
       if (conversationSnap.exists()) {
-        const participantZero = conversationSnap.data().participants[0];
+        const participants = conversationSnap.data().participants;
+        const participantZero = participants.find(
+          (participant) => participant !== currentUser.uid
+        );
+
+        const adoptedByRef = doc(db, "users", participantZero);
+        const adoptedBySnap = await getDoc(adoptedByRef);
+
+        if (usersSnap.exists()) {
+          const usersData = usersSnap.data();
+          const adoptedFromRef = doc(
+            db,
+            "users",
+            participantZero,
+            "adoptedFrom",
+            currentUser.uid
+          );
+          setDoc(adoptedFromRef, {
+            accountPicture: usersData.accountPicture || "",
+            address: usersData.address,
+            coverPhoto: usersData.coverPhoto || "",
+            email: usersData.email,
+            mobileNumber: usersData.mobileNumber,
+            firstName: usersData.firstName,
+            lastName: usersData.lastName,
+          });
+        }
+
+        if (adoptedBySnap.exists()) {
+          const usersData = adoptedBySnap.data();
+          const adoptedByRef = doc(
+            db,
+            "users",
+            currentUser.uid,
+            "adoptedBy",
+            participantZero
+          );
+          setDoc(adoptedByRef, {
+            accountPicture: usersData.accountPicture || "",
+            address: usersData.address,
+            coverPhoto: usersData.coverPhoto || "",
+            email: usersData.email,
+            mobileNumber: usersData.mobileNumber,
+            firstName: usersData.firstName,
+            lastName: usersData.lastName,
+          });
+        }
+
         if (petSnap.exists()) {
           const petData = petSnap.data();
           await updateDoc(petRef, {
@@ -334,6 +383,7 @@ const MessagePage = ({ route }) => {
             petPosted: serverTimestamp(),
             type: petData.type,
             userId: petData.userId,
+            weight: petData.weight,
           });
         }
         console.log("Pet successfully adopted!");
@@ -889,7 +939,7 @@ const MessagePage = ({ route }) => {
       {!shelterExist ? (
         <View style={styles.shelterExist}>
           <Text style={styles.shelterExistText}>
-            You can't reply to this conversation.
+            Sorry, account has been deleted.
           </Text>
         </View>
       ) : !petExist ? (

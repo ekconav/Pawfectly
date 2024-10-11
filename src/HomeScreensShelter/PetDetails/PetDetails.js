@@ -63,6 +63,26 @@ const PetDetails = ({ route }) => {
                   uid: petData.adoptedBy,
                   mobileNumber: adopterData.mobileNumber,
                 });
+              } else {
+                const adoptedByRef = doc(
+                  db,
+                  "shelters",
+                  auth.currentUser.uid,
+                  "adoptedBy",
+                  petData.adoptedBy
+                );
+                const adoptedBySnap = await getDoc(adoptedByRef);
+
+                if (adoptedBySnap.exists()) {
+                  const adopterData = adoptedBySnap.data();
+                  setAdoptedByUser({
+                    firstName: adopterData.firstName,
+                    lastName: adopterData.lastName,
+                    accountPicture: adopterData.accountPicture,
+                    uid: petData.adoptedBy,
+                    mobileNumber: adopterData.mobileNumber,
+                  });
+                }
               }
             }
           }
@@ -309,19 +329,26 @@ const PetDetails = ({ route }) => {
             <View style={styles.adoptedContainer}>
               <Text style={styles.adoptedText}>Adopted By:</Text>
               <View style={styles.adoptedByContainer}>
-                <View style={styles.adoptedByUserInfo}>
-                  <Image
-                    source={
-                      adoptedByUser.accountPicture
-                        ? { uri: adoptedByUser.accountPicture }
-                        : require("../../components/user.png")
-                    }
-                    style={styles.adopterImage}
-                  />
-                  <Text style={styles.userFullName}>
-                    {adoptedByUser.firstName} {adoptedByUser.lastName}
-                  </Text>
-                </View>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("DisplayUserPage", { userId: pet.adoptedBy })
+                  }
+                >
+                  <View style={styles.adoptedByUserInfo}>
+                    <Image
+                      source={
+                        adoptedByUser.accountPicture
+                          ? { uri: adoptedByUser.accountPicture }
+                          : require("../../components/user.png")
+                      }
+                      style={styles.adopterImage}
+                    />
+                    <Text style={styles.userFullName}>
+                      {adoptedByUser.firstName} {adoptedByUser.lastName}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
                 <View style={styles.callMessage}>
                   <TouchableOpacity
                     style={styles.actionButton}

@@ -19,6 +19,7 @@ import {
   updateDoc,
   where,
   collection,
+  orderBy,
 } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -98,19 +99,22 @@ const SettingsPageShelter = () => {
       const petsForAdoptionQuery = query(
         petsCollection,
         where("userId", "==", currentUser.uid),
-        where("adopted", "==", false)
+        where("adopted", "==", false),
+        orderBy("petPosted", "desc")
       );
 
       const petsAdoptedQuery = query(
         petsCollection,
         where("userId", "==", currentUser.uid),
-        where("adopted", "==", true)
+        where("adopted", "==", true),
+        orderBy("petPosted", "desc")
       );
 
       const petsRescuedQuery = query(
         petsCollection,
         where("userId", "==", currentUser.uid),
-        where("rescued", "==", true)
+        where("rescued", "==", true),
+        orderBy("petPosted", "desc")
       );
 
       const unsubscribePetsForAdoption = onSnapshot(

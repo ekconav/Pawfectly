@@ -15,6 +15,7 @@ import {
   updateDoc,
   query,
   where,
+  orderBy,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "../../FirebaseConfig";
@@ -106,7 +107,8 @@ const SettingsPage = () => {
         const furbabiesRef = query(
           collection(db, "pets"),
           where("adopted", "==", false),
-          where("userId", "==", user.uid)
+          where("userId", "==", user.uid),
+          orderBy("petPosted", "desc")
         );
 
         const unsubscribeFurbabies = onSnapshot(furbabiesRef, async (snapshot) => {
@@ -137,7 +139,10 @@ const SettingsPage = () => {
         });
 
         // Fetch adopted pets
-        const petsAdoptedRef = collection(db, "users", user.uid, "petsAdopted");
+        const petsAdoptedRef = query(
+          collection(db, "users", user.uid, "petsAdopted"),
+          orderBy("petPosted", "desc")
+        );
 
         const unsubscribePetsAdopted = onSnapshot(
           petsAdoptedRef,
@@ -180,7 +185,8 @@ const SettingsPage = () => {
         const successPawsRef = query(
           collection(db, "pets"),
           where("adopted", "==", true),
-          where("userId", "==", user.uid)
+          where("userId", "==", user.uid),
+          orderBy("petPosted", "desc")
         );
 
         const unsubscribeSuccessPaws = onSnapshot(

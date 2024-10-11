@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   petButtonSeeAll: {
     elevation: 2,
     width: 135,
-    height: 200,
+    height: 210,
   },
   petContainer: {
     backgroundColor: COLORS.background,
@@ -162,10 +162,56 @@ const styles = StyleSheet.create({
   },
   ageContainer: {
     paddingHorizontal: 7,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  ageContainerSeeAll: {
+    paddingHorizontal: 3,
+    justifyContent: "space-between",
   },
   ageText: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
+  },
+  ageTextSeeAll: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    fontSize: 10,
+  },
+  ready: {
+    color: COLORS.white,
+    backgroundColor: COLORS.prim,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    fontFamily: "Poppins_400Regular",
+    fontSize: 12,
+  },
+  readySeeAll: {
+    color: COLORS.white,
+    backgroundColor: COLORS.prim,
+    paddingHorizontal: 5,
+    borderRadius: 10,
+    fontFamily: "Poppins_400Regular",
+    fontSize: 8,
+    textAlign: "center",
+  },
+  notReady: {
+    color: COLORS.white,
+    backgroundColor: COLORS.subtitle,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    fontFamily: "Poppins_400Regular",
+    fontSize: 12,
+  },
+  notReadySeeAll: {
+    color: COLORS.white,
+    backgroundColor: COLORS.subtitle,
+    paddingHorizontal: 5,
+    borderRadius: 10,
+    fontFamily: "Poppins_400Regular",
+    fontSize: 8,
+    textAlign: "center",
   },
   seeAllText: {
     color: COLORS.title,
@@ -254,7 +300,6 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_500Medium",
   },
 
-  
   TOSTitle: {
     fontSize: 16,
     fontFamily: "Poppins_700Bold",
@@ -278,6 +323,27 @@ const styles = StyleSheet.create({
   tosEmail: {
     color: COLORS.prim,
     fontFamily: "Poppins_500Medium",
+  },
+
+  // For App
+  icons: {
+    marginBottom: -8,
+  },
+  counter: {
+    position: "absolute",
+    right: -6,
+    top: -5,
+    backgroundColor: COLORS.prim,
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  counterText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontFamily: "Poppins_400Regular",
   },
 });
 

@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -41,9 +42,11 @@ const PostPetPage = () => {
   const [userAddress, setUserAddress] = useState("");
   const [priceChecked, setPriceChecked] = useState(false);
   const [adoptionFee, setAdoptionFee] = useState("");
+  const [required, setRequired] = useState(false);
 
   const [alertModal, setAlertModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
 
@@ -114,6 +117,7 @@ const PostPetPage = () => {
     setPetWeight("");
     setPetAge("");
     setPetDescription("");
+    setRequired(false);
     navigation.goBack();
   };
 
@@ -137,6 +141,12 @@ const PostPetPage = () => {
   };
 
   const handlePickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      setModalMessage("Permission to access camera roll is required.");
+      setAlertModal(true);
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -174,11 +184,13 @@ const PostPetPage = () => {
     ) {
       setAlertModal(true);
       setModalMessage("Please fill in all required fields.");
+      setRequired(true);
       return;
     }
 
     const petImageUrl = typeof petImage === "string" ? petImage : petImage.uri;
 
+    setLoading(true);
     try {
       const user = auth.currentUser;
       if (user) {
@@ -198,6 +210,7 @@ const PostPetPage = () => {
           name: petName,
           petPosted: serverTimestamp(),
           petPrice: adoptionFee ? adoptionFee : "",
+          readyForAdoption: true,
           type: petType,
           userId: user.uid,
           weight: petWeight,
@@ -220,6 +233,54 @@ const PostPetPage = () => {
       console.log("Pet uploaded");
     } catch (error) {
       console.error("Error uploading pet details:", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdoptionFeeChange = (text) => {
+    if (
+      text.includes("(") ||
+      text.includes("/") ||
+      text.includes(")") ||
+      text.includes("N") ||
+      text.includes(",") ||
+      text.includes(".") ||
+      text.includes("*") ||
+      text.includes(";") ||
+      text.includes("#") ||
+      text.includes("-") ||
+      text.includes("+") ||
+      text.includes(" ") ||
+      text.startsWith("0")
+    ) {
+      const newText = text.slice(0, -1);
+      setAdoptionFee(newText);
+    } else {
+      setAdoptionFee(text);
+    }
+  };
+
+  const handleWeightChange = (text) => {
+    if (
+      text.includes("(") ||
+      text.includes("/") ||
+      text.includes(")") ||
+      text.includes("N") ||
+      text.includes(",") ||
+      text.includes("*") ||
+      text.includes(";") ||
+      text.includes("#") ||
+      text.includes("-") ||
+      text.includes("+") ||
+      text.includes(" ") ||
+      text.startsWith("0")
+    ) {
+      const newText = text.slice(0, -1);
+      setPetWeight(newText);
+    } else {
+      setPetWeight(text);
     }
   };
 
@@ -239,7 +300,14 @@ const PostPetPage = () => {
                 {!petImage ? (
                   <View style={styles.iconAndText}>
                     <Ionicons name="image-outline" size={20} color={COLORS.title} />
-                    <Text style={styles.addPetText}>Add Image</Text>
+                    <Text style={styles.addPetText}>
+                      Add Image{" "}
+                      <Text
+                        style={required && petImage === "" ? styles.required : null}
+                      >
+                        *
+                      </Text>
+                    </Text>
                   </View>
                 ) : (
                   <Image source={petImage} style={styles.petPreviewImage} />
@@ -248,7 +316,12 @@ const PostPetPage = () => {
             </View>
             <View style={styles.addPetInputContainer}>
               <View style={styles.inputContainer}>
-                <Text style={styles.addPetText}>Name</Text>
+                <Text style={styles.addPetText}>
+                  Name{" "}
+                  <Text style={required && petName === "" ? styles.required : null}>
+                    *
+                  </Text>
+                </Text>
                 <TextInput
                   style={styles.addPetInput}
                   value={petName}
@@ -293,7 +366,18 @@ const PostPetPage = () => {
                 </View>
               </View>
               <View style={styles.inputCheckboxContainer}>
-                <Text style={styles.typeGender}>Gender</Text>
+                <Text style={styles.typeGender}>
+                  Gender{" "}
+                  <Text
+                    style={
+                      required && !maleChecked && !femaleChecked
+                        ? styles.required
+                        : null
+                    }
+                  >
+                    *
+                  </Text>
+                </Text>
                 <View style={styles.checkboxGender}>
                   <View style={styles.checkBoxContainer}>
                     <Checkbox
@@ -332,13 +416,18 @@ const PostPetPage = () => {
                   <TextInput
                     style={styles.addPetInput}
                     value={adoptionFee}
-                    onChangeText={(text) => setAdoptionFee(text)}
+                    onChangeText={handleAdoptionFeeChange}
                     keyboardType="phone-pad"
                   />
                 </View>
               ) : null}
               <View style={styles.inputContainer}>
-                <Text style={styles.addPetText}>Breed</Text>
+                <Text style={styles.addPetText}>
+                  Breed{" "}
+                  <Text style={required && petBreed === "" ? styles.required : null}>
+                    *
+                  </Text>
+                </Text>
                 <TextInput
                   style={styles.addPetInput}
                   value={petBreed}
@@ -347,18 +436,28 @@ const PostPetPage = () => {
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.addPetText}>
-                  Weight:{" "}
-                  <Text style={{ color: COLORS.subtitle, fontSize: 12 }}>(kg)</Text>
+                  Weight{" "}
+                  <Text
+                    style={required && petWeight === "" ? styles.required : null}
+                  >
+                    *
+                  </Text>
+                  <Text style={{ color: COLORS.subtitle, fontSize: 12 }}> (kg)</Text>
                 </Text>
                 <TextInput
                   style={styles.addPetInput}
                   value={petWeight}
-                  onChangeText={(text) => setPetWeight(text)}
+                  onChangeText={handleWeightChange}
                   keyboardType="phone-pad"
                 />
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.addPetText}>Age</Text>
+                <Text style={styles.addPetText}>
+                  Age{" "}
+                  <Text style={required && petAge === "" ? styles.required : null}>
+                    *
+                  </Text>
+                </Text>
                 <TouchableOpacity onPress={() => setAgeModal(true)}>
                   <TextInput
                     editable={false}
@@ -369,7 +468,16 @@ const PostPetPage = () => {
                 </TouchableOpacity>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.addPetText}>Description</Text>
+                <Text style={styles.addPetText}>
+                  Description{" "}
+                  <Text
+                    style={
+                      required && petDescription === "" ? styles.required : null
+                    }
+                  >
+                    *
+                  </Text>
+                </Text>
                 <TextInput
                   style={styles.addPetDescriptionInput}
                   value={petDescription}
@@ -386,7 +494,11 @@ const PostPetPage = () => {
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
-            <Text style={styles.buttonText}>Upload</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <Text style={styles.buttonText}>Upload</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>

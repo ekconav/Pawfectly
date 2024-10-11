@@ -26,6 +26,7 @@ const ChangePassPage = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [required, setRequired] = useState(false);
   const navigation = useNavigation();
 
   const handleChangePassword = async () => {
@@ -63,6 +64,8 @@ const ChangePassPage = () => {
     } else {
       setModalMessage("Please fill in all fields.");
       setIsModalVisible(true);
+      setRequired(true);
+      return;
     }
   };
 
@@ -83,7 +86,14 @@ const ChangePassPage = () => {
       </View>
       <View style={styles.inputContainer}>
         <View>
-          <Text style={styles.text}>Current Password</Text>
+          <Text style={styles.text}>
+            Current Password{" "}
+            <Text
+              style={required && currentPassword === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.input}
             onChangeText={setCurrentPassword}
@@ -93,7 +103,12 @@ const ChangePassPage = () => {
           />
         </View>
         <View>
-          <Text style={styles.text}>New Password</Text>
+          <Text style={styles.text}>
+            New Password{" "}
+            <Text style={required && newPassword === "" ? styles.required : null}>
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.input}
             onChangeText={setNewPassword}
@@ -103,7 +118,14 @@ const ChangePassPage = () => {
           />
         </View>
         <View>
-          <Text style={styles.text}>Confirm New Password</Text>
+          <Text style={styles.text}>
+            Confirm New Password{" "}
+            <Text
+              style={required && confirmNewPassword === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
           <TextInput
             style={styles.input}
             onChangeText={setConfirmNewPassword}

@@ -57,6 +57,7 @@ const DisplayUser = ({ route }) => {
 
   const [donationModal, setDonationModal] = useState(false);
   const [qrForDonation, setQrForDonation] = useState(null);
+  const [accountDeleted, setAccountDeleted] = useState(false);
 
   const navigation = useNavigation();
 
@@ -66,11 +67,28 @@ const DisplayUser = ({ route }) => {
       try {
         const shelterDocRef = doc(db, "shelters", userId);
         const userDocRef = doc(db, "users", userId);
+        const adoptedFromRef = doc(
+          db,
+          "users",
+          auth.currentUser.uid,
+          "adoptedFrom",
+          userId
+        );
+        const adoptedByRef = doc(
+          db,
+          "users",
+          auth.currentUser.uid,
+          "adoptedBy",
+          userId
+        );
 
-        const [shelterDoc, userDoc] = await Promise.all([
-          getDoc(shelterDocRef),
-          getDoc(userDocRef),
-        ]);
+        const [shelterDoc, userDoc, adoptedFromDoc, adoptedByDoc] =
+          await Promise.all([
+            getDoc(shelterDocRef),
+            getDoc(userDocRef),
+            getDoc(adoptedFromRef),
+            getDoc(adoptedByRef),
+          ]);
 
         if (shelterDoc.exists()) {
           const shelterData = shelterDoc.data();
@@ -109,6 +127,38 @@ const DisplayUser = ({ route }) => {
           );
 
           setCheckVerify(userData.verified === true);
+        } else if (adoptedFromDoc.exists()) {
+          setAccountDeleted(true);
+          const adoptedFromData = adoptedFromDoc.data();
+          setUserDetails(adoptedFromData);
+
+          setProfileImage(
+            adoptedFromData.accountPicture
+              ? { uri: adoptedFromData.accountPicture }
+              : require("../../components/user.png")
+          );
+
+          setCoverPhoto(
+            adoptedFromData.coverPhoto
+              ? { uri: adoptedFromData.coverPhoto }
+              : require("../../components/landingpage.png")
+          );
+        } else if (adoptedByDoc.exists()) {
+          setAccountDeleted(true);
+          const adoptedByData = adoptedByDoc.data();
+          setUserDetails(adoptedByData);
+
+          setProfileImage(
+            adoptedByData.accountPicture
+              ? { uri: adoptedByData.accountPicture }
+              : require("../../components/user.png")
+          );
+
+          setCoverPhoto(
+            adoptedByData.coverPhoto
+              ? { uri: adoptedByData.coverPhoto }
+              : require("../../components/landingpage.png")
+          );
         } else {
           console.log("User not found in either collection");
         }
@@ -274,10 +324,13 @@ const DisplayUser = ({ route }) => {
 
   const handleOptionSelect = (option) => {
     setIsSettingModalVisible(false);
-    if (option === "Report Account") {
+    if (option === "Report Account" && !accountDeleted) {
       setOpenReportModal(true);
-    } else if (option === "Donate to Shelter") {
+    } else if (option === "Donate to Shelter" && !accountDeleted) {
       setDonationModal(true);
+    } else {
+      setModalMessage("Account has been deleted.");
+      setAlertModal(true);
     }
   };
 
@@ -321,14 +374,22 @@ const DisplayUser = ({ route }) => {
       {!userToUser ? (
         <View style={styles.infoDetails}>
           <View style={styles.infoContainer}>
-            <Text style={styles.infoName}>{userDetails.shelterName}</Text>
+            <Text style={styles.infoName}>
+              {userDetails.shelterName
+                ? userDetails.shelterName
+                : `${userDetails.firstName} ${userDetails.lastName}`}
+            </Text>
             <Ionicons
               style={!checkVerify ? styles.iconNotVerified : styles.iconVerified}
               name="checkmark-circle-outline"
               size={20}
             />
           </View>
-          <Text style={styles.infoOwnerText}>Owner: {userDetails.shelterOwner}</Text>
+          {userDetails.shelterOwner && (
+            <Text style={styles.infoOwnerText}>
+              Owner: {userDetails.shelterOwner}
+            </Text>
+          )}
         </View>
       ) : (
         <View style={styles.infoDetails}>
@@ -366,7 +427,11 @@ const DisplayUser = ({ route }) => {
         )}
         {pets.length === 0 && !petsLoading ? (
           <View style={styles.noPetsContainer}>
-            <Text style={styles.noPetsText}>No pets posted at the moment.</Text>
+            <Text style={styles.noPetsText}>
+              {accountDeleted
+                ? "Sorry, account has been deleted."
+                : "No pets posted at the moment."}
+            </Text>
           </View>
         ) : (
           <View style={styles.showPetsContainer}>

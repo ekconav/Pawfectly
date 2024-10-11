@@ -333,6 +333,52 @@ const MessagePageShelter = ({ route }) => {
     try {
       const petRef = doc(db, "pets", petId);
       const petSnap = await getDoc(petRef);
+      const shelterRef = doc(db, "shelters", currentUser.uid);
+      const shelterSnap = await getDoc(shelterRef);
+      const usersRef = doc(db, "users", userId);
+      const userSnap = await getDoc(usersRef);
+
+      if (shelterSnap.exists()) {
+        const shelterData = shelterSnap.data();
+        const adoptedFromRef = doc(
+          db,
+          "users",
+          userId,
+          "adoptedFrom",
+          currentUser.uid
+        );
+
+        setDoc(adoptedFromRef, {
+          accountPicture: shelterData.accountPicture || "",
+          address: shelterData.address,
+          coverPhoto: shelterData.coverPhoto || "",
+          email: shelterData.email,
+          mobileNumber: shelterData.mobileNumber,
+          shelterName: shelterData.shelterName,
+          shelterOwner: shelterData.shelterOwner,
+        });
+      }
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const adoptedByRef = doc(
+          db,
+          "shelters",
+          auth.currentUser.uid,
+          "adoptedBy",
+          userId
+        );
+
+        setDoc(adoptedByRef, {
+          accountPicture: userData.accountPicture || "",
+          address: userData.address,
+          coverPhoto: userData.coverPhoto || "",
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          mobileNumber: userData.mobileNumber,
+        });
+      }
 
       if (petSnap.exists()) {
         const petData = petSnap.data();
@@ -565,7 +611,7 @@ const MessagePageShelter = ({ route }) => {
       {!userExist ? (
         <View style={styles.userExist}>
           <Text style={styles.userExistText}>
-            You can't reply to this conversation.
+            Sorry, user has deleted their account.
           </Text>
         </View>
       ) : !petExist ? (

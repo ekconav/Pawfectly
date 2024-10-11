@@ -30,6 +30,7 @@ const AccountPage = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [required, setRequired] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -106,11 +107,15 @@ const AccountPage = () => {
     ) {
       setModalMessage("Please fill in all required fields.");
       setAlertModal(true);
+      setRequired(true);
       return;
     }
 
     const shelter = auth.currentUser;
-    const fullMobileNumber = `+63${shelterMobileNumber}`;
+
+    const fullMobileNumber = shelterMobileNumber.startsWith("+63")
+      ? shelterMobileNumber
+      : `+63${shelterMobileNumber}`;
 
     if (shelter) {
       const shelterDocRef = doc(db, "shelters", shelter.uid);
@@ -141,6 +146,22 @@ const AccountPage = () => {
       setShelterMobileNumber(newText);
     } else if (text.startsWith("0")) {
       const newText = text.slice(1);
+      setShelterMobileNumber(newText);
+    } else if (
+      text.includes("(") ||
+      text.includes("/") ||
+      text.includes(")") ||
+      text.includes("N") ||
+      text.includes(",") ||
+      text.includes(".") ||
+      text.includes("*") ||
+      text.includes(";") ||
+      text.includes("#") ||
+      text.includes("-") ||
+      text.includes("+") ||
+      text.includes(" ")
+    ) {
+      const newText = text.slice(0, -1);
       setShelterMobileNumber(newText);
     } else {
       setShelterMobileNumber(text);
@@ -183,7 +204,14 @@ const AccountPage = () => {
           </View>
           <View style={styles.textInputContainer}>
             <View>
-              <Text style={styles.text}>Shelter Name</Text>
+              <Text style={styles.text}>
+                Shelter Name{" "}
+                <Text
+                  style={required && shelterName === "" ? styles.required : null}
+                >
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 value={shelterName}
@@ -191,7 +219,16 @@ const AccountPage = () => {
               />
             </View>
             <View>
-              <Text style={styles.text}>Shelter Owner</Text>
+              <Text style={styles.text}>
+                Shelter Owner{" "}
+                <Text
+                  style={
+                    required && shelterOwnerName === "" ? styles.required : null
+                  }
+                >
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 value={shelterOwnerName}
@@ -199,7 +236,14 @@ const AccountPage = () => {
               />
             </View>
             <View>
-              <Text style={styles.text}>Address</Text>
+              <Text style={styles.text}>
+                Address{" "}
+                <Text
+                  style={required && shelterAddress === "" ? styles.required : null}
+                >
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 value={shelterAddress}
@@ -207,7 +251,16 @@ const AccountPage = () => {
               />
             </View>
             <View>
-              <Text style={styles.text}>Mobile Number</Text>
+              <Text style={styles.text}>
+                Mobile Number{" "}
+                <Text
+                  style={
+                    required && shelterMobileNumber === "" ? styles.required : null
+                  }
+                >
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.input}
                 value={

@@ -145,13 +145,15 @@ const HomeScreen = () => {
       const otherPetsQuery = query(
         petsCollectionRef,
         where("adopted", "==", false),
-        where("userId", "!=", auth.currentUser.uid)
+        where("userId", "!=", auth.currentUser.uid),
+        orderBy("petPosted", "desc")
       );
 
       const myPetsQuery = query(
         petsCollectionRef,
         where("adopted", "==", false),
-        where("userId", "==", auth.currentUser.uid)
+        where("userId", "==", auth.currentUser.uid),
+        orderBy("petPosted", "desc")
       );
 
       const unsubscribeOtherPets = onSnapshot(
@@ -354,13 +356,15 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {!seeAllPressed && (
-        <SearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          onSearch={handleSearch}
-        />
-      )}
+      <View style={{ width: "99%" }}>
+        {!seeAllPressed && (
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onSearch={handleSearch}
+          />
+        )}
+      </View>
 
       {!seeAllPressed && (
         <View style={styles.adopterContainer}>
@@ -689,57 +693,125 @@ const HomeScreen = () => {
   );
 };
 
-const App = () => (
-  <Tab.Navigator>
-    <Tab.Screen
-      name="Home"
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="home-outline" color={color} size={size} />
-        ),
-        tabBarActiveTintColor: COLORS.prim,
-        headerShown: false,
-        tabBarLabel: "Home",
-      }}
-      component={HomeScreen}
-    />
-    <Tab.Screen
-      name="Favorites"
-      component={FavoritesPage}
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="heart-outline" color={color} size={size} />
-        ),
-        tabBarActiveTintColor: COLORS.prim,
-        headerShown: false,
-        tabBarLabel: "Favorites",
-      }}
-    />
-    <Tab.Screen
-      name="Message"
-      component={ConversationPage}
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="chatbubbles-outline" color={color} size={size} />
-        ),
-        tabBarActiveTintColor: COLORS.prim,
-        headerShown: false,
-        tabBarLabel: "Messages",
-      }}
-    />
-    <Tab.Screen
-      name="Set"
-      component={SettingOptions}
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="person-outline" color={color} size={size} />
-        ),
-        tabBarActiveTintColor: COLORS.prim,
-        headerShown: false,
-        tabBarLabel: "Profile",
-      }}
-    />
-  </Tab.Navigator>
-);
+const App = () => {
+  const userId = auth.currentUser.uid;
+  const [counter, setCounter] = useState(0);
+  useEffect(() => {
+    if (userId) {
+      const conversationsRef = collection(db, "users", userId, "conversations");
+      const q = query(conversationsRef, where("seen", "==", false));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const count = snapshot.docs.length;
+        setCounter(count);
+      });
+      return () => unsubscribe();
+    }
+  }, [userId]);
+
+  return (
+    <Tab.Navigator>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              style={styles.icons}
+              name="home-outline"
+              color={color}
+              size={size}
+            />
+          ),
+          tabBarLabelStyle: {
+            fontFamily: "Poppins_400Regular",
+          },
+          tabBarItemStyle: {
+            marginBottom: -2,
+          },
+          tabBarActiveTintColor: COLORS.prim,
+          headerShown: false,
+          tabBarLabel: "Home",
+        }}
+      />
+      <Tab.Screen
+        name="Favorites"
+        component={FavoritesPage}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              style={styles.icons}
+              name="heart-outline"
+              color={color}
+              size={size}
+            />
+          ),
+          tabBarLabelStyle: {
+            fontFamily: "Poppins_400Regular",
+          },
+          tabBarItemStyle: {
+            marginBottom: -2,
+          },
+          tabBarActiveTintColor: COLORS.prim,
+          headerShown: false,
+          tabBarLabel: "Favorites",
+        }}
+      />
+      <Tab.Screen
+        name="Message"
+        component={ConversationPage}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <View style={{ position: "relative" }}>
+              <Ionicons
+                style={styles.icons}
+                name="chatbubbles-outline"
+                color={color}
+                size={size}
+              />
+              {counter > 0 && (
+                <View style={styles.counter}>
+                  <Text style={styles.counterText}>{counter}</Text>
+                </View>
+              )}
+            </View>
+          ),
+          tabBarLabelStyle: {
+            fontFamily: "Poppins_400Regular",
+          },
+          tabBarItemStyle: {
+            marginBottom: -2,
+          },
+          tabBarActiveTintColor: COLORS.prim,
+          headerShown: false,
+          tabBarLabel: "Messages",
+        }}
+      />
+      <Tab.Screen
+        name="Set"
+        component={SettingOptions}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              style={styles.icons}
+              name="person-outline"
+              color={color}
+              size={size}
+            />
+          ),
+          tabBarLabelStyle: {
+            fontFamily: "Poppins_400Regular",
+          },
+          tabBarItemStyle: {
+            marginBottom: -2,
+          },
+          tabBarActiveTintColor: COLORS.prim,
+          headerShown: false,
+          tabBarLabel: "Profile",
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 export default App;

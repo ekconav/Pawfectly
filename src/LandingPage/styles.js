@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   },
   landingPageTitle: {
     fontSize: 24,
-    marginBottom: 60,
+    marginBottom: 25,
     textAlign: "center",
     color: COLORS.title,
     fontFamily: "Poppins_700Bold",
@@ -20,8 +20,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   landingPageImage: {
-    width: 287,
-    height: 410,
+    width: 280,
+    height: 400,
     marginBottom: 5,
     borderTopLeftRadius: 135,
     borderTopRightRadius: 135,
