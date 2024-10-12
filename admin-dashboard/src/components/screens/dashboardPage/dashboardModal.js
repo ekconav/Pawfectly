@@ -337,7 +337,9 @@ const InformationModal = ({ petInfo, onClose }) => {
                       padding: "5px", // Optional: padding for content
                     }}
                   >
-                    <p style={{ margin: 0 }}>{petInfo.description}</p>
+                    {petInfo.description.split('\n').map((line, index) => (
+                      <div key={index}>{line}</div> // Use <div> for each line
+                    ))}
                   </div>
                 </div>
               </Stack>
