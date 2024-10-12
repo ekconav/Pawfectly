@@ -3,7 +3,6 @@ import styles from "./styles";
 import COLORS from "../../colors";
 import {
   Form,
-  InputGroup,
   Container,
   Row,
   Col,
@@ -49,11 +48,9 @@ const DeleteModal = ({ onClose, show, children, onConfirm }) => {
 
 // Update Modal Component
 const UpdateModal = ({
-  updateUser,
+  handleImageChange,
   handleInputChange,
-  handleSwitchChange,
-  handleUpdateUser,
-  handleCloseUpdateUserModal,
+  handleEditSubmit,
   petInfo,
   show,
   onHide,
@@ -130,7 +127,6 @@ const UpdateModal = ({
                   value="Dog"
                   checked={petInfo.type === "Dog"}
                   onChange={handleInputChange}
-
                 />
                 <Form.Check
                   inline
@@ -199,7 +195,7 @@ const UpdateModal = ({
               <Form.Group className="mb-3">
                 <Form.Control
                   type="text"
-                  name="fee"
+                  name="petPrice"
                   placeholder="Fee (₱)"
                   style={styles.inputField}
                   value={petInfo.petPrice}
@@ -227,10 +223,40 @@ const UpdateModal = ({
               }}
             />
           </Form.Group>
+          <Form.Group className="mb-3">
+            {petInfo.imagePreview && (
+              <div
+                style={{
+                  marginTop: "10px",
+                  display: "flex",
+                  justifyContent: "center", // Center horizontally
+                  alignItems: "center", // Center vertically
+                }}
+              >
+                <img
+                  src={
+                    petInfo.imagePreview || require("../../../const/user.png")
+                  }
+                  alt="Pet Image"
+                  style={styles.infoPicture}
+                />
+              </div>
+            )}
+            <Form.Label>Change Image</Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/*" // Allow only image files
+              onChange={handleImageChange} // Handle the file selection
+            />
+          </Form.Group>
         </Form>
         <div style={styles.modalButtons}>
-          <button style={styles.cancelButton}>Cancel</button>
-          <button style={styles.confirmButton}>Confirm</button>
+          <button style={styles.cancelButton} onClick={onHide}>
+            Cancel
+          </button>
+          <button style={styles.confirmButton} onClick={handleEditSubmit}>
+            Confirm
+          </button>
         </div>
       </Offcanvas.Body>
     </Offcanvas>
@@ -302,9 +328,17 @@ const InformationModal = ({ petInfo, onClose }) => {
                 </div>
                 <div className="pt-2">
                   <div style={styles.title}>Description</div>
-                  <p style={{ paddingLeft: "20px", margin: 0 }}>
-                    {petInfo.description}
-                  </p>
+                  <div
+                    style={{
+                      paddingLeft: "20px",
+                      margin: 0,
+                      maxHeight: "100px", // Fixed height for scrollable area
+                      overflowY: "auto", // Enable vertical scrolling
+                      padding: "5px", // Optional: padding for content
+                    }}
+                  >
+                    <p style={{ margin: 0 }}>{petInfo.description}</p>
+                  </div>
                 </div>
               </Stack>
             </Col>

@@ -188,18 +188,18 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     border: `1px solid ${COLORS.prim}`,
     borderRadius: "4px",
-    maxHeight: "30vh", // Set maximum height for the dropdown
-    overflowY: "auto", // Enable vertical scroll
-    width: "20vw", // Match the width of the input
-    zIndex: 1000, // Ensure it stays above other elements
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Add shadow for depth
+    maxHeight: "30vh", 
+    overflowY: "auto", 
+    width: "20vw", 
+    zIndex: 1000, 
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", 
   },
   dropdownItem: {
     paddingLeft: "8px",
     paddingTop: "4px",
     cursor: "pointer",
     textAlign: "left",
-    transition: "background-color 0.2s ease", // Smooth transition for hover
+    transition: "background-color 0.2s ease", 
     backgroundColor: COLORS.white,
     color: COLORS.black,
   },

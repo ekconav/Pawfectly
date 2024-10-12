@@ -1,32 +1,22 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
-import { db, auth } from "../../../FirebaseConfig";
+import { db, storage } from "../../../FirebaseConfig";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
-  writeBatch,
   collection,
   onSnapshot,
   updateDoc,
   deleteDoc,
   getDoc,
-  getDocs,
   doc,
-  query,
-  limit,
-  where,
 } from "firebase/firestore";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
 import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
-import {
-  Form,
-  InputGroup,
-  Container,
-  Row,
-  Col,
-  Offcanvas,
-} from "react-bootstrap";
+import { Form, InputGroup, Container, Row, Col } from "react-bootstrap";
 import COLORS from "../../colors";
 import Modals from "./dashboardModal";
+import Alerts from "./alert";
 
 const DashboardPage = () => {
   const [shelterStats, setShelterStats] = useState([]);
@@ -159,8 +149,10 @@ const DashboardPage = () => {
     weight: "",
     userId: "",
     images: "",
+    imagePreview: "",
   });
 
+  // View the information of the pet
   const [isViewSelectedPetModal, setVIewSelectedPetModal] = useState(false);
   const handleViewSelectedPet = async (pet) => {
     setSelectedPet(pet);
@@ -226,6 +218,7 @@ const DashboardPage = () => {
     setVIewSelectedPetModal(true);
   };
 
+  // Delete Modal
   const [isDeleteModal, setDeleteModal] = useState(false);
   const handleDeleteButton = (pet) => {
     setSelectedPet(pet);
@@ -237,9 +230,12 @@ const DashboardPage = () => {
     setDeleteModal(true);
   };
 
+
+  // Delete the selected pet
   const handleDeleteSelectedPet = async () => {
     if (!selectedPet || !selectedPet.id) {
-      console.error("No pet selected or missing ID.");
+      setAlertMessage("Error Selecting Pet");
+      setAlertType("error");
       return;
     }
 
@@ -248,28 +244,31 @@ const DashboardPage = () => {
       await deleteDoc(petRef); // delete the document
       console.log(`Pet with ID ${selectedPet.id} deleted.`);
 
+      setAlertMessage("Successfully Deleted Pet");
+      setAlertType("success");
       // Close the modal and clear the selected pet
       setDeleteModal(false);
       setSelectedPet(null);
     } catch (error) {
-      console.error("Error deleting pet:", error);
+      setAlertMessage("Error Deleting Pet");
+      setAlertType("error");
     }
   };
 
   // Input change for forms
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setPetInfo((prevPet) => ({ 
-      ...prevPet, 
+    setPetInfo((prevPet) => ({
+      ...prevPet,
       [name]: value,
     }));
   };
 
-
   const [isEditModal, setEditModal] = useState(false);
 
+  // Data when clicking offcanvas edit
   const handleEditButton = (pet) => {
-    setSelectedPet(pet); 
+    setSelectedPet(pet);
 
     setPetInfo({
       age: pet.age || "",
@@ -280,16 +279,116 @@ const DashboardPage = () => {
       petPrice: pet.petPrice || "",
       type: pet.type || "",
       weight: pet.weight || "",
-      images: pet.images || "",
+      images: null,
+      imagePreview: pet.images,
     });
 
     setEditModal((s) => !s);
   };
 
-  const [show, setShow] = useState(false);
+  // Close offcanvas
+  const handleEditOffcanvasClose = () => {
+    setSelectedPet(null);
+    setEditModal(false);
+  };
 
-  const handleClose = () => setShow(false);
-  const toggleShow = () => setShow((s) => !s);
+  // Function to handle image selection
+  const handleImageChange = (e) => {
+    const MAX_SIZE_MB = 3;
+    const file = e.target.files[0];
+
+    if (file) {
+      // Check the file size
+      const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
+
+      if (fileSizeMB > MAX_SIZE_MB) {
+        setPetInfo((prevPet) => ({
+          ...prevPet,
+          images: "", // Reset the image
+        }));
+        // console.log("test");
+        return; // Exit the function if the file is too large
+      } else {
+        setPetInfo((prevPet) => ({
+          ...prevPet,
+          images: file, // Store the actual file for uploading
+          imagePreview: URL.createObjectURL(file), // Create a preview URL
+        }));
+      }
+    }
+  };
+
+  // Submit Edit Button
+  const handleEditSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+    // Validation
+    if (
+      !petInfo.name ||
+      !petInfo.breed ||
+      !petInfo.age ||
+      !petInfo.description ||
+      !petInfo.gender ||
+      !petInfo.type ||
+      !petInfo.weight
+    ) {
+      setAlertMessage("All fields are required, except for pet price.");
+      setAlertType("error");
+      return; // Stop submission if there are errors
+    }
+
+    // Check if weight is a positive number and not zero
+    if (isNaN(petInfo.weight) || petInfo.weight <= 0) {
+      setAlertMessage("Weight must be a positive number and cannot be zero.");
+      setAlertType("error");
+      return; // Stop submission if weight is invalid
+    }
+
+    // Check if fee is a number and not less than zero
+    if (petInfo.petPrice && (isNaN(petInfo.petPrice) || petInfo.petPrice < 0)) {
+      setAlertMessage("Fee must be a number and cannot be less than zero.");
+      setAlertType("error");
+      return; // Stop submission if fee is invalid
+    }
+
+    try {
+      // Prepare the updated data object
+      const updatedData = { ...petInfo };
+
+      // If a new image is selected, upload it and get the URL
+      if (petInfo.images) {
+        const imageRef = ref(storage, `pets/${petInfo.images.name}`);
+        await uploadBytes(imageRef, petInfo.images);
+        const url = await getDownloadURL(imageRef);
+        updatedData.images = url; // Update the URL in the data to be sent to Firestore
+      } else {
+        updatedData.images = petInfo.imagePreview;
+      }
+      await updateDoc(doc(db, "pets", selectedPet.id), updatedData);
+      setAlertMessage("Successfully Updated Pet");
+      setAlertType("success");
+
+      // Close the modal or reset state here
+      setEditModal(false);
+    } catch (error) {
+      setAlertMessage("Error Updating Pet");
+      setAlertType("error");
+    }
+  };
+
+  //Alert Message and Type
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("");
+
+  useEffect(() => {
+    if (alertMessage) {
+      const timer = setTimeout(() => {
+        setAlertMessage(""); // Clear the message
+      }, 3000); // Hide after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [alertMessage]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -452,26 +551,6 @@ const DashboardPage = () => {
                   </InputGroup>
                 </Col>
                 <Col className="d-flex align-items-center justify-content-end mt-3">
-                  {/* <ion-icon
-                    style={{
-                      fontSize: "30px",
-                      cursor: "pointer",
-                      paddingLeft: "10px",
-                      paddingRight: "10px",
-                      color: COLORS.prim,
-                    }}
-                    name="add-circle-outline"
-                    onClick={toggleShow}
-                    onMouseOver={(e) => {
-                      e.target.style.color = COLORS.hover;
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.color = COLORS.prim;
-                    }}
-                  ></ion-icon>
-                  <p style={{ margin: 0, fontWeight: 30, color: COLORS.prim }}>
-                    Add Pet
-                  </p> */}
                 </Col>
               </Row>
               <div style={{ justifyContent: "center" }}>
@@ -596,13 +675,14 @@ const DashboardPage = () => {
 
       {/* Off Canvas Form for Edit */}
       {isEditModal && (
-      <Modals.UpdateModal
-        petInfo={petInfo}
-        show={isEditModal}
-        handleInputChange={handleInputChange}
-        onHide={() => setEditModal(false)}
-      />
-
+        <Modals.UpdateModal
+          petInfo={petInfo}
+          show={isEditModal}
+          handleInputChange={handleInputChange}
+          onHide={handleEditOffcanvasClose}
+          handleImageChange={handleImageChange}
+          handleEditSubmit={handleEditSubmit}
+        />
       )}
 
       {/* Edit Button Modal */}
@@ -622,6 +702,14 @@ const DashboardPage = () => {
         >
           Are you sure you want to delete {selectedPet.name}?
         </Modals.DeleteModal>
+      )}
+
+      {/* Alert rendering based on the type */}
+      {alertMessage && alertType === "success" && (
+        <Alerts.SuccessAlert>{alertMessage}</Alerts.SuccessAlert>
+      )}
+      {alertMessage && alertType === "error" && (
+        <Alerts.ErrorAlert>{alertMessage}</Alerts.ErrorAlert>
       )}
     </div>
   );
