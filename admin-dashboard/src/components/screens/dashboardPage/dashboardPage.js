@@ -26,6 +26,7 @@ import {
   Offcanvas,
 } from "react-bootstrap";
 import COLORS from "../../colors";
+import Modals from "./dashboardModal";
 
 const DashboardPage = () => {
   const [shelterStats, setShelterStats] = useState([]);
@@ -141,6 +142,149 @@ const DashboardPage = () => {
         pet.name.toLowerCase().includes(petSearch.toLowerCase())
       )
     : filteredPets;
+
+  const [selectedPet, setSelectedPet] = useState(null);
+
+  const [petInfo, setPetInfo] = useState({
+    adoptedBy: "",
+    age: "",
+    breed: "",
+    description: "",
+    gender: "",
+    location: "",
+    name: "",
+    petPosted: "",
+    petPrice: "",
+    type: "",
+    weight: "",
+    userId: "",
+    images: "",
+  });
+
+  const [isViewSelectedPetModal, setVIewSelectedPetModal] = useState(false);
+  const handleViewSelectedPet = async (pet) => {
+    setSelectedPet(pet);
+
+    const getAdopterName = async (userId) => {
+      if (!userId) return null;
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const { firstName, lastName } = userSnap.data();
+        return `${firstName} ${lastName}`;
+      }
+      return null;
+    };
+
+    const getPosterName = async (userId) => {
+      if (!userId) return null;
+
+      // First, check if the ID exists in the shelters collection
+      const shelterRef = doc(db, "shelters", userId);
+      const shelterSnap = await getDoc(shelterRef);
+
+      if (shelterSnap.exists()) {
+        // If found in shelters, return the shelterName
+        const { shelterName } = shelterSnap.data();
+        return shelterName || "Unknown Shelter";
+      }
+
+      // If not in shelters, check the users collection
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        // If found in users, return the firstName and lastName
+        const { firstName, lastName } = userSnap.data();
+        return `${firstName} ${lastName}` || "Unknown User";
+      }
+
+      // If not found in either collection, return a default message
+      return "Poster not found";
+    };
+
+    // Fetch the user names for 'userId' and 'adoptedBy'
+    const userIdName = await getPosterName(pet.userId); // Fetch by document ID
+    const adoptedByName = await getAdopterName(pet.adoptedBy); // Fetch by document ID
+    setPetInfo({
+      userId: userIdName || "",
+      adoptedBy: adoptedByName || "",
+      age: pet.age,
+      breed: pet.breed,
+      description: pet.description,
+      gender: pet.gender,
+      location: pet.location || "",
+      name: pet.name,
+      petPosted: pet.petPosted
+        ? new Date(pet.petPosted.seconds * 1000).toLocaleDateString()
+        : "",
+      petPrice: pet.petPrice || "",
+      type: pet.type,
+      weight: pet.weight,
+      images: pet.images || "",
+    });
+    setVIewSelectedPetModal(true);
+  };
+
+  const [isDeleteModal, setDeleteModal] = useState(false);
+  const handleDeleteButton = (pet) => {
+    setSelectedPet(pet);
+
+    setPetInfo({
+      name: pet.name,
+    });
+
+    setDeleteModal(true);
+  };
+
+  const handleDeleteSelectedPet = async () => {
+    if (!selectedPet || !selectedPet.id) {
+      console.error("No pet selected or missing ID.");
+      return;
+    }
+
+    try {
+      const petRef = doc(db, "pets", selectedPet.id);
+      await deleteDoc(petRef); // delete the document
+      console.log(`Pet with ID ${selectedPet.id} deleted.`);
+
+      // Close the modal and clear the selected pet
+      setDeleteModal(false);
+      setSelectedPet(null);
+    } catch (error) {
+      console.error("Error deleting pet:", error);
+    }
+  };
+
+  // Input change for forms
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPetInfo((prevPet) => ({ 
+      ...prevPet, 
+      [name]: value,
+    }));
+  };
+
+
+  const [isEditModal, setEditModal] = useState(false);
+
+  const handleEditButton = (pet) => {
+    setSelectedPet(pet); 
+
+    setPetInfo({
+      age: pet.age || "",
+      breed: pet.breed || "",
+      description: pet.description || "",
+      gender: pet.gender || "",
+      name: pet.name || "",
+      petPrice: pet.petPrice || "",
+      type: pet.type || "",
+      weight: pet.weight || "",
+      images: pet.images || "",
+    });
+
+    setEditModal((s) => !s);
+  };
 
   const [show, setShow] = useState(false);
 
@@ -308,7 +452,7 @@ const DashboardPage = () => {
                   </InputGroup>
                 </Col>
                 <Col className="d-flex align-items-center justify-content-end mt-3">
-                  <ion-icon
+                  {/* <ion-icon
                     style={{
                       fontSize: "30px",
                       cursor: "pointer",
@@ -327,7 +471,7 @@ const DashboardPage = () => {
                   ></ion-icon>
                   <p style={{ margin: 0, fontWeight: 30, color: COLORS.prim }}>
                     Add Pet
-                  </p>
+                  </p> */}
                 </Col>
               </Row>
               <div style={{ justifyContent: "center" }}>
@@ -359,9 +503,22 @@ const DashboardPage = () => {
                   {filteredPetsByName.length > 0 ? (
                     filteredPetsByName.map((pet) => (
                       <div key={pet.id} style={styles.summaryGridRows}>
-                        <p style={styles.IDline}>{pet.id}</p>
-                        <p style={styles.line}>{pet.type}</p>
-                        <div style={styles.line}>
+                        <p
+                          style={styles.IDline}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.id}
+                        </p>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.type}
+                        </p>
+                        <div
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
                           <img
                             src={
                               pet.images || require("../../../const/user.png")
@@ -370,17 +527,35 @@ const DashboardPage = () => {
                             style={styles.adminPicture}
                           />
                         </div>
-                        <p style={styles.line}>{pet.name}</p>
-                        <p style={styles.line}>{pet.gender.charAt(0)}</p>
-                        <p style={styles.line}>{pet.age}</p>
-                        <p style={styles.line}>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.name}
+                        </p>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.gender.charAt(0)}
+                        </p>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.age}
+                        </p>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
                           {pet.adopted ? "Adopted" : "Up for Adoption"}
                         </p>
                         <div style={styles.line}>
                           <ion-icon
                             name="pencil"
                             style={styles.editIcon}
-                            // onClick={() => handleEditModalOpen(admin)}
+                            onClick={() => handleEditButton(pet)}
                             onMouseOver={(e) => {
                               e.currentTarget.style.color = COLORS.hover;
                               e.currentTarget.style.borderColor = COLORS.hover;
@@ -398,7 +573,7 @@ const DashboardPage = () => {
                               cursor: "pointer",
                             }}
                             name="trash-outline"
-                            // onClick={() => handleDeleteButton(admin)}
+                            onClick={() => handleDeleteButton(pet)}
                             onMouseOver={(e) => {
                               e.currentTarget.style.color = COLORS.error;
                             }}
@@ -419,16 +594,35 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      {/* Off Canvas Form for Add */}
-      <Offcanvas show={show} onHide={handleClose} scroll={true} backdrop={true}>
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Offcanvas</Offcanvas.Title>
-        </Offcanvas.Header>
-        <Offcanvas.Body>
-          Some text as placeholder. In real life you can have the elements you
-          have chosen. Like, text, images, lists, etc.
-        </Offcanvas.Body>
-      </Offcanvas>
+      {/* Off Canvas Form for Edit */}
+      {isEditModal && (
+      <Modals.UpdateModal
+        petInfo={petInfo}
+        show={isEditModal}
+        handleInputChange={handleInputChange}
+        onHide={() => setEditModal(false)}
+      />
+
+      )}
+
+      {/* Edit Button Modal */}
+      {isViewSelectedPetModal && (
+        <Modals.InformationModal
+          petInfo={petInfo}
+          onClose={() => setVIewSelectedPetModal(false)}
+        />
+      )}
+
+      {/* Delete Button Modal */}
+      {isDeleteModal && (
+        <Modals.DeleteModal
+          onConfirm={handleDeleteSelectedPet}
+          show={isDeleteModal}
+          onClose={() => setDeleteModal(false)}
+        >
+          Are you sure you want to delete {selectedPet.name}?
+        </Modals.DeleteModal>
+      )}
     </div>
   );
 };
