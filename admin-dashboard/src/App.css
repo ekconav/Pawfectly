@@ -3,12 +3,20 @@
 .App {
   text-align: center;
   font-family: "Poppins", sans-serif;
+  min-height: 100vh; /* Ensure it takes up at least full viewport height */
+  overflow-y: auto;  /* Allow vertical scrolling */
 }
 
 .button {
   font-family: "Poppins", sans-serif;
   cursor: pointer;
 }
+
+.button {
+  font-family: "Poppins", sans-serif;
+  cursor: pointer;
+}
+
 
 .input {
   font-family: "Poppins", sans-serif;
@@ -34,6 +42,8 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  padding: 20px; /* Add padding for better layout */
+  box-sizing: border-box;
 }
 
 .App-link {

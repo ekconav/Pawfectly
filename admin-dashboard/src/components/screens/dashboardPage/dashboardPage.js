@@ -1,31 +1,22 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
-import { db, auth } from "../../../FirebaseConfig";
+import { db, storage } from "../../../FirebaseConfig";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
-  writeBatch,
   collection,
   onSnapshot,
   updateDoc,
   deleteDoc,
   getDoc,
-  getDocs,
   doc,
-  query,
-  limit,
-  where,
 } from "firebase/firestore";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
 import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
-import {
-  Form,
-  InputGroup,
-  Container,
-  Row,
-  Col,
-  Offcanvas,
-} from "react-bootstrap";
+import { Form, InputGroup, Container, Row, Col } from "react-bootstrap";
 import COLORS from "../../colors";
+import Modals from "./dashboardModal";
+import Alerts from "./alert";
 
 const DashboardPage = () => {
   const [shelterStats, setShelterStats] = useState([]);
@@ -142,10 +133,262 @@ const DashboardPage = () => {
       )
     : filteredPets;
 
-  const [show, setShow] = useState(false);
+  const [selectedPet, setSelectedPet] = useState(null);
 
-  const handleClose = () => setShow(false);
-  const toggleShow = () => setShow((s) => !s);
+  const [petInfo, setPetInfo] = useState({
+    adoptedBy: "",
+    age: "",
+    breed: "",
+    description: "",
+    gender: "",
+    location: "",
+    name: "",
+    petPosted: "",
+    petPrice: "",
+    type: "",
+    weight: "",
+    userId: "",
+    images: "",
+    imagePreview: "",
+  });
+
+  // View the information of the pet
+  const [isViewSelectedPetModal, setVIewSelectedPetModal] = useState(false);
+  const handleViewSelectedPet = async (pet) => {
+    setSelectedPet(pet);
+
+    const getAdopterName = async (userId) => {
+      if (!userId) return null;
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const { firstName, lastName } = userSnap.data();
+        return `${firstName} ${lastName}`;
+      }
+      return null;
+    };
+
+    const getPosterName = async (userId) => {
+      if (!userId) return null;
+
+      // First, check if the ID exists in the shelters collection
+      const shelterRef = doc(db, "shelters", userId);
+      const shelterSnap = await getDoc(shelterRef);
+
+      if (shelterSnap.exists()) {
+        // If found in shelters, return the shelterName
+        const { shelterName } = shelterSnap.data();
+        return shelterName || "Unknown Shelter";
+      }
+
+      // If not in shelters, check the users collection
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        // If found in users, return the firstName and lastName
+        const { firstName, lastName } = userSnap.data();
+        return `${firstName} ${lastName}` || "Unknown User";
+      }
+
+      // If not found in either collection, return a default message
+      return "Poster not found";
+    };
+
+    // Fetch the user names for 'userId' and 'adoptedBy'
+    const userIdName = await getPosterName(pet.userId); // Fetch by document ID
+    const adoptedByName = await getAdopterName(pet.adoptedBy); // Fetch by document ID
+    setPetInfo({
+      userId: userIdName || "",
+      adoptedBy: adoptedByName || "",
+      age: pet.age,
+      breed: pet.breed,
+      description: pet.description,
+      gender: pet.gender,
+      location: pet.location || "",
+      name: pet.name,
+      petPosted: pet.petPosted
+        ? new Date(pet.petPosted.seconds * 1000).toLocaleDateString()
+        : "",
+      petPrice: pet.petPrice || "",
+      type: pet.type,
+      weight: pet.weight,
+      images: pet.images || "",
+    });
+    setVIewSelectedPetModal(true);
+  };
+
+  // Delete Modal
+  const [isDeleteModal, setDeleteModal] = useState(false);
+  const handleDeleteButton = (pet) => {
+    setSelectedPet(pet);
+
+    setPetInfo({
+      name: pet.name,
+    });
+
+    setDeleteModal(true);
+  };
+
+
+  // Delete the selected pet
+  const handleDeleteSelectedPet = async () => {
+    if (!selectedPet || !selectedPet.id) {
+      setAlertMessage("Error Selecting Pet");
+      setAlertType("error");
+      return;
+    }
+
+    try {
+      const petRef = doc(db, "pets", selectedPet.id);
+      await deleteDoc(petRef); // delete the document
+      console.log(`Pet with ID ${selectedPet.id} deleted.`);
+
+      setAlertMessage("Successfully Deleted Pet");
+      setAlertType("success");
+      // Close the modal and clear the selected pet
+      setDeleteModal(false);
+      setSelectedPet(null);
+    } catch (error) {
+      setAlertMessage("Error Deleting Pet");
+      setAlertType("error");
+    }
+  };
+
+  // Input change for forms
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPetInfo((prevPet) => ({
+      ...prevPet,
+      [name]: value,
+    }));
+  };
+
+  const [isEditModal, setEditModal] = useState(false);
+
+  // Data when clicking offcanvas edit
+  const handleEditButton = (pet) => {
+    setSelectedPet(pet);
+
+    setPetInfo({
+      age: pet.age || "",
+      breed: pet.breed || "",
+      description: pet.description || "",
+      gender: pet.gender || "",
+      name: pet.name || "",
+      petPrice: pet.petPrice || "",
+      type: pet.type || "",
+      weight: pet.weight || "",
+      images: null,
+      imagePreview: pet.images,
+    });
+
+    setEditModal((s) => !s);
+  };
+
+  // Close offcanvas
+  const handleEditOffcanvasClose = () => {
+    setSelectedPet(null);
+    setEditModal(false);
+  };
+
+  // Function to handle image selection
+  const handleImageChange = (e) => {
+    const MAX_SIZE_MB = 3;
+    const file = e.target.files[0];
+
+    if (file) {
+      // Check the file size
+      const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
+
+      if (fileSizeMB > MAX_SIZE_MB) {
+        setPetInfo((prevPet) => ({
+          ...prevPet,
+          images: "", // Reset the image
+        }));
+        // console.log("test");
+        return; // Exit the function if the file is too large
+      } else {
+        setPetInfo((prevPet) => ({
+          ...prevPet,
+          images: file, // Store the actual file for uploading
+          imagePreview: URL.createObjectURL(file), // Create a preview URL
+        }));
+      }
+    }
+  };
+
+  // Submit Edit Button
+  const handleEditSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+    // Validation
+    if (
+      !petInfo.name ||
+      !petInfo.breed ||
+      !petInfo.age ||
+      !petInfo.description ||
+      !petInfo.gender ||
+      !petInfo.type ||
+      !petInfo.weight
+    ) {
+      setAlertMessage("All fields are required, except for pet price.");
+      setAlertType("error");
+      return; // Stop submission if there are errors
+    }
+
+    // Check if weight is a positive number and not zero
+    if (isNaN(petInfo.weight) || petInfo.weight <= 0) {
+      setAlertMessage("Weight must be a positive number and cannot be zero.");
+      setAlertType("error");
+      return; // Stop submission if weight is invalid
+    }
+
+    // Check if fee is a number and not less than zero
+    if (petInfo.petPrice && (isNaN(petInfo.petPrice) || petInfo.petPrice < 0)) {
+      setAlertMessage("Fee must be a number and cannot be less than zero.");
+      setAlertType("error");
+      return; // Stop submission if fee is invalid
+    }
+
+    try {
+      // Prepare the updated data object
+      const updatedData = { ...petInfo };
+
+      // If a new image is selected, upload it and get the URL
+      if (petInfo.images) {
+        const imageRef = ref(storage, `pets/${petInfo.images.name}`);
+        await uploadBytes(imageRef, petInfo.images);
+        const url = await getDownloadURL(imageRef);
+        updatedData.images = url; // Update the URL in the data to be sent to Firestore
+      } else {
+        updatedData.images = petInfo.imagePreview;
+      }
+      await updateDoc(doc(db, "pets", selectedPet.id), updatedData);
+      setAlertMessage("Successfully Updated Pet");
+      setAlertType("success");
+
+      // Close the modal or reset state here
+      setEditModal(false);
+    } catch (error) {
+      setAlertMessage("Error Updating Pet");
+      setAlertType("error");
+    }
+  };
+
+  //Alert Message and Type
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("");
+
+  useEffect(() => {
+    if (alertMessage) {
+      const timer = setTimeout(() => {
+        setAlertMessage(""); // Clear the message
+      }, 3000); // Hide after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [alertMessage]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -308,26 +551,6 @@ const DashboardPage = () => {
                   </InputGroup>
                 </Col>
                 <Col className="d-flex align-items-center justify-content-end mt-3">
-                  <ion-icon
-                    style={{
-                      fontSize: "30px",
-                      cursor: "pointer",
-                      paddingLeft: "10px",
-                      paddingRight: "10px",
-                      color: COLORS.prim,
-                    }}
-                    name="add-circle-outline"
-                    onClick={toggleShow}
-                    onMouseOver={(e) => {
-                      e.target.style.color = COLORS.hover;
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.color = COLORS.prim;
-                    }}
-                  ></ion-icon>
-                  <p style={{ margin: 0, fontWeight: 30, color: COLORS.prim }}>
-                    Add Pet
-                  </p>
                 </Col>
               </Row>
               <div style={{ justifyContent: "center" }}>
@@ -359,9 +582,22 @@ const DashboardPage = () => {
                   {filteredPetsByName.length > 0 ? (
                     filteredPetsByName.map((pet) => (
                       <div key={pet.id} style={styles.summaryGridRows}>
-                        <p style={styles.IDline}>{pet.id}</p>
-                        <p style={styles.line}>{pet.type}</p>
-                        <div style={styles.line}>
+                        <p
+                          style={styles.IDline}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.id}
+                        </p>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.type}
+                        </p>
+                        <div
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
                           <img
                             src={
                               pet.images || require("../../../const/user.png")
@@ -370,17 +606,35 @@ const DashboardPage = () => {
                             style={styles.adminPicture}
                           />
                         </div>
-                        <p style={styles.line}>{pet.name}</p>
-                        <p style={styles.line}>{pet.gender.charAt(0)}</p>
-                        <p style={styles.line}>{pet.age}</p>
-                        <p style={styles.line}>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.name}
+                        </p>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.gender.charAt(0)}
+                        </p>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
+                          {pet.age}
+                        </p>
+                        <p
+                          style={{ ...styles.line, cursor: "pointer" }}
+                          onClick={() => handleViewSelectedPet(pet)}
+                        >
                           {pet.adopted ? "Adopted" : "Up for Adoption"}
                         </p>
                         <div style={styles.line}>
                           <ion-icon
                             name="pencil"
                             style={styles.editIcon}
-                            // onClick={() => handleEditModalOpen(admin)}
+                            onClick={() => handleEditButton(pet)}
                             onMouseOver={(e) => {
                               e.currentTarget.style.color = COLORS.hover;
                               e.currentTarget.style.borderColor = COLORS.hover;
@@ -398,7 +652,7 @@ const DashboardPage = () => {
                               cursor: "pointer",
                             }}
                             name="trash-outline"
-                            // onClick={() => handleDeleteButton(admin)}
+                            onClick={() => handleDeleteButton(pet)}
                             onMouseOver={(e) => {
                               e.currentTarget.style.color = COLORS.error;
                             }}
@@ -419,16 +673,44 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      {/* Off Canvas Form for Add */}
-      <Offcanvas show={show} onHide={handleClose} scroll={true} backdrop={true}>
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Offcanvas</Offcanvas.Title>
-        </Offcanvas.Header>
-        <Offcanvas.Body>
-          Some text as placeholder. In real life you can have the elements you
-          have chosen. Like, text, images, lists, etc.
-        </Offcanvas.Body>
-      </Offcanvas>
+      {/* Off Canvas Form for Edit */}
+      {isEditModal && (
+        <Modals.UpdateModal
+          petInfo={petInfo}
+          show={isEditModal}
+          handleInputChange={handleInputChange}
+          onHide={handleEditOffcanvasClose}
+          handleImageChange={handleImageChange}
+          handleEditSubmit={handleEditSubmit}
+        />
+      )}
+
+      {/* Edit Button Modal */}
+      {isViewSelectedPetModal && (
+        <Modals.InformationModal
+          petInfo={petInfo}
+          onClose={() => setVIewSelectedPetModal(false)}
+        />
+      )}
+
+      {/* Delete Button Modal */}
+      {isDeleteModal && (
+        <Modals.DeleteModal
+          onConfirm={handleDeleteSelectedPet}
+          show={isDeleteModal}
+          onClose={() => setDeleteModal(false)}
+        >
+          Are you sure you want to delete {selectedPet.name}?
+        </Modals.DeleteModal>
+      )}
+
+      {/* Alert rendering based on the type */}
+      {alertMessage && alertType === "success" && (
+        <Alerts.SuccessAlert>{alertMessage}</Alerts.SuccessAlert>
+      )}
+      {alertMessage && alertType === "error" && (
+        <Alerts.ErrorAlert>{alertMessage}</Alerts.ErrorAlert>
+      )}
     </div>
   );
 };

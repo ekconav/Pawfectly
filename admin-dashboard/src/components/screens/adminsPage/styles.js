@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   },
   adminGridRows: {
     display: "grid", 
-    gridTemplateColumns: "10vh 3fr 2fr 2fr 15vh",  
+    gridTemplateColumns: "6vw 3fr 2fr 2fr 8vw", 
     borderRadius: "8px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)", 
     backgroundColor: "#F2F2F2",
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   },
   adminLabelRows: {
     display: "grid", 
-    gridTemplateColumns: "10vh 3fr 2fr 2fr 15vh",  
+    gridTemplateColumns: "6vw 3fr 2fr 2fr 8vw",  
     padding: "10px",
     marginTop: "10px",
     
