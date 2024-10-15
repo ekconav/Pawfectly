@@ -360,6 +360,16 @@ const MessagePageShelter = ({ route }) => {
       }
 
       if (userSnap.exists()) {
+        const notificationsRef = collection(db, "users", userId, "notifications");
+
+        await addDoc(notificationsRef, {
+          from: currentUser.uid,
+          seen: false,
+          text: `You have adopted ${petName}.`,
+          timestamp: serverTimestamp(),
+          title: "Congratulations!",
+        });
+
         const userData = userSnap.data();
         const adoptedByRef = doc(
           db,

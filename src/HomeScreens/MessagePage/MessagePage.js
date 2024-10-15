@@ -342,6 +342,21 @@ const MessagePage = ({ route }) => {
         }
 
         if (adoptedBySnap.exists()) {
+          const notificationsRef = collection(
+            db,
+            "users",
+            participantZero,
+            "notifications"
+          );
+
+          await addDoc(notificationsRef, {
+            from: currentUser.uid,
+            seen: false,
+            text: `You have adopted ${petName}.`,
+            timestamp: serverTimestamp(),
+            title: "Congratulations!",
+          });
+
           const usersData = adoptedBySnap.data();
           const adoptedByRef = doc(
             db,

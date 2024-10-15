@@ -345,6 +345,91 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Poppins_400Regular",
   },
+
+  // For Notifications
+  notifBtn: {
+    padding: 10,
+    backgroundColor: COLORS.offWhite,
+    borderRadius: 10,
+  },
+  notifModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-start",
+  },
+  notifContainer: {
+    backgroundColor: COLORS.white,
+    width: 280,
+    height: 500,
+    left: 15,
+    top: 45,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.outline,
+    overflow: "hidden",
+  },
+  closeButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+  },
+  closeText: {
+    color: COLORS.prim,
+    fontFamily: "Poppins_500Medium",
+  },
+  noNotifText: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.title,
+    textAlign: "center"
+  },
+  profile: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  notificationItem: {
+    flex: 1,
+    flexDirection: "row",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    gap: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.outline,
+    alignItems: "center",
+  },
+  notificationItemNotSeen: {
+    flex: 1,
+    flexDirection: "row",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    gap: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.outline,
+    alignItems: "center",
+    backgroundColor: COLORS.offWhite,
+  },
+  titleText: {
+    flexDirection: "column",
+  },
+  notifTitle: {
+    fontFamily: "Poppins_600SemiBold",
+    fontSize: 12,
+    color: COLORS.title,
+  },
+  notifText: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 10,
+    color: COLORS.title,
+  },
+  from: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.subtitle,
+    fontSize: 8,
+  },
+  fromDate: {
+    fontFamily: "Poppins_400Regular",
+    color: COLORS.subtitle,
+    fontSize: 7,
+  },
 });
 
 export default styles;
