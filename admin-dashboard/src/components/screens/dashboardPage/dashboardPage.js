@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
 import { db, storage } from "../../../FirebaseConfig";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { deleteObject,ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   collection,
   onSnapshot,
@@ -149,7 +149,6 @@ const DashboardPage = () => {
     weight: "",
     userId: "",
     images: "",
-    imagePreview: "",
   });
 
   // View the information of the pet
@@ -275,6 +274,13 @@ const DashboardPage = () => {
   };
 
   const [isEditModal, setEditModal] = useState(false);
+  const [imagePreview, setImagePreview] = useState({
+    image:"",
+    file:"",
+    flag:true,
+  });
+  const fileInputRef = useRef(null);
+
 
   // Data when clicking offcanvas edit
   const handleEditButton = (pet) => {
@@ -289,41 +295,53 @@ const DashboardPage = () => {
       petPrice: pet.petPrice || "",
       type: pet.type || "",
       weight: pet.weight || "",
-      images: null,
-      imagePreview: pet.images,
+      images: pet.images,
     });
-
+    setImagePreview({
+      image: pet.images,
+    });
     setEditModal((s) => !s);
   };
 
   // Close offcanvas
   const handleEditOffcanvasClose = () => {
     setSelectedPet(null);
+    setPetInfo({});
+    setImagePreview({
+      image: "",
+      file: "",
+      flag: true,
+    });
     setEditModal(false);
   };
 
   // Function to handle image selection
   const handleImageChange = (e) => {
-    const MAX_SIZE_MB = 3;
+    const MAX_SIZE_MB = 2;
     const file = e.target.files[0];
 
     if (file) {
       // Check the file size
       const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
 
-      if (fileSizeMB > MAX_SIZE_MB) {
-        setPetInfo((prevPet) => ({
-          ...prevPet,
-          images: "", // Reset the image
-        }));
-        // console.log("test");
-        return; // Exit the function if the file is too large
+      if (fileSizeMB < MAX_SIZE_MB) {
+         // Exit the function if the file is too large
+         setImagePreview({
+          image: URL.createObjectURL(file),
+          file: file,
+          flag: true,
+        });
       } else {
-        setPetInfo((prevPet) => ({
-          ...prevPet,
-          images: file, // Store the actual file for uploading
-          imagePreview: URL.createObjectURL(file), // Create a preview URL
-        }));
+        setImagePreview({
+          image: petInfo.images,
+          flag: false,
+        });
+        setAlertMessage("Image is too large. Please select an image under 2MB.");
+        setAlertType("error");
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
     }
   };
@@ -340,7 +358,8 @@ const DashboardPage = () => {
       !petInfo.description ||
       !petInfo.gender ||
       !petInfo.type ||
-      !petInfo.weight
+      !petInfo.weight ||
+      !petInfo.images
     ) {
       setAlertMessage("All fields are required, except for pet price.");
       setAlertType("error");
@@ -367,14 +386,18 @@ const DashboardPage = () => {
       const updatedData = { ...petInfo };
 
       // If a new image is selected, upload it and get the URL
-      if (petInfo.images) {
-        const imageRef = ref(storage, `pets/${petInfo.images.name}`);
-        await uploadBytes(imageRef, petInfo.images);
+      if (imagePreview.flag && imagePreview.file) {
+        const oldImageUrl = petInfo.images; // Assuming petInfo.images contains the URL
+      const oldImageName = extractFileNameFromUrl(oldImageUrl);
+        const oldImageRef = ref(storage, oldImageName);;
+        // Delete the old image
+        console.log(oldImageName);
+        await deleteObject(oldImageRef); // Delete the old image
+        const imageRef = ref(storage, `test/${imagePreview.file.name}`);
+        await uploadBytes(imageRef, imagePreview.file);
         const url = await getDownloadURL(imageRef);
         updatedData.images = url; // Update the URL in the data to be sent to Firestore
-      } else {
-        updatedData.images = petInfo.imagePreview;
-      }
+      } 
       await updateDoc(doc(db, "pets", selectedPet.id), updatedData);
 
       //  Close the modal immediately
@@ -393,6 +416,15 @@ const DashboardPage = () => {
       setAlertType("error");
     }
   };
+
+  const extractFileNameFromUrl = (url) => {
+    // Split the URL to get the last part after the last slash
+    const parts = url.split("/");
+    const fileWithParams = parts[parts.length - 1]; // Get the last part of the URL
+    const fileName = fileWithParams.split("?")[0]; // Remove any query parameters if present
+    return decodeURIComponent(fileName); // Decode URI components to get the correct file name
+  };
+  
 
   //Alert Message and Type
   const [alertMessage, setAlertMessage] = useState("");
@@ -695,6 +727,8 @@ const DashboardPage = () => {
       {isEditModal && (
         <Modals.UpdateModal
           petInfo={petInfo}
+          imagePreview={imagePreview}
+          ref={fileInputRef}
           show={isEditModal}
           handleInputChange={handleInputChange}
           onHide={handleEditOffcanvasClose}

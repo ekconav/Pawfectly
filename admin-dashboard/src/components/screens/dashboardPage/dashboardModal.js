@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import styles from "./styles";
 import COLORS from "../../colors";
 import {
@@ -47,14 +47,19 @@ const DeleteModal = ({ onClose, show, children, onConfirm }) => {
 };
 
 // Update Modal Component
-const UpdateModal = ({
-  handleImageChange,
-  handleInputChange,
-  handleEditSubmit,
-  petInfo,
-  show,
-  onHide,
-}) => {
+const UpdateModal = forwardRef(
+  (
+    {
+      handleImageChange,
+      handleInputChange,
+      handleEditSubmit,
+      petInfo,
+      imagePreview,
+      show,
+      onHide,
+    },
+    ref // The forwarded ref is received as the second argument
+  ) => {
   return (
     <Offcanvas
       show={show}
@@ -224,7 +229,7 @@ const UpdateModal = ({
             />
           </Form.Group>
           <Form.Group className="mb-3">
-            {petInfo.imagePreview && (
+            {imagePreview.image && (
               <div
                 style={{
                   marginTop: "10px",
@@ -235,7 +240,7 @@ const UpdateModal = ({
               >
                 <img
                   src={
-                    petInfo.imagePreview || require("../../../const/user.png")
+                    imagePreview.image || require("../../../const/user.png")
                   }
                   alt="Pet"
                   style={styles.infoPicture}
@@ -244,9 +249,11 @@ const UpdateModal = ({
             )}
             <Form.Label>Change Image</Form.Label>
             <Form.Control
+              ref={ref}
               type="file"
               accept="image/*" // Allow only image files
-              onChange={handleImageChange} // Handle the file selection
+              onChange={handleImageChange}
+              required
             />
           </Form.Group>
         </Form>
@@ -260,8 +267,10 @@ const UpdateModal = ({
         </div>
       </Offcanvas.Body>
     </Offcanvas>
-  );
-};
+    );
+  }
+);
+
 // Image Modal Component
 const InformationModal = ({ petInfo, onClose }) => {
   return (
