@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
-import { db, auth } from "../../../FirebaseConfig";
+import { db} from "../../../FirebaseConfig";
 import {
   collection,
   onSnapshot,
@@ -121,7 +121,6 @@ const AdminsPage = () => {
 
     // Validate passwords match
     if (newAdmin.password !== newAdmin.confirmPassword) {
-      alert("Passwords do not match!");
       setAlertMessage("Passwords do not match!");
       setAlertType("error");
       return;
@@ -300,6 +299,7 @@ const AdminsPage = () => {
       return;
     }
     try {
+      setLoading(true);
       const formattedMobileNumber = `+63${newAdmin.mobileNumber}`;
 
       const userDocRef = doc(db, "admin", selectedAdmin.id);
@@ -328,10 +328,15 @@ const AdminsPage = () => {
       });
 
       setUpdateModalOpen(false);
-      setAlertMessage("Admin has been successdully updated.");
-      setAlertType("success");
+
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("Admin has been successdully updated.");
+        setAlertType("success");
+      }, 1000);
+      
     } catch (error) {
-      console.log(error);
+      setLoading(false);
       setAlertMessage("Error updating admin.");
       setAlertType("error");
     }
@@ -349,6 +354,7 @@ const AdminsPage = () => {
     if (!selectedAdmin) return;
 
     try {
+      setLoading(true);
       // Attempt to delete the user from Firebase Authentication via backend API first
       const response = await fetch(
         `http://localhost:5000/deleteUser/${selectedAdmin.id}`,
@@ -374,11 +380,16 @@ const AdminsPage = () => {
       );
 
       // Close modal and reset selected user
-      setDeleteAdminModalOpen(false);
       setSelectedAdmin(null);
-      setAlertMessage("Admin has been successfully deleted.");
-      setAlertType("success");
+      setDeleteAdminModalOpen(false);
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("Admin has been successfully deleted.");
+        setAlertType("success");
+      }, 1000); 
+      
     } catch (error) {
+      setLoading(false);
       setAlertMessage("Failed to delete admin.");
       setAlertType("error");
     }

@@ -10,7 +10,7 @@ const SuccessAlert = ({ children }) => {
             width: '100%',
             position: 'fixed',
             top: '20px',
-            zIndex: 9999,
+            zIndex: 8888,
             display: 'flex',
             justifyContent: 'center', // Center horizontally
             alignItems: 'center', // Center vertically
@@ -33,7 +33,7 @@ const ErrorAlert = ({ children }) => {
             width: '100%',
             position: 'fixed',
             top: '20px',
-            zIndex: 9999,
+            zIndex: 8888,
             display: 'flex',
             justifyContent: 'center', // Center horizontally
             alignItems: 'center', // Center vertically

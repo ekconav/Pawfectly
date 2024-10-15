@@ -1,6 +1,5 @@
 import { StyleSheet } from "react-native";
 import COLORS from "../../colors";
-import zIndex from "@mui/material/styles/zIndex";
 
 const styles = StyleSheet.create({
   pageTitle: {

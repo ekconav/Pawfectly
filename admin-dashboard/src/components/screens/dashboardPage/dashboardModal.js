@@ -237,7 +237,7 @@ const UpdateModal = ({
                   src={
                     petInfo.imagePreview || require("../../../const/user.png")
                   }
-                  alt="Pet Image"
+                  alt="Pet"
                   style={styles.infoPicture}
                 />
               </div>

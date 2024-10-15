@@ -130,6 +130,7 @@ const TOSPage = () => {
     };
 
     try {
+      setLoading(true);
       // Check if the order number already exists
       const existingTOS = await getDocs(collection(db, "TOS"));
       const existingEntries = existingTOS.docs.map((doc) => ({
@@ -169,10 +170,13 @@ const TOSPage = () => {
       await addDoc(collection(db, "TOS"), newTOS);
 
       handleCloseCreateTOSModal();
-      setAlertMessage(`New TOS has been added`);
-      setAlertType("success");
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage(`New TOS has been added`);
+       setAlertType("success");
+      }, 1000);
     } catch (error) {
-      console.error("Error adding TOS:", error); // Log the error
+      setLoading(false);
       setAlertMessage(`Failed to add new TOS`);
       setAlertType("error");
     }
@@ -222,6 +226,7 @@ const TOSPage = () => {
   const handleConfirmDelete = async () => {
     if (selectedTOS?.id) {
       try {
+        setLoading(true);
         // delete the selected in the firebase
         const docRef = doc(db, "TOS", selectedTOS.id);
         await deleteDoc(docRef);
@@ -242,10 +247,14 @@ const TOSPage = () => {
         });
         await batch.commit();
 
-        setAlertMessage(`TOS entry has been deleted`);
-        setAlertType("success");
         setDeleteTOSModalOpen(false);
+        setTimeout(() => {
+          setLoading(false);
+          setAlertMessage(`TOS entry has been deleted`);
+          setAlertType("success");
+        }, 1000);
       } catch (error) {
+        setLoading(false);
         setAlertMessage(`Error deleting TOS entry`);
         setAlertType("error");
       }
@@ -279,15 +288,22 @@ const TOSPage = () => {
     }
 
     try {
+      setLoading(true);
       const docRef = doc(db, "TOS", selectedTOS.id);
       await updateDoc(docRef, {
         title: createTOS.title,
         description: createTOS.description,
       });
-      setAlertMessage("TOS entry has been successfully updated.");
-      setAlertType("success");
+
       setEditTOSModalOpen(false);
+      
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("TOS entry has been successfully updated.");
+        setAlertType("success");
+      }, 1000);
     } catch (error) {
+      setLoading(true);
       setAlertMessage("Failed to update TOS entry.");
       setAlertType("error");
     }
@@ -309,6 +325,7 @@ const TOSPage = () => {
   // Turn termsAccpeted to false to all users
   const handleNotifyTOS = async () => {
     try {
+      setLoading(true);
       const usersCollectionRef = collection(db, "users");
       const sheltersCollectionRef = collection(db, "shelters");
 
@@ -341,9 +358,14 @@ const TOSPage = () => {
       await batch.commit();
 
       setNotifyTOSModalOpen(false);
-      setAlertMessage("Users have been successfully notified of the new TOS.");
-      setAlertType("success");
+
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("Users have been successfully notified of the new TOS.");
+        setAlertType("success");
+      }, 1000);
     } catch (error) {
+      setLoading(false);
       setAlertMessage("Error notifying users about the new TOS.");
       setAlertType("error");
     }

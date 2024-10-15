@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   },
   adminGridCols: {
     display: "grid",
-    gridTemplateRows: "10vh 1fr 1fr 1fr 1fr", 
+    gridTemplateRows: "7vh 1fr 1fr 1fr 1fr 1fr", 
     gap: "10px",
     height: "67vh",
     width: "80vw",

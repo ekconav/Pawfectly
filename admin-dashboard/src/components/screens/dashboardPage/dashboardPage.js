@@ -12,7 +12,7 @@ import {
   doc,
 } from "firebase/firestore";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
-import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
+import { PieChart} from "@mui/x-charts/PieChart";
 import { Form, InputGroup, Container, Row, Col } from "react-bootstrap";
 import COLORS from "../../colors";
 import Modals from "./dashboardModal";
@@ -240,16 +240,26 @@ const DashboardPage = () => {
     }
 
     try {
+      setLoading(true);
       const petRef = doc(db, "pets", selectedPet.id);
       await deleteDoc(petRef); // delete the document
       console.log(`Pet with ID ${selectedPet.id} deleted.`);
 
-      setAlertMessage("Successfully Deleted Pet");
-      setAlertType("success");
+      
       // Close the modal and clear the selected pet
-      setDeleteModal(false);
       setSelectedPet(null);
+      // Close modal with a delay, then set loading to false
+      
+      setDeleteModal(false);
+      // Set another delay for setting loading to false
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("Successfully Deleted Pet");
+        setAlertType("success");
+      }, 1000);
+      
     } catch (error) {
+      setLoading(false);
       setAlertMessage("Error Deleting Pet");
       setAlertType("error");
     }
@@ -352,6 +362,7 @@ const DashboardPage = () => {
     }
 
     try {
+      setLoading(true);
       // Prepare the updated data object
       const updatedData = { ...petInfo };
 
@@ -365,12 +376,19 @@ const DashboardPage = () => {
         updatedData.images = petInfo.imagePreview;
       }
       await updateDoc(doc(db, "pets", selectedPet.id), updatedData);
-      setAlertMessage("Successfully Updated Pet");
-      setAlertType("success");
 
-      // Close the modal or reset state here
+      //  Close the modal immediately
       setEditModal(false);
+
+      // Add a delay before setting loading to false and displaying the alert message
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("Successfully Updated Pet");
+        setAlertType("success");
+      }, 1000); 
+            
     } catch (error) {
+      setLoading(false);
       setAlertMessage("Error Updating Pet");
       setAlertType("error");
     }
