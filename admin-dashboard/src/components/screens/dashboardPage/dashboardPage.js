@@ -628,7 +628,7 @@ const DashboardPage = () => {
                           style={{ ...styles.line, cursor: "pointer" }}
                           onClick={() => handleViewSelectedPet(pet)}
                         >
-                          {pet.name}
+                          {pet.name.length > 7 ? `${pet.name.slice(0, 7)}...` : pet.name}
                         </p>
                         <p
                           style={{ ...styles.line, cursor: "pointer" }}
