@@ -18,6 +18,7 @@ import {
   query,
   updateDoc,
   where,
+  getDoc,
 } from "firebase/firestore";
 import { auth, db, storage } from "../../FirebaseConfig";
 import { ref, getDownloadURL } from "firebase/storage";
@@ -43,7 +44,6 @@ const Tab = createBottomTabNavigator();
 const HomeScreen = () => {
   const [pets, setPets] = useState([]);
   const [allPetsPostedByMe, setAllPetsPostedByMe] = useState([]);
-  const [firstName, setFirstName] = useState("");
   const [allPets, setAllPets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,7 +67,90 @@ const HomeScreen = () => {
   const [termsModal, setTermsModal] = useState(false);
   const [tosItems, setTosItems] = useState([]);
 
+  const [notifPressed, setNotifPressed] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+
   const navigation = useNavigation();
+
+  const userId = auth.currentUser.uid;
+  const [counter, setCounter] = useState(0);
+
+  useEffect(() => {
+    if (userId) {
+      const notificationsRef = collection(db, "users", userId, "notifications");
+      const q = query(notificationsRef, where("seen", "==", false));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const count = snapshot.docs.length;
+        setCounter(count);
+      });
+      return () => unsubscribe();
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    const unsubscribe = fetchNotifications();
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const fetchNotifications = () => {
+    const notificationsRef = collection(
+      db,
+      "users",
+      auth.currentUser.uid,
+      "notifications"
+    );
+
+    const notificationsQuery = query(notificationsRef, orderBy("timestamp", "desc"));
+
+    const unsubscribe = onSnapshot(notificationsQuery, async (snapshot) => {
+      setNotifLoading(true);
+
+      const notificationsList = await Promise.all(
+        snapshot.docs.map(async (notificationDoc) => {
+          const notificationData = notificationDoc.data();
+          const fromUserId = notificationData.from;
+
+          const userDocRef = doc(db, "users", fromUserId);
+          const userDoc = await getDoc(userDocRef);
+
+          let senderName = "Pawfectly User";
+          let profile = null;
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            senderName = `${userData.firstName} ${userData.lastName}`; // Assuming users have firstName and lastName fields
+            profile = userData.accountPicture;
+          } else {
+            const shelterDocRef = doc(db, "shelters", fromUserId);
+            const shelterDoc = await getDoc(shelterDocRef);
+
+            if (shelterDoc.exists()) {
+              const shelterData = shelterDoc.data();
+              senderName = shelterData.shelterName;
+              profile = shelterData.accountPicture;
+            }
+          }
+
+          return {
+            id: notificationDoc.id,
+            ...notificationData,
+            senderName,
+            profile,
+          };
+        })
+      );
+
+      setNotifications(notificationsList);
+      setNotifLoading(false);
+    });
+
+    return unsubscribe; // Return the unsubscribe function to clean up the listener
+  };
 
   useEffect(() => {
     const unsubscribePets = fetchPets();
@@ -82,7 +165,6 @@ const HomeScreen = () => {
               ? { uri: userData.accountPicture }
               : require("../../components/user.png")
           );
-          setFirstName(userData.firstName || "");
           setUserVerified(userData.verified);
           setTermsAccepted(userData.termsAccepted);
         }
@@ -339,6 +421,24 @@ const HomeScreen = () => {
     }
   };
 
+  const handleNotification = async (item) => {
+    try {
+      const notificationRef = doc(
+        db,
+        "users",
+        auth.currentUser.uid,
+        "notifications",
+        item.id
+      );
+
+      await updateDoc(notificationRef, {
+        seen: true,
+      });
+    } catch (error) {
+      console.error("Error updating notification: ", error);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -347,10 +447,60 @@ const HomeScreen = () => {
     );
   }
 
+  const renderItem = ({ item }) => {
+    return (
+      <TouchableOpacity
+        style={item.seen ? styles.notificationItem : styles.notificationItemNotSeen}
+        onPress={() => handleNotification(item)}
+      >
+        {item.profile ? (
+          <Image source={{ uri: item.profile }} style={styles.profile} />
+        ) : (
+          <Image
+            source={require("../../components/user.png")}
+            style={styles.profile}
+          />
+        )}
+        <View style={styles.titleText}>
+          <Text style={styles.notifTitle}>
+            {item.title ? item.title : "Pawfectly User"}
+          </Text>
+          <Text style={styles.notifText}>
+            {item.text ? item.text : "Account Deleted"}
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              width: "90%",
+            }}
+          >
+            <Text style={styles.from}>
+              From: {item.senderName ? item.senderName : "Pawfectly User"}
+            </Text>
+            <Text style={styles.fromDate}>
+              {new Date(item.timestamp.seconds * 1000).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.accountName}>Welcome, {firstName}!</Text>
+        <TouchableOpacity
+          style={styles.notifBtn}
+          onPress={() => setNotifPressed(true)}
+        >
+          <Ionicons name="notifications-outline" size={22} color={COLORS.prim} />
+          {counter > 0 && (
+            <View style={styles.counter}>
+              <Text style={styles.counterText}>{counter}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("Set")}>
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
@@ -687,6 +837,33 @@ const HomeScreen = () => {
           >
             <Text style={styles.updateCancelButtonText}>Close</Text>
           </TouchableOpacity>
+        </View>
+      </Modal>
+      <Modal visible={notifPressed} onRequestClose={() => setNotifPressed(false)}>
+        <View style={styles.notifModalOverlay}>
+          <View style={styles.notifContainer}>
+            {notifLoading ? (
+              <View style={{ flex: 1, justifyContent: "center" }}>
+                <ActivityIndicator size="small" color={COLORS.prim} />
+              </View>
+            ) : notifications.length === 0 && !notifLoading ? (
+              <View style={{ flex: 1, justifyContent: "center" }}>
+                <Text style={styles.noNotifText}>No notifications yet.</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={notifications}
+                keyExtractor={(item) => item.id}
+                renderItem={renderItem}
+              />
+            )}
+            <TouchableOpacity
+              onPress={() => setNotifPressed(false)}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeText}>Close</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>

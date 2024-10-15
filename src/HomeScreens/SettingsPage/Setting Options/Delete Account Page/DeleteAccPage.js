@@ -55,6 +55,7 @@ const DeleteAccPage = () => {
         const petsAdoptedRef = collection(db, "users", user.uid, "petsAdopted");
         const adoptedByRef = collection(db, "users", user.uid, "adoptedBy");
         const adoptedFromRef = collection(db, "users", user.uid, "adoptedFrom");
+        const notificationsRef = collection(db, "users", user.uid, "notifications");
 
         const conversationsSnapshot = await getDocs(conversationsRef);
         for (const conversation of conversationsSnapshot.docs) {
@@ -67,6 +68,7 @@ const DeleteAccPage = () => {
         await deleteSubcollection(petsAdoptedRef);
         await deleteSubcollection(adoptedByRef);
         await deleteSubcollection(adoptedFromRef);
+        await deleteSubcollection(notificationsRef);
 
         const q = query(petsRef, where("userId", "==", user.uid));
         const querySnapshot = await getDocs(q);
