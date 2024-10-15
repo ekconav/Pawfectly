@@ -367,11 +367,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.outline,
     overflow: "hidden",
   },
-  closeButton: {
-    position: "absolute",
-    bottom: 20,
-    right: 20,
-  },
   closeText: {
     color: COLORS.prim,
     fontFamily: "Poppins_500Medium",

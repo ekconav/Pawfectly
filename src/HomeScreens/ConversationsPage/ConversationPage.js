@@ -472,7 +472,7 @@ const ConversationPage = ({ navigation }) => {
           <Text style={styles.noConversationsText}>You have no conversations.</Text>
         </View>
       ) : (
-        <View>
+        <View style={{ flex: 1 }}>
           {conversationLoading ? (
             <ActivityIndicator
               style={{ top: 50 }}
@@ -491,13 +491,13 @@ const ConversationPage = ({ navigation }) => {
                   const senderId = lastMessages[item.id]?.senderId;
                   lastMessageText =
                     senderId === currentUser.uid
-                      ? "You sent a photo"
+                      ? "You sent a photo."
                       : `${shelterNames[item.id]} sent a photo.`;
                 } else if (lastMessageText === "Image") {
                   const senderId = lastMessages[item.id]?.senderId;
                   lastMessageText =
                     senderId === currentUser.uid
-                      ? "You sent a photo"
+                      ? "You sent a photo."
                       : `${shelterNames[item.id]} sent a photo.`;
                 }
 

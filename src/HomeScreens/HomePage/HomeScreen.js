@@ -439,6 +439,10 @@ const HomeScreen = () => {
     }
   };
 
+  const toggleModal = () => {
+    setNotifPressed(!notifPressed);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -490,10 +494,7 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.notifBtn}
-          onPress={() => setNotifPressed(true)}
-        >
+        <TouchableOpacity style={styles.notifBtn} onPress={toggleModal}>
           <Ionicons name="notifications-outline" size={22} color={COLORS.prim} />
           {counter > 0 && (
             <View style={styles.counter}>
@@ -839,7 +840,12 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
       </Modal>
-      <Modal visible={notifPressed} onRequestClose={() => setNotifPressed(false)}>
+      <Modal
+        visible={notifPressed}
+        animationType="fade"
+        onBackdropPress={toggleModal}
+        onRequestClose={() => setNotifPressed(false)}
+      >
         <View style={styles.notifModalOverlay}>
           <View style={styles.notifContainer}>
             {notifLoading ? (
@@ -857,12 +863,6 @@ const HomeScreen = () => {
                 renderItem={renderItem}
               />
             )}
-            <TouchableOpacity
-              onPress={() => setNotifPressed(false)}
-              style={styles.closeButton}
-            >
-              <Text style={styles.closeText}>Close</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>

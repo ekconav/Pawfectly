@@ -21,6 +21,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, db, storage } from "../../FirebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { WebView } from "react-native-webview";
 import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
 import COLORS from "../../const/colors";
@@ -44,6 +45,9 @@ const SettingsPage = () => {
   const [petsAdopted, setPetsAdopted] = useState([]);
 
   const [petsSuccessPaws, setPetsSuccessPaws] = useState([]);
+
+  const [mapModalVisible, setMapModalVisible] = useState(false);
+  const [getAddress, setGetAddress] = useState("");
 
   const navigation = useNavigation();
 
@@ -70,6 +74,8 @@ const SettingsPage = () => {
               setCoverImage(require("../../components/landingpage.png"));
             }
 
+            setGetAddress(data.address);
+
             setCheckVerify(data.verified === true);
           } else {
             console.log("No such document");
@@ -87,6 +93,10 @@ const SettingsPage = () => {
 
     return () => unsubscribe();
   }, []);
+
+  const googleMapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(
+    getAddress
+  )}`;
 
   // Fetch furbabies sub collection
   useEffect(() => {
@@ -290,6 +300,14 @@ const SettingsPage = () => {
     setChoicesModal(false);
   };
 
+  const toggleSetting = () => {
+    setIsSettingModalVisible(!isSettingModalVisible);
+  };
+
+  const toggleMapModal = () => {
+    setMapModalVisible(!mapModalVisible);
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -322,10 +340,7 @@ const SettingsPage = () => {
         >
           <Image source={profileImage} style={styles.profileImage} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.settingsIcon}
-          onPress={() => setIsSettingModalVisible(true)}
-        >
+        <TouchableOpacity style={styles.settingsIcon} onPress={toggleSetting}>
           <Ionicons name="settings-outline" size={26} color={COLORS.title} />
         </TouchableOpacity>
       </View>
@@ -354,7 +369,9 @@ const SettingsPage = () => {
             size={20}
             style={styles.userDetailsIcon}
           />
-          <Text style={styles.userDetailsText}>{userDetails.address}</Text>
+          <TouchableOpacity onPress={toggleMapModal}>
+            <Text style={styles.userDetailsTextAddress}>{userDetails.address}</Text>
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.furbabiesContainer}>
@@ -472,13 +489,10 @@ const SettingsPage = () => {
       <Modal
         visible={isSettingModalVisible}
         animationType="fade"
+        onBackdropPress={toggleSetting}
         onRequestClose={() => setIsSettingModalVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsSettingModalVisible(false)}
-        >
+        <View style={styles.modalOverlay}>
           <View style={styles.dropdownMenu}>
             {[
               "About Pawfectly",
@@ -497,7 +511,7 @@ const SettingsPage = () => {
               </TouchableOpacity>
             ))}
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
       {/* Alert Modal */}
@@ -536,6 +550,17 @@ const SettingsPage = () => {
             )}
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Modal map */}
+      <Modal
+        isVisible={mapModalVisible}
+        onBackdropPress={toggleMapModal}
+        onRequestClose={() => setMapModalVisible(false)}
+      >
+        <View style={styles.modalContent}>
+          <WebView source={{ uri: googleMapsUrl }} style={{ flex: 1 }} />
+        </View>
       </Modal>
     </View>
   );

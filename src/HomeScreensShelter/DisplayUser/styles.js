@@ -88,6 +88,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.title,
   },
+  infoDetailsTextAddress: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 14,
+    color: COLORS.title,
+    textDecorationLine: "underline",
+  },
   furbabiesContainer: {
     flex: 1,
     paddingHorizontal: 20,
@@ -302,6 +308,14 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
+  },
+
+  // Map
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 10,
+    height: 700,
   },
 });
 

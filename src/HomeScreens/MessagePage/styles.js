@@ -212,19 +212,21 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     color: COLORS.white,
-    fontFamily: "Poppins_400Regular", 
+    fontFamily: "Poppins_400Regular",
   },
 
   // Image Modal
-  modalOverlay: {
-    flex: 1,
-    flexDirection: "row",
+  modalContent: {
+    width: 300,
+    height: 200,
     justifyContent: "center",
     alignItems: "center",
   },
   expandedImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+    borderRadius: 10,
   },
 });
 
