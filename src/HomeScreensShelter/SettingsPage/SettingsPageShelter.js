@@ -411,7 +411,13 @@ const SettingsPageShelter = () => {
                       </View>
                       <View style={styles.petDetails}>
                         <View style={styles.petNameGender}>
-                          <Text style={styles.petName}>{item.name}</Text>
+                          <Text
+                            style={styles.petName}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {item.name}
+                          </Text>
                           <Ionicons
                             style={
                               item.gender.toLowerCase() === "male"
@@ -431,7 +437,13 @@ const SettingsPageShelter = () => {
                             }
                           />
                         </View>
-                        <Text style={styles.petBreedText}>{item.breed}</Text>
+                        <Text
+                          style={styles.petBreedText}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {item.breed}
+                        </Text>
                       </View>
                     </TouchableOpacity>
                   </View>

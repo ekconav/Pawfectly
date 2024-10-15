@@ -32,8 +32,8 @@ const styles = StyleSheet.create({
   },
   userDetails: {
     display: "grid",
-    gridTemplateColumns: "15vh 50vh 20vh 10vh",
-    gridTemplateRows: "repeat(5, 2fr)", // Increase row height by setting it to 2fr
+    gridTemplateColumns: "7vw 25vw 10vw 10vw",
+    gridTemplateRows: "repeat(5, 2fr)", 
     gap: "10px",
   },
   userDetailsLabel: {

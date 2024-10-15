@@ -25,6 +25,7 @@ import {
   updateDoc,
   onSnapshot,
   deleteDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
@@ -428,6 +429,36 @@ const DetailsPage = ({ route }) => {
       const petId = userDetails.id;
       const conversationId = `${userId}_${shelterId}_${petId}`;
       const messageText = `Hello, I would like to adopt ${petDetails.name}.`;
+
+      const shelterRef = doc(db, "shelters", shelterId);
+      const shelterSnap = await getDoc(shelterRef);
+      const userRef = doc(db, "users", shelterId);
+      const userSnap = await getDoc(userRef);
+      
+      if (shelterSnap.exists()) {
+        const notificationsRef = collection(
+          db,
+          "shelters",
+          shelterId,
+          "notifications"
+        );
+        await addDoc(notificationsRef, {
+          from: userId,
+          seen: false,
+          text: `Wants to adopt ${petDetails.name}.`,
+          timestamp: serverTimestamp(),
+          title: "Notice for Adoption",
+        });
+      } else if (userSnap.exists()) {
+        const notificationsRef = collection(db, "users", shelterId, "notifications");
+        await addDoc(notificationsRef, {
+          from: userId,
+          seen: false,
+          text: `Wants to adopt ${petDetails.name}.`,
+          timestamp: serverTimestamp(),
+          title: "Notice for Adoption",
+        });
+      }
 
       if (!isVerified) {
         setModalMessage("Your account is not yet verified.");

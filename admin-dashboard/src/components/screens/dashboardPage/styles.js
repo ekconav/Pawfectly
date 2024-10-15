@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import COLORS from "../../colors";
+import zIndex from "@mui/material/styles/zIndex";
 
 const styles = StyleSheet.create({
   pageTitle: {
@@ -43,10 +44,10 @@ const styles = StyleSheet.create({
     display: "grid",
     gridTemplateRows: "7vh repeat(7, 8vh)",
     gap: "5px",
-    height: "80vh",
+    height: "70vh",
     width: "auto",
     overflowY: "auto", // Enable vertical scrolling
-    maxHeight: "80vh",
+    maxHeight: "70vh",
   },
   summaryGridRows: {
     display: "grid",
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     marginTop: "10px",
     position: "sticky", 
     top: 0, 
-    zIndex: 1,
+    zIndex: 500,
     backgroundColor: COLORS.white,
   },
   IDline: {
@@ -96,6 +97,12 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 15,
   },
+  infoPicture: {
+    width: "15vw",
+    height: "20vh",
+    borderRadius: 15,
+    margin: 10,
+  },
 
   // Edit Button
   editIcon: {
@@ -105,6 +112,13 @@ const styles = StyleSheet.create({
     borderRadius: "6px",
     color: COLORS.prim,
     fontSize: "20px",
+  },
+
+  closeIcon: {
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    color: COLORS.prim,
+    fontSize: "40px",
   },
 
   //Modal Styles
@@ -118,14 +132,20 @@ const styles = StyleSheet.create({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    zIndex:1001,
   },
   modalContent: {
     backgroundColor: COLORS.white,
     padding: 20,
     borderRadius: 8,
-    width: 500,
+    width: 700,
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
     textAlign: "center",
+  },
+  modalTitle: {
+    fontWeight: 500,
+    fontFamily: "Poppins",
+    color: COLORS.title,
   },
   modalButtons: {
     display: "flex",
@@ -142,8 +162,8 @@ const styles = StyleSheet.create({
     cursor: "pointer",
   },
   cancelButton: {
-    backgroundColor: COLORS.outline,
-    color: COLORS.black,
+    backgroundColor: COLORS.subtitle,
+    color: COLORS.white,
     padding: 20,
     border: "none",
     borderRadius: 10,
@@ -159,12 +179,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   inputField: {
-    width: "100%",
-    padding: 10,
-    border: "1px solid",
-    borderColor: COLORS.outline,
-    borderRadius: 5,
-    boxSizing: "border-box",
+    border: `2px solid ${COLORS.prim}`,
+    borderRadius: 8,
   },
 
   dropdownScrollable: {
@@ -172,18 +188,18 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     border: `1px solid ${COLORS.prim}`,
     borderRadius: "4px",
-    maxHeight: "30vh", // Set maximum height for the dropdown
-    overflowY: "auto", // Enable vertical scroll
-    width: "20vw", // Match the width of the input
-    zIndex: 1000, // Ensure it stays above other elements
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Add shadow for depth
+    maxHeight: "30vh", 
+    overflowY: "auto", 
+    width: "20vw", 
+    zIndex: 1000, 
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", 
   },
   dropdownItem: {
     paddingLeft: "8px",
     paddingTop: "4px",
     cursor: "pointer",
     textAlign: "left",
-    transition: "background-color 0.2s ease", // Smooth transition for hover
+    transition: "background-color 0.2s ease", 
     backgroundColor: COLORS.white,
     color: COLORS.black,
   },
@@ -196,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: "25px",
     fontWeight: 100,
   },
+  
 });
 
 export default styles;
