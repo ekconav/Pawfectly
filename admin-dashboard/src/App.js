@@ -8,6 +8,7 @@ import AdminsPage from "./components/screens/adminsPage/adminsPage";
 import UsersPage from "./components/screens/usersPage/usersPage";
 import SheltersPage from "./components/screens/sheltersPage/sheltersPage";
 import TOSPage from "./components/screens/tosPage/tosPage";
+import Reports from "./components/screens/reportsPage/reports";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoadingSpinner from "./components/screens/loadingPage/loadingSpinner";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -59,6 +60,11 @@ function App() {
             path="/tos"
             element={<ProtectedRoute element={TOSPage} user={user} />}
           />
+          <Route
+            path="/reports"
+            element={<ProtectedRoute element={Reports} user={user} />}
+          />
+        
         </Routes>
       </Router>
     </div>

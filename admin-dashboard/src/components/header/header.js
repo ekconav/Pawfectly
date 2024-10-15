@@ -121,6 +121,20 @@ const Header = () => {
           >
             Terms of Service
           </NavLink>
+          <NavLink
+            to="/reports"
+            style={({ isActive }) =>
+              isActive
+                ? styles.linkActive
+                : hoveredLink === "reports"
+                ? styles.linkHover
+                : styles.link
+            }
+            onMouseEnter={() => setHoveredLink("reports")}
+            onMouseLeave={() => setHoveredLink(null)}
+          >
+            Reports
+          </NavLink>
         </div>
         <div style={styles.profile}>
           {profilePicture && (

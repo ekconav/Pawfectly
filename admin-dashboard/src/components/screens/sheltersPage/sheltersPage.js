@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
-import { db, auth } from "../../../FirebaseConfig";
+import { db} from "../../../FirebaseConfig";
 import {
   writeBatch,
   collection,
@@ -85,6 +85,7 @@ const ShelterPage = () => {
   const handleRowClick = (shelter) => {
     setSelectedShelter(shelter);
   };
+  
 
   //Verifcation Status
   const getVerificationStatus = (isVerified) => {
@@ -122,7 +123,6 @@ const ShelterPage = () => {
 
     setUpdateShelter({
       shelterName: shelter.shelterName || "",
-      address: shelter.address || "",
       mobileNumber: mobileNumberWithoutCountryCode || "",
       verified: shelter.verified || false,
     });
@@ -148,7 +148,6 @@ const ShelterPage = () => {
   const handleUpdateShelter = async () => {
     if (
       !updateShelter.shelterName ||
-      !updateShelter.address||
       !updateShelter.mobileNumber
     ) {
       setAlertMessage("All fields are required.");
@@ -181,7 +180,6 @@ const ShelterPage = () => {
       setSelectedShelter((prevShelter) => ({
         ...prevShelter,
         shelterName: updateShelter.shelterName,
-        address: updateShelter.address,
         mobileNumber: formattedMobileNumber,
         verified: updateShelter.verified,
       }));
@@ -230,6 +228,7 @@ const ShelterPage = () => {
       const subCollectionSnapshot = await getDocs(subCollectionRef);
 
       if (subCollectionSnapshot.empty) {
+        console.log(`Deleting sub-collection: ${subCollectionName} for shelter: ${shelterId}`);
         console.log("No documents found");
         return;
       }
@@ -280,7 +279,7 @@ const ShelterPage = () => {
         });
       }
       await batch.commit();
-    } catch (error) {
+    } catch (error) { 
       console.error(`Error deleting:`, error);
     }
   };
@@ -307,7 +306,7 @@ const ShelterPage = () => {
 
       // Now proceed with deleting the user's sub-collections from Firestore
       await deleteSubCollection(selectedShelter.id, "conversations", "messages");
-      // await deleteSubCollection(selectedUser.id, "favorites");
+      await deleteSubCollection(selectedShelter.id, "adoptedBy");
       // await deleteSubCollection(selectedUser.id, "furbabies");
       // await deleteSubCollection(selectedUser.id, "petsAdopted");
 
