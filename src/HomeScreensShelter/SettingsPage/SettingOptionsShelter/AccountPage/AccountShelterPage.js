@@ -140,6 +140,10 @@ const AccountPage = () => {
     }
   };
 
+  const toggleImageModal = () => {
+    setImageModalVisible(!imageModalVisible);
+  };
+
   const handleMobileNumberChange = (text) => {
     if (text.startsWith("+63")) {
       const newText = text.slice(3);
@@ -183,7 +187,7 @@ const AccountPage = () => {
           <View style={styles.accountContainer}>
             <TouchableOpacity
               style={styles.pictureButton}
-              onPress={() => setImageModalVisible(true)}
+              onPress={toggleImageModal}
             >
               {imageLoading ? (
                 <ActivityIndicator
@@ -287,17 +291,12 @@ const AccountPage = () => {
       </View>
       <Modal
         isVisible={imageModalVisible}
+        onBackdropPress={toggleImageModal}
         onRequestClose={() => setImageModalVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.imageModalOverlay}
-          activeOpacity={1}
-          onPress={() => setImageModalVisible(false)}
-        >
-          <View style={styles.modalImageContainer}>
-            <Image source={accountPicture} style={styles.modalProfileImage} />
-          </View>
-        </TouchableOpacity>
+        <View style={styles.modalImageContainer}>
+          <Image source={accountPicture} style={styles.modalProfileImage} />
+        </View>
       </Modal>
       <Modal isVisible={alertModal}>
         <View style={styles.modalContainer}>

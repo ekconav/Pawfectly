@@ -21,6 +21,7 @@ import {
   collection,
   orderBy,
 } from "firebase/firestore";
+import { WebView } from "react-native-webview";
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Modal from "react-native-modal";
@@ -47,6 +48,9 @@ const SettingsPageShelter = () => {
   // Choices
   const [selectedOption, setSelectedOption] = useState("Pets for Adoption");
 
+  const [mapModalVisible, setMapModalVisible] = useState(false);
+  const [getAddress, setGetAddress] = useState("");
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -72,6 +76,8 @@ const SettingsPageShelter = () => {
               setCoverImage(require("../../components/landingpage.png"));
             }
 
+            setGetAddress(data.address);
+
             setCheckVerify(data.verified === true);
           } else {
             console.log("No such document");
@@ -87,6 +93,10 @@ const SettingsPageShelter = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  const googleMapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(
+    getAddress
+  )}`;
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -272,6 +282,14 @@ const SettingsPageShelter = () => {
     }
   };
 
+  const toggleSetting = () => {
+    setIsSettingModalVisible(!isSettingModalVisible);
+  };
+
+  const toggleMapModal = () => {
+    setMapModalVisible(!mapModalVisible);
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -304,10 +322,7 @@ const SettingsPageShelter = () => {
         >
           <Image source={shelterImage} style={styles.shelterImage} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.settingsIcon}
-          onPress={() => setIsSettingModalVisible(true)}
-        >
+        <TouchableOpacity style={styles.settingsIcon} onPress={toggleSetting}>
           <Ionicons name="settings-outline" size={26} color={COLORS.title} />
         </TouchableOpacity>
       </View>
@@ -338,7 +353,11 @@ const SettingsPageShelter = () => {
         </View>
         <View style={styles.iconTextContainer}>
           <Ionicons name="location-outline" size={20} color={COLORS.prim} />
-          <Text style={styles.shelterDetailsText}>{shelterDetails.address}</Text>
+          <TouchableOpacity onPress={toggleMapModal}>
+            <Text style={styles.shelterDetailsTextAddress}>
+              {shelterDetails.address}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.furbabiesContainer}>
@@ -496,13 +515,10 @@ const SettingsPageShelter = () => {
       <Modal
         visible={isSettingModalVisible}
         animationType="fade"
+        onBackdropPress={toggleSetting}
         onRequestClose={() => setIsSettingModalVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.settingsModalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsSettingModalVisible(false)}
-        >
+        <View style={styles.settingsModalOverlay}>
           <View style={styles.dropdownMenu}>
             {[
               "About Pawfectly",
@@ -522,7 +538,14 @@ const SettingsPageShelter = () => {
               </TouchableOpacity>
             ))}
           </View>
-        </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Modal map */}
+      <Modal isVisible={mapModalVisible} onBackdropPress={toggleMapModal}>
+        <View style={styles.modalContent}>
+          <WebView source={{ uri: googleMapsUrl }} style={{ flex: 1 }} />
+        </View>
       </Modal>
     </View>
   );

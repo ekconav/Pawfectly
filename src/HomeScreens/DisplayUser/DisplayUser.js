@@ -21,6 +21,7 @@ import { db, auth, storage } from "../../FirebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
+import { WebView } from "react-native-webview";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
@@ -58,6 +59,9 @@ const DisplayUser = ({ route }) => {
   const [donationModal, setDonationModal] = useState(false);
   const [qrForDonation, setQrForDonation] = useState(null);
   const [accountDeleted, setAccountDeleted] = useState(false);
+
+  const [mapModalVisible, setMapModalVisible] = useState(false);
+  const [getAddress, setGetAddress] = useState("");
 
   const navigation = useNavigation();
 
@@ -108,6 +112,8 @@ const DisplayUser = ({ route }) => {
 
           setQrForDonation({ uri: shelterData.qrCode });
 
+          setGetAddress(shelterData.address);
+
           setCheckVerify(shelterData.verified === true);
         } else if (userDoc.exists()) {
           setUserToUser(true);
@@ -125,6 +131,8 @@ const DisplayUser = ({ route }) => {
               ? { uri: userData.coverPhoto }
               : require("../../components/landingpage.png")
           );
+
+          setGetAddress(userData.address);
 
           setCheckVerify(userData.verified === true);
         } else if (adoptedFromDoc.exists()) {
@@ -171,6 +179,10 @@ const DisplayUser = ({ route }) => {
 
     fetchData();
   }, [userId]);
+
+  const googleMapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(
+    getAddress
+  )}`;
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -343,6 +355,10 @@ const DisplayUser = ({ route }) => {
     setOpenReportModal(false);
   };
 
+  const toggleMapModal = () => {
+    setMapModalVisible(!mapModalVisible);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -416,7 +432,9 @@ const DisplayUser = ({ route }) => {
         </View>
         <View style={styles.iconTextContainer}>
           <Ionicons name="location-outline" size={20} color={COLORS.prim} />
-          <Text style={styles.infoDetailsText}>{userDetails.address}</Text>
+          <TouchableOpacity onPress={toggleMapModal}>
+            <Text style={styles.infoDetailsTextAddress}>{userDetails.address}</Text>
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.furbabiesContainer}>
@@ -628,6 +646,13 @@ const DisplayUser = ({ route }) => {
               </TouchableOpacity>
             )}
           </View>
+        </View>
+      </Modal>
+
+      {/* Modal map */}
+      <Modal isVisible={mapModalVisible} onBackdropPress={toggleMapModal}>
+        <View style={styles.modalContent}>
+          <WebView source={{ uri: googleMapsUrl }} style={{ flex: 1 }} />
         </View>
       </Modal>
     </View>
