@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
-import { db, auth } from "../../../FirebaseConfig";
+import { db} from "../../../FirebaseConfig";
 import {
   writeBatch,
   collection,
@@ -11,7 +11,6 @@ import {
   getDocs,
   doc,
   query,
-  limit,
 } from "firebase/firestore";
 import Modal from "./usersModal";
 import Alerts from "./alert";
@@ -98,16 +97,6 @@ const UsersPage = () => {
   // Edit Modal
   const [isUpdateUserModalOpen, setIsUpdateUserModalOpen] = useState(false);
 
-  // Close Modal
-  const handleCloseUpdateUserModal = () => {
-    setIsUpdateUserModalOpen(false);
-    setUpdateUser({
-      firstName: "",
-      lastName: "",
-      mobileNumber: "",
-      verified: false,
-    });
-  };
   const [updateUser, setUpdateUser] = useState({
     firstName: "",
     lastName: "",
@@ -129,13 +118,6 @@ const UsersPage = () => {
     setIsUpdateUserModalOpen(true);
   };
 
-  // Verification Switch
-  const handleSwitchChange = (event) => {
-    setUpdateUser((prev) => ({
-      ...prev,
-      verified: event.target.checked,
-    }));
-  };
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUpdateUser((prev) => ({
@@ -167,6 +149,7 @@ const UsersPage = () => {
     }
 
     try {
+      setLoading(true);
       const formattedMobileNumber = `+63${updateUser.mobileNumber}`;
 
       const userDocRef = doc(db, "users", selectedUser.id);
@@ -195,11 +178,17 @@ const UsersPage = () => {
         );
         return updatedUsers;
       });
-
+      
       setIsUpdateUserModalOpen(false);
-      setAlertMessage("Adopter has been successdully updated.");
-      setAlertType("success");
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("Adopter has been successdully updated.");
+        setAlertType("success");  
+      }, 1000);
+      
+      
     } catch (error) {
+      setLoading(false);
       setAlertMessage("Error updating user.");
       setAlertType("error");
     }
@@ -290,6 +279,7 @@ const UsersPage = () => {
     if (!selectedUser) return;
 
     try {
+      setLoading(true);
       // Attempt to delete the user from Firebase Authentication via backend API first
       const response = await fetch(
         `http://localhost:5000/deleteUser/${selectedUser.id}`,
@@ -321,11 +311,16 @@ const UsersPage = () => {
       );
 
       // Close modal and reset selected user
-      setDeleteUserModalOpen(false);
       setSelectedUser(null);
-      setAlertMessage("Adopter has been successfully deleted.");
-      setAlertType("success");
+      setDeleteUserModalOpen(false);
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("Adopter has been successfully deleted.");
+        setAlertType("success"); 
+      }, 1000);
+      
     } catch (error) {
+      setLoading(false);
       setAlertMessage("Failed to delete user and associated data.");
       setAlertType("error");
     }
@@ -335,11 +330,6 @@ const UsersPage = () => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
 
-  // Function to open the image modal
-  const openImageModal = (url) => {
-    setSelectedImageUrl(url);
-    setIsImageModalOpen(true);
-  };
 
   //Alert Message and Type
   const [alertMessage, setAlertMessage] = useState("");
