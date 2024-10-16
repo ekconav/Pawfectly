@@ -11,6 +11,7 @@ import {
   getDocs,
   doc,
   query,
+  where,
 } from "firebase/firestore";
 import Modal from "./usersModal";
 import Alerts from "./alert";
@@ -274,6 +275,35 @@ const UsersPage = () => {
     }
   };
 
+  // deletePosts of the user
+  const deleteUserPosts = async (userId) => {
+    try {
+      // Reference to the "pets" collection
+      const petsCollectionRef = collection(db, "pets");
+      // Query to find documents where userID matches the given userId
+      const userPostsQuery = query(petsCollectionRef, where("userId", "==", userId));
+      const userPostsSnapshot = await getDocs(userPostsQuery);
+  
+      if (userPostsSnapshot.empty) {
+        console.log("No user posts found");
+        return;
+      }
+  
+      const batch = writeBatch(db);
+  
+      // Delete each post document associated with the user
+      userPostsSnapshot.forEach((postDoc) => {
+        const postDocRef = postDoc.ref;
+        batch.delete(postDocRef);
+      });
+  
+      await batch.commit();
+      console.log("User posts deleted successfully");
+    } catch (error) {
+      console.error("Error deleting user posts:", error);
+    }
+  };
+
   // Main delete user function
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
@@ -300,6 +330,12 @@ const UsersPage = () => {
       await deleteSubCollection(selectedUser.id, "favorites");
       await deleteSubCollection(selectedUser.id, "furbabies");
       await deleteSubCollection(selectedUser.id, "petsAdopted");
+      await deleteSubCollection(selectedUser.id, "adoptedBy");
+      await deleteSubCollection(selectedUser.id, "adoptedFrom");
+      await deleteSubCollection(selectedUser.id, "notifications");
+
+      // Delete the user's posts in the "pets" collection
+      await deleteUserPosts(selectedUser.id);
 
       // Then delete the main user document
       const userDocRef = doc(db, "users", selectedUser.id);
