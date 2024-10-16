@@ -415,7 +415,7 @@ const ConversationPageShelter = ({ navigation }) => {
           <Text style={styles.noConversationsText}>You have no conversations.</Text>
         </View>
       ) : (
-        <View>
+        <View style={{ flex: 1 }}>
           {conversationLoading ? (
             <ActivityIndicator
               style={{ top: 50 }}

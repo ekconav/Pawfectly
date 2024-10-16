@@ -21,6 +21,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { WebView } from "react-native-webview";
 import * as ImagePicker from "expo-image-picker";
 import Modal from "react-native-modal";
 import COLORS from "../../const/colors";
@@ -53,6 +54,9 @@ const DisplayUserPage = ({ route }) => {
   const [modalMessage, setModalMessage] = useState("");
   const [accountDeleted, setAccountDeleted] = useState(false);
 
+  const [mapModalVisible, setMapModalVisible] = useState(false);
+  const [getAddress, setGetAddress] = useState("");
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -77,6 +81,8 @@ const DisplayUserPage = ({ route }) => {
               ? { uri: userData.coverPhoto }
               : require("../../components/landingpage.png")
           );
+
+          setGetAddress(userData.address);
 
           setCheckVerify(userData.verified === true);
         } else {
@@ -116,6 +122,10 @@ const DisplayUserPage = ({ route }) => {
     };
     fetchData();
   }, [userId]);
+
+  const googleMapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(
+    getAddress
+  )}`;
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -259,6 +269,10 @@ const DisplayUserPage = ({ route }) => {
     setOpenReportModal(false);
   };
 
+  const toggleMapModal = () => {
+    setMapModalVisible(!mapModalVisible);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -310,7 +324,9 @@ const DisplayUserPage = ({ route }) => {
         </View>
         <View style={styles.iconTextContainer}>
           <Ionicons name="location-outline" size={20} color={COLORS.prim} />
-          <Text style={styles.infoDetailsText}>{userDetails.address}</Text>
+          <TouchableOpacity onPress={toggleMapModal}>
+            <Text style={styles.infoDetailsTextAddress}>{userDetails.address}</Text>
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.furbabiesContainer}>
@@ -479,6 +495,13 @@ const DisplayUserPage = ({ route }) => {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+      </Modal>
+
+      {/* Modal map */}
+      <Modal isVisible={mapModalVisible} onBackdropPress={toggleMapModal}>
+        <View style={styles.modalContent}>
+          <WebView source={{ uri: googleMapsUrl }} style={{ flex: 1 }} />
         </View>
       </Modal>
     </View>

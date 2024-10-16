@@ -85,6 +85,12 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.title,
   },
+  shelterDetailsTextAddress: {
+    fontFamily: "Poppins_400Regular",
+    fontSize: 14,
+    color: COLORS.title,
+    textDecorationLine: "underline",
+  },
   furbabiesContainer: {
     flex: 1,
     paddingHorizontal: 20,
@@ -203,7 +209,7 @@ export const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     textAlign: "center",
   },
-  
+
   // Alert Modal
   modalContainer: {
     backgroundColor: COLORS.white,
@@ -253,5 +259,13 @@ export const styles = StyleSheet.create({
     color: COLORS.title,
     fontFamily: "Poppins_400Regular",
     textAlign: "right",
+  },
+
+  // Map
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 10,
+    height: 700,
   },
 });

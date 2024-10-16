@@ -272,7 +272,11 @@ const MessagePageShelter = ({ route }) => {
   const handleSendImage = async (imageUri) => {
     setSendLoading(true);
     try {
-      const imageRef = ref(storage, `images/${Date.now()}_${currentUser.uid}`);
+      const timestamp = new Date().getTime();
+      const imageRef = ref(
+        storage,
+        `shelters/messages/${currentUser.uid}/${currentUser.uid}_${userId}/${timestamp}`
+      );
       const img = await fetch(imageUri);
       const bytes = await img.blob();
       await uploadBytes(imageRef, bytes);
@@ -459,8 +463,8 @@ const MessagePageShelter = ({ route }) => {
     setImageModalVisible(true);
   };
 
-  const closeModal = () => {
-    setImageModalVisible(false);
+  const toggleModal = () => {
+    setImageModalVisible(!imageModalVisible);
     setSelectedImage(null);
   };
 
@@ -666,18 +670,15 @@ const MessagePageShelter = ({ route }) => {
           </View>
         </View>
       </Modal>
-      <Modal isVisible={imageModalVisible} onRequestClose={closeModal}>
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={closeModal}
-        >
-          <Image
-            source={{ uri: selectedImage }}
-            style={styles.expandedImage}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
+      <Modal
+        isVisible={imageModalVisible}
+        onBackdropPress={toggleModal}
+        onRequestClose={() => setImageModalVisible(false)}
+        style={{ justifyContent: "center", alignItems: "center" }}
+      >
+        <View style={styles.modalContent}>
+          <Image source={{ uri: selectedImage }} style={styles.expandedImage} />
+        </View>
       </Modal>
     </View>
   );

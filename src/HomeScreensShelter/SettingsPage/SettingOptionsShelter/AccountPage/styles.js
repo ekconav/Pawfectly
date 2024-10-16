@@ -83,10 +83,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     textAlign: "center",
   },
-  imageModalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-  },
   modalImageContainer: {
     flexGrow: 1,
     justifyContent: "center",
@@ -94,6 +90,7 @@ const styles = StyleSheet.create({
   modalProfileImage: {
     width: "100%",
     height: 300,
+    borderRadius: 10,
   },
   modalContainer: {
     backgroundColor: COLORS.white,
