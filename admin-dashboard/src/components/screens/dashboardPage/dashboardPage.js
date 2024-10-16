@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
 import { db, storage } from "../../../FirebaseConfig";
-import { deleteObject,ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import {
+  deleteObject,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 import {
   collection,
   onSnapshot,
@@ -12,7 +17,7 @@ import {
   doc,
 } from "firebase/firestore";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
-import { PieChart} from "@mui/x-charts/PieChart";
+import { PieChart } from "@mui/x-charts/PieChart";
 import { Form, InputGroup, Container, Row, Col } from "react-bootstrap";
 import COLORS from "../../colors";
 import Modals from "./dashboardModal";
@@ -47,7 +52,7 @@ const DashboardPage = () => {
     );
 
     return () => unsubscribe(); // Clean up the listener on unmount
-  }, []);
+  }, [shelterStats]);
 
   const [shelterSearch, setShelterSearch] = useState(""); // For input value
   const [allShelters, setAllShelters] = useState([]); // Store all shelters from Firestore
@@ -111,7 +116,7 @@ const DashboardPage = () => {
     if (!selectedShelterId) {
       setFilteredPets(pets);
     }
-  }, [selectedShelterId, pets]); // Run this effect wh
+  }, [selectedShelterId, pets]);
 
   const handleSearchPets = () => {
     if (selectedShelterId) {
@@ -229,7 +234,6 @@ const DashboardPage = () => {
     setDeleteModal(true);
   };
 
-
   // Delete the selected pet
   const handleDeleteSelectedPet = async () => {
     if (!selectedPet || !selectedPet.id) {
@@ -244,11 +248,10 @@ const DashboardPage = () => {
       await deleteDoc(petRef); // delete the document
       console.log(`Pet with ID ${selectedPet.id} deleted.`);
 
-      
       // Close the modal and clear the selected pet
       setSelectedPet(null);
       // Close modal with a delay, then set loading to false
-      
+
       setDeleteModal(false);
       // Set another delay for setting loading to false
       setTimeout(() => {
@@ -256,7 +259,6 @@ const DashboardPage = () => {
         setAlertMessage("Successfully Deleted Pet");
         setAlertType("success");
       }, 1000);
-      
     } catch (error) {
       setLoading(false);
       setAlertMessage("Error Deleting Pet");
@@ -275,12 +277,11 @@ const DashboardPage = () => {
 
   const [isEditModal, setEditModal] = useState(false);
   const [imagePreview, setImagePreview] = useState({
-    image:"",
-    file:"",
-    flag:true,
+    image: "",
+    file: "",
+    flag: true,
   });
   const fileInputRef = useRef(null);
-
 
   // Data when clicking offcanvas edit
   const handleEditButton = (pet) => {
@@ -296,6 +297,7 @@ const DashboardPage = () => {
       type: pet.type || "",
       weight: pet.weight || "",
       images: pet.images,
+      userId: pet.userId
     });
     setImagePreview({
       image: pet.images,
@@ -325,8 +327,8 @@ const DashboardPage = () => {
       const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
 
       if (fileSizeMB < MAX_SIZE_MB) {
-         // Exit the function if the file is too large
-         setImagePreview({
+        // Exit the function if the file is too large
+        setImagePreview({
           image: URL.createObjectURL(file),
           file: file,
           flag: true,
@@ -336,7 +338,9 @@ const DashboardPage = () => {
           image: petInfo.images,
           flag: false,
         });
-        setAlertMessage("Image is too large. Please select an image under 2MB.");
+        setAlertMessage(
+          "Image is too large. Please select an image under 2MB."
+        );
         setAlertType("error");
 
         if (fileInputRef.current) {
@@ -384,20 +388,42 @@ const DashboardPage = () => {
       setLoading(true);
       // Prepare the updated data object
       const updatedData = { ...petInfo };
+      let firstFolder = "";
 
       // If a new image is selected, upload it and get the URL
       if (imagePreview.flag && imagePreview.file) {
-        const oldImageUrl = petInfo.images; // Assuming petInfo.images contains the URL
-      const oldImageName = extractFileNameFromUrl(oldImageUrl);
-        const oldImageRef = ref(storage, oldImageName);;
-        // Delete the old image
-        console.log(oldImageName);
-        await deleteObject(oldImageRef); // Delete the old image
-        const imageRef = ref(storage, `test/${imagePreview.file.name}`);
+        const oldImageUrl = petInfo.images;
+
+        if (oldImageUrl) {
+          try {
+            const oldImageName = extractFileNameFromUrl(oldImageUrl);
+            const oldImageRef = ref(storage, oldImageName);
+            firstFolder = oldImageName.split("/")[0];
+            // Delete the old image
+            await deleteObject(oldImageRef);
+            console.log("Old image deleted successfully");
+          } catch (error) {
+            console.log(
+              "No old image found or error deleting old image, continuing to upload the new image."
+            );
+            // Continue to upload the new image even if deletion fails
+          }
+        }
+
+        const timestamp = new Date().getTime();
+        let imagePath;
+      if (firstFolder === "shelters") {
+        imagePath = "shelters";
+      } else if (firstFolder === "adopters") {
+        imagePath = "adopters";
+      } else {
+        console.log("none of the above folder")
+      }
+        const imageRef = ref(storage, `${imagePath}/petsPosted/${updatedData.userId}/${timestamp}`);
         await uploadBytes(imageRef, imagePreview.file);
         const url = await getDownloadURL(imageRef);
         updatedData.images = url; // Update the URL in the data to be sent to Firestore
-      } 
+      }
       await updateDoc(doc(db, "pets", selectedPet.id), updatedData);
 
       //  Close the modal immediately
@@ -408,8 +434,7 @@ const DashboardPage = () => {
         setLoading(false);
         setAlertMessage("Successfully Updated Pet");
         setAlertType("success");
-      }, 1000); 
-            
+      }, 1000);
     } catch (error) {
       setLoading(false);
       setAlertMessage("Error Updating Pet");
@@ -424,7 +449,6 @@ const DashboardPage = () => {
     const fileName = fileWithParams.split("?")[0]; // Remove any query parameters if present
     return decodeURIComponent(fileName); // Decode URI components to get the correct file name
   };
-  
 
   //Alert Message and Type
   const [alertMessage, setAlertMessage] = useState("");
@@ -600,8 +624,7 @@ const DashboardPage = () => {
                     />
                   </InputGroup>
                 </Col>
-                <Col className="d-flex align-items-center justify-content-end mt-3">
-                </Col>
+                <Col className="d-flex align-items-center justify-content-end mt-3"></Col>
               </Row>
               <div style={{ justifyContent: "center" }}>
                 <div style={styles.summaryGridCols}>
@@ -660,7 +683,9 @@ const DashboardPage = () => {
                           style={{ ...styles.line, cursor: "pointer" }}
                           onClick={() => handleViewSelectedPet(pet)}
                         >
-                          {pet.name.length > 7 ? `${pet.name.slice(0, 7)}...` : pet.name}
+                          {pet.name.length > 7
+                            ? `${pet.name.slice(0, 7)}...`
+                            : pet.name}
                         </p>
                         <p
                           style={{ ...styles.line, cursor: "pointer" }}

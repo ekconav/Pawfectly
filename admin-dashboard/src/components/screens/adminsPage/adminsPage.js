@@ -317,16 +317,6 @@ const AdminsPage = () => {
         mobileNumber: formattedMobileNumber,
       }));
 
-      // Update the users array to reflect the changes
-      setAdmins((prevUsers) => {
-        const updatedAdmins = prevUsers.map((admin) =>
-          admin.id === selectedAdmin.id
-            ? { ...admin, ...newAdmin } // Update the user in the array
-            : admin
-        );
-        return updatedAdmins;
-      });
-
       setUpdateModalOpen(false);
 
       setTimeout(() => {
