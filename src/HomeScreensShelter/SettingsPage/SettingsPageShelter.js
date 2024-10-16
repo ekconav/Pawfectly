@@ -236,7 +236,7 @@ const SettingsPageShelter = () => {
         try {
           const response = await fetch(uri);
           const blob = await response.blob();
-          const storageRef = ref(storage, `coverPictures/${shelter.uid}`);
+          const storageRef = ref(storage, `shelters/coverPhoto/${shelter.uid}`);
           await uploadBytes(storageRef, blob);
 
           const downloadURL = await getDownloadURL(storageRef);
@@ -542,7 +542,11 @@ const SettingsPageShelter = () => {
       </Modal>
 
       {/* Modal map */}
-      <Modal isVisible={mapModalVisible} onBackdropPress={toggleMapModal}>
+      <Modal
+        isVisible={mapModalVisible}
+        onBackdropPress={toggleMapModal}
+        onRequestClose={() => setMapModalVisible(false)}
+      >
         <View style={styles.modalContent}>
           <WebView source={{ uri: googleMapsUrl }} style={{ flex: 1 }} />
         </View>

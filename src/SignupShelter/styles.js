@@ -11,7 +11,6 @@ const styles = StyleSheet.create({
   },
   shelterSignUpTitle: {
     fontSize: 24,
-    marginBottom: 16,
     fontFamily: "Poppins_700Bold",
     color: COLORS.title,
   },

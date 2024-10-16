@@ -42,8 +42,10 @@ const SignupShelter = () => {
   const [ownerName, setOwnerName] = useState("");
   const [governmentId, setGovernmentId] = useState("");
   const [governmentIdFilename, setGovernmentIdFilename] = useState("");
-  const [businessPermit, setBusinessPermit] = useState("");
-  const [businessPermitFilename, setBusinessPermitFilename] = useState("");
+  const [certificate, setCertificate] = useState("");
+  const [certificateFilename, setCertificateFilename] = useState("");
+  const [ECC, setECC] = useState("");
+  const [ECCFilename, setECCFilename] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsOfServiceModalVisible, setTermsOfServiceModalVisible] =
@@ -104,7 +106,7 @@ const SignupShelter = () => {
     }
   };
 
-  const handleBusinessPermit = async () => {
+  const handleCertificate = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
       setModalMessage("Permission to access camera roll is required.");
@@ -120,8 +122,29 @@ const SignupShelter = () => {
 
     if (!result.canceled) {
       const { uri } = result.assets[0];
-      setBusinessPermit(uri);
-      setBusinessPermitFilename(truncateFilename(result.assets[0].fileName));
+      setCertificate(uri);
+      setCertificateFilename(truncateFilename(result.assets[0].fileName));
+    }
+  };
+
+  const handleECC = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      setModalMessage("Permission to access camera roll is required.");
+      setAlertModal(true);
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const { uri } = result.assets[0];
+      setECC(uri);
+      setECCFilename(truncateFilename(result.assets[0].fileName));
     }
   };
 
@@ -147,7 +170,8 @@ const SignupShelter = () => {
         return;
       }
 
-      if (!governmentId || !businessPermit) {
+      if (!governmentId || !certificate || !ECC) {
+        setTriggerRequired(true);
         setModalMessage("Please upload the necessary documents before registering.");
         setAlertModal(true);
         return;
@@ -174,24 +198,30 @@ const SignupShelter = () => {
         const user = userCredential.user;
         const fullMobileNumber = `+63${mobileNumber}`;
         let governmentIdUrl = "";
-        let businessPermitUrl = "";
+        let certificateUrl = "";
+        let ECCUrl = "";
 
-        if (governmentId && businessPermit) {
+        if (governmentId && certificate) {
           try {
             const responseGovernmentId = await fetch(governmentId);
-            const responseBusinessPermit = await fetch(businessPermit);
+            const responseCertificate = await fetch(certificate);
+            const responseECC = await fetch(ECC);
 
             const blobGovernmentId = await responseGovernmentId.blob();
-            const blobBusinessPermit = await responseBusinessPermit.blob();
+            const blobCertificate = await responseCertificate.blob();
+            const blobECC = await responseECC.blob();
 
-            const governmentIdRef = ref(storage, `governmentIds/${user.uid}`);
-            const businessPermitRef = ref(storage, `businessPermits/${user.uid}`);
+            const governmentIdRef = ref(storage, `shelters/governmentIds/${user.uid}`);
+            const certificateRef = ref(storage, `shelters/certificates/${user.uid}`);
+            const ECCRef = ref(storage, `shelters/ECC/${user.uid}`);
 
             await uploadBytes(governmentIdRef, blobGovernmentId);
-            await uploadBytes(businessPermitRef, blobBusinessPermit);
+            await uploadBytes(certificateRef, blobCertificate);
+            await uploadBytes(ECCRef, blobECC);
 
             governmentIdUrl = await getDownloadURL(governmentIdRef);
-            businessPermitUrl = await getDownloadURL(businessPermitRef);
+            certificateUrl = await getDownloadURL(certificateRef);
+            ECCUrl = await getDownloadURL(ECCRef);
           } catch (uploadError) {
             setModalMessage("Error uploading image. Please try again.");
             setAlertModal(true);
@@ -205,7 +235,8 @@ const SignupShelter = () => {
           shelterOwner: ownerName,
           email: email,
           governmentId: governmentIdUrl,
-          businessPermit: businessPermitUrl,
+          certificate: certificateUrl,
+          ECC: ECCUrl,
           verified: false,
           termsAccepted: true,
         });
@@ -425,10 +456,10 @@ const SignupShelter = () => {
         </View>
         <View style={styles.shelterSignUpInputContainer}>
           <Text style={styles.shelterSignUpLabel}>
-            Picture of Shelter Business Permit{" "}
+            Valid certificate from an accredited seminar on Animal Welfare Act{" "}
             <Text
               style={
-                triggerRequired && businessPermitFilename === ""
+                triggerRequired && certificateFilename === ""
                   ? styles.required
                   : null
               }
@@ -438,14 +469,36 @@ const SignupShelter = () => {
           </Text>
           <TouchableOpacity
             style={styles.shelterSignUpFileUpload}
-            onPress={handleBusinessPermit}
+            onPress={handleCertificate}
           >
             <Ionicons
               style={styles.shelterSignUpUploadIcon}
               name="cloud-upload-outline"
             />
             <Text style={styles.shelterSignUpPageUploadText}>
-              {businessPermitFilename ? businessPermitFilename : "File Upload"}
+              {certificateFilename ? certificateFilename : "File Upload"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.shelterSignUpInputContainer}>
+          <Text style={styles.shelterSignUpLabel}>
+            Environmental Clearance Certificate (ECC) from the DENR{" "}
+            <Text
+              style={triggerRequired && ECCFilename === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
+          <TouchableOpacity
+            style={styles.shelterSignUpFileUpload}
+            onPress={handleECC}
+          >
+            <Ionicons
+              style={styles.shelterSignUpUploadIcon}
+              name="cloud-upload-outline"
+            />
+            <Text style={styles.shelterSignUpPageUploadText}>
+              {ECCFilename ? ECCFilename : "File Upload"}
             </Text>
           </TouchableOpacity>
         </View>

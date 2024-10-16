@@ -42,7 +42,9 @@ const SignupPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [imageUri, setImageUri] = useState("");
+  const [currentPetsImageUri, setCurrentPetsImageUri] = useState("");
   const [fileName, setFileName] = useState("");
+  const [fileNameForCurrentPets, setFileNameForCurrentPets] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [tosItems, setTosItems] = useState([]);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -102,6 +104,27 @@ const SignupPage = () => {
     }
   };
 
+  const handlePickCurrentPets = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      setModalMessage("Permission to access camera roll is required.");
+      setAlertModal(true);
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const { uri } = result.assets[0];
+      setCurrentPetsImageUri(uri);
+      setFileNameForCurrentPets(truncateFilename(result.assets[0].fileName));
+    }
+  };
+
   const handleSignup = async () => {
     if (
       firstName &&
@@ -155,17 +178,33 @@ const SignupPage = () => {
         const user = userCredential.user;
         const fullMobileNumber = `+63${mobileNumber}`;
         let governmentIdUrl = "";
+        let currentPetsUrl = "";
 
         if (imageUri) {
           try {
             const response = await fetch(imageUri);
             const blob = await response.blob();
 
-            const fileRef = ref(storage, `governmentIds/${user.uid}`);
+            const fileRef = ref(storage, `adopters/governmentIds/${user.uid}`);
             await uploadBytes(fileRef, blob);
             governmentIdUrl = await getDownloadURL(fileRef);
             console.log("Image uploaded and URL retrieved:", governmentIdUrl);
-          } catch (uploadError) {
+          } catch (error) {
+            setModalMessage("Error uploading image. Please try again.");
+            setAlertModal(true);
+          }
+        }
+
+        if (currentPetsImageUri) {
+          try {
+            const response = await fetch(currentPetsImageUri);
+            const blob = await response.blob();
+
+            const fileRef = ref(storage, `adopters/currentPets/${user.uid}`);
+            await uploadBytes(fileRef, blob);
+            currentPetsUrl = await getDownloadURL(fileRef);
+            console.log("Image uploaded and URL retrieved:", currentPetsUrl);
+          } catch (error) {
             setModalMessage("Error uploading image. Please try again.");
             setAlertModal(true);
           }
@@ -179,6 +218,7 @@ const SignupPage = () => {
           email: email,
           verified: false,
           governmentId: governmentIdUrl,
+          currentPets: currentPetsUrl,
           termsAccepted: true,
         });
 
@@ -388,6 +428,23 @@ const SignupPage = () => {
             />
             <Text style={styles.signUpPageUploadText}>
               {fileName ? fileName : "File Upload"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>
+            Picture of current pets (Optional)
+          </Text>
+          <TouchableOpacity
+            style={styles.signUpPageFileUpload}
+            onPress={handlePickCurrentPets}
+          >
+            <Ionicons
+              style={styles.signUpPageUploadIcon}
+              name="cloud-upload-outline"
+            />
+            <Text style={styles.signUpPageUploadText}>
+              {fileNameForCurrentPets ? fileNameForCurrentPets : "File Upload"}
             </Text>
           </TouchableOpacity>
         </View>

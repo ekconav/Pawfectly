@@ -606,7 +606,11 @@ const MessagePage = ({ route }) => {
   const handleSendImage = async (imageUri) => {
     setSendLoading(true);
     try {
-      const imageRef = ref(storage, `images/${Date.now()}_${currentUser.uid}`);
+      const timestamp = new Date().getTime();
+      const imageRef = ref(
+        storage,
+        `adopters/messages/${currentUser.uid}/${currentUser.uid}_${shelterId}/${timestamp}`
+      );
       const img = await fetch(imageUri);
       const bytes = await img.blob();
       const imageUrl = await uploadBytes(imageRef, bytes).then(() =>
