@@ -137,7 +137,8 @@ const ConversationPage = ({ navigation }) => {
     setShelterListLoading(true);
     try {
       const sheltersCollectionRef = collection(db, "shelters");
-      const snapshot = await getDocs(sheltersCollectionRef);
+      const q = query(sheltersCollectionRef, where("verified", "==", true));
+      const snapshot = await getDocs(q);
 
       const sheltersData = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -435,13 +436,8 @@ const ConversationPage = ({ navigation }) => {
     }, [])
   );
 
-  const handleClickListButton = () => {
-    if (!checkVerify) {
-      setModalMessage("Sorry, your account is not yet verified.");
-      setAlertModal(true);
-      return;
-    }
-    setShelterModal(true);
+  const toggleShelterList = () => {
+    setShelterModal(!shelterModal);
   };
 
   if (loading) {
@@ -582,7 +578,7 @@ const ConversationPage = ({ navigation }) => {
         </View>
       )}
       <View style={styles.listButtonContainer}>
-        <TouchableOpacity style={styles.listButton} onPress={handleClickListButton}>
+        <TouchableOpacity style={styles.listButton} onPress={toggleShelterList}>
           <Ionicons name="reorder-three-outline" size={24} color={COLORS.title} />
           <Text style={styles.listButtonText}>List of Shelters</Text>
         </TouchableOpacity>
@@ -604,65 +600,63 @@ const ConversationPage = ({ navigation }) => {
       </Modal>
 
       {/* Shelter List Modal */}
-      <Modal isVisible={shelterModal} onRequestClose={() => setShelterModal(false)}>
-        <TouchableOpacity
-          style={styles.shelterModalOverlay}
-          activeOpacity={1}
-          onPress={() => setShelterModal(false)}
-        >
-          <View style={styles.shelterModalContainer}>
-            <Text style={styles.shelterListTitle}>List of Shelters</Text>
-            {shelterListLoading ? (
-              <View style={styles.modalLoadingContainer}>
-                <ActivityIndicator size="large" color={COLORS.prim} />
-              </View>
-            ) : shelters.length === 0 && !shelterListLoading ? (
-              <View style={styles.modalLoadingContainer}>
-                <Text style={styles.shelterListEmptyText}>
-                  Sorry, shelter list is empty.
-                </Text>
-              </View>
-            ) : (
-              <FlatList
-                data={shelters}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.modalShelterItem}
-                    onPress={() => handleSelectShelter(item.id)}
-                  >
-                    <View style={styles.modalShelterInfoContainer}>
-                      <Image
-                        source={
-                          item.accountPicture
-                            ? { uri: item.accountPicture }
-                            : require("../../components/user.png")
-                        }
-                        style={styles.modalShelterPicture}
-                      />
-                      <View>
-                        <Text
-                          style={styles.modalShelterName}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {item.shelterName}
-                        </Text>
-                        <Text
-                          style={styles.modalShelterAddress}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {item.address}
-                        </Text>
-                      </View>
+      <Modal
+        isVisible={shelterModal}
+        onBackdropPress={toggleShelterList}
+        onRequestClose={() => setShelterModal(false)}
+      >
+        <View style={styles.shelterModalContainer}>
+          <Text style={styles.shelterListTitle}>List of Shelters</Text>
+          {shelterListLoading ? (
+            <View style={styles.modalLoadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.prim} />
+            </View>
+          ) : shelters.length === 0 && !shelterListLoading ? (
+            <View style={styles.modalLoadingContainer}>
+              <Text style={styles.shelterListEmptyText}>
+                Sorry, shelter list is empty.
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={shelters}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalShelterItem}
+                  onPress={() => handleSelectShelter(item.id)}
+                >
+                  <View style={styles.modalShelterInfoContainer}>
+                    <Image
+                      source={
+                        item.accountPicture
+                          ? { uri: item.accountPicture }
+                          : require("../../components/user.png")
+                      }
+                      style={styles.modalShelterPicture}
+                    />
+                    <View>
+                      <Text
+                        style={styles.modalShelterName}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.shelterName}
+                      </Text>
+                      <Text
+                        style={styles.modalShelterAddress}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.address}
+                      </Text>
                     </View>
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-          </View>
-        </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </View>
       </Modal>
     </View>
   );

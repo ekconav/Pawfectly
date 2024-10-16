@@ -83,7 +83,7 @@ const SetupDonations = () => {
         try {
           const response = await fetch(uri);
           const blob = await response.blob();
-          const storageRef = ref(storage, `qrCode/${shelter.uid}`);
+          const storageRef = ref(storage, `shelters/qrCode/${shelter.uid}`);
           await uploadBytes(storageRef, blob);
 
           const downloadURL = await getDownloadURL(storageRef);
