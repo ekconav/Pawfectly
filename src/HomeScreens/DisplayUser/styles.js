@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.title,
     fontFamily: "Poppins_400Regular",
-    textAlign: "right",
+    textAlign: "left",
   },
 
   // Report Modal
@@ -378,6 +378,9 @@ const styles = StyleSheet.create({
   donationText: {
     fontFamily: "Poppins_500Medium",
     color: COLORS.white,
+  },
+  required: {
+    color: COLORS.delete,
   },
 
   // Map

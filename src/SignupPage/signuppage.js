@@ -211,6 +211,7 @@ const SignupPage = () => {
         }
 
         await addUserToFirestore(user.uid, {
+          adoption_limit: 0,
           firstName: firstName,
           lastName: lastName,
           mobileNumber: fullMobileNumber,
