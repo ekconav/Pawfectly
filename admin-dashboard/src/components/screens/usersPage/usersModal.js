@@ -1,6 +1,13 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import styles from "./styles";
 import Switch from "@mui/material/Switch";
+import {
+  Form,
+  Row,
+  Col,
+  Offcanvas,
+} from "react-bootstrap";
+import COLORS from "../../colors";
 
 // Delete Modal Component
 const DeleteModal = ({ onConfirm, onClose, children }) => {
@@ -104,11 +111,237 @@ const ImageModal = ({ isOpen, imageUrl, onClose }) => {
   );
 };
 
+// Update Modal Component
+const AddPetModal = forwardRef(
+  (
+    {
+      handleImageChange,
+      handleInputChange,
+      handleAddPetSubmit,
+      petInfo,
+      imagePreview,
+      show,
+      onHide,
+    },
+    ref // The forwarded ref is received as the second argument
+  ) => {
+  return (
+    <Offcanvas
+      show={show}
+      onHide={onHide} // Wrap in a function
+      scroll={true}
+      backdrop={true}
+    >
+      <Offcanvas.Header closeButton>
+        <Offcanvas.Title style={styles.modalTitle}>
+          Add Pet
+        </Offcanvas.Title>
+      </Offcanvas.Header>
+      <Offcanvas.Body>
+        <Form>
+          {/* Select for order */}
+          <Form.Group className="mb-3">
+            <Form.Control
+              type="text"
+              name="name"
+              placeholder="Name"
+              style={styles.inputFieldOffcanvas}
+              value={petInfo.name}
+              onChange={handleInputChange}
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Control
+              type="text"
+              name="breed"
+              placeholder="Breed"
+              style={styles.inputFieldOffcanvas}
+              value={petInfo.breed}
+              onChange={handleInputChange}
+              required
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Select
+              aria-label="Age"
+              name="age"
+              value={petInfo.age}
+              onChange={handleInputChange}
+              required
+              style={styles.inputFieldOffcanvas}
+            >
+              <option value="">Choose Age</option>
+              <option value="0-3 Months">0-3 Months</option>
+              <option value="4-6 Months">4-6 Months</option>
+              <option value="7-9 Months">7-9 Months</option>
+              <option value="10-12 Months">10-12 Months</option>
+              <option value="10-12 Months">1-3 Years Old</option>
+              <option value="4-6 Years Old">4-6 Years Old</option>
+              <option value="7 Years Old and Above">
+                7 Years Old and Above
+              </option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group className="mb-2">
+            <Row>
+              <Col xs={3}>
+                <Form.Label>Type</Form.Label>
+              </Col>
+              <Col>
+                <Form.Check
+                  inline
+                  label="Dog"
+                  name="type"
+                  type="radio"
+                  value="Dog"
+                  checked={petInfo.type === "Dog"}
+                  onChange={handleInputChange}
+                />
+                <Form.Check
+                  inline
+                  label="Cat"
+                  name="type"
+                  type="radio"
+                  value="Cat"
+                  checked={petInfo.type === "Cat"}
+                  onChange={handleInputChange}
+                />
+                <Form.Check
+                  inline
+                  label="Others"
+                  name="type"
+                  type="radio"
+                  value="Others"
+                  checked={petInfo.type === "Others"}
+                  onChange={handleInputChange}
+                />
+              </Col>
+            </Row>
+          </Form.Group>
+
+          <Form.Group className="mb-2">
+            <Row>
+              <Col xs={3}>
+                <Form.Label>Gender</Form.Label>
+              </Col>
+              <Col>
+                <Form.Check
+                  inline
+                  label="Male"
+                  name="gender"
+                  type="radio"
+                  value="Male"
+                  checked={petInfo.gender === "Male"}
+                  onChange={handleInputChange}
+                />
+                <Form.Check
+                  inline
+                  label="Female"
+                  name="gender"
+                  type="radio"
+                  value="Female"
+                  checked={petInfo.gender === "Female"}
+                  onChange={handleInputChange}
+                />
+              </Col>
+            </Row>
+          </Form.Group>
+          <Row>
+            <Col>
+              <Form.Group className="mb-3">
+                <Form.Control
+                  type="text"
+                  name="weight"
+                  placeholder="Weight (kg)"
+                  style={styles.inputFieldOffcanvas}
+                  value={petInfo.weight}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Form.Group>
+            </Col>
+            <Col>
+              <Form.Group className="mb-3">
+                <Form.Control
+                  type="text"
+                  name="petPrice"
+                  placeholder="Fee (₱)"
+                  style={styles.inputFieldOffcanvas}
+                  value={petInfo.petPrice}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+          <Form.Group className="mb-3">
+            <Form.Control
+              name="description"
+              value={petInfo.description}
+              onChange={handleInputChange}
+              as="textarea"
+              placeholder="Description"
+              required
+              style={{
+                width: "100%",
+                minHeight: "15vh",
+                maxHeight: "15vh",
+                resize: "vertical",
+                border: `2px solid ${COLORS.prim}`,
+                borderRadius: 8,
+              }}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            {imagePreview.image && (
+              <div
+                style={{
+                  marginTop: "10px",
+                  display: "flex",
+                  justifyContent: "center", // Center horizontally
+                  alignItems: "center", // Center vertically
+                }}
+              >
+                <img
+                  src={
+                    imagePreview.image || require("../../../const/user.png")
+                  }
+                  alt="Pet"
+                  style={styles.infoPicture}
+                />
+              </div>
+            )}
+            <Form.Label>Change Image</Form.Label>
+            <Form.Control
+              ref={ref}
+              type="file"
+              accept="image/*" // Allow only image files
+              onChange={handleImageChange}
+              required
+            />
+          </Form.Group>
+        </Form>
+        <div style={styles.modalButtons}>
+          <button style={styles.cancelButton} onClick={onHide}>
+            Cancel
+          </button>
+          <button style={styles.confirmButton} onClick={handleAddPetSubmit}>
+            Confirm
+          </button>
+        </div>
+      </Offcanvas.Body>
+    </Offcanvas>
+    );
+  }
+);
+
 // Export multiple modals
-const Modal = {
+const Modals = {
   DeleteModal,
   UpdateModal,
   ImageModal,
+  AddPetModal,
 };
 
-export default Modal;
+export default Modals;

@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
 
   container: {
     display: "grid",
-    gridTemplateColumns: "2fr 1fr", // Two equal columns
+    gridTemplateColumns: "1.7fr 1fr", // Two equal columns
     gap: "10px", // Space between columns
     padding: "10px",
   },
@@ -22,11 +22,11 @@ const styles = StyleSheet.create({
     display: "flex",
     paddingLeft: 50,
     paddingRight: 50,
-    marginLeft: 50,
+    marginLeft: 20,
     marginRight: 10,
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
-    height: "60vh",
+    height: "65vh",
     width: "60vw",
     flexDirection: "column",
   },
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   },
   userDetailsLabel: {
     display: "grid",
-    gridTemplateColumns: "15vh 50vh 20vh 10vh",
+    gridTemplateColumns: "7vw 25vw 10vw 10vw",
     height: "10vh",
     gap: "10px",
   },
@@ -84,14 +84,14 @@ const styles = StyleSheet.create({
 
   // User Information
   userInfoContainer: {
-    paddingLeft: 50,
+    paddingLeft: 30,
     paddingRight: 20,
     marginLeft: 10,
-    marginRight: 50,
+    marginRight: 20,
     borderRadius: "10px",
     boxShadow: "0 8px 16px rgba(0, 0, 0, 0.4)",
-    height: "60vh",
-    width: "28vw",
+    height: "65vh",
+    width: "auto",
   },
   userInfoHeader: {
     display: "flex",
@@ -113,8 +113,8 @@ const styles = StyleSheet.create({
   },
   userInfoDetails: {
     display: "grid",
-    gridTemplateColumns: "11vh 30vh",
-    gridTemplateRows: "1fr 1fr 10vh 1fr 2fr",
+    gridTemplateColumns: "7vw 22vw",
+    gridTemplateRows: "1fr 1fr 10vh 1fr 1fr 2fr",
     gap: "3px",
   },
   userInfoTitleLabel: {
@@ -215,6 +215,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     boxSizing: "border-box",
   },
+  inputFieldOffcanvas: {
+    border: `2px solid ${COLORS.prim}`,
+    borderRadius: 8,
+  },
   SwitchLine: {
     display: "flex",
     alignItems: "center",
@@ -239,6 +243,13 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     fontFamily: "Poppins",
     color: COLORS.title,
+  },
+
+  infoPicture: {
+    width: "15vw",
+    height: "20vh",
+    borderRadius: 15,
+    margin: 10,
   },
 });
 

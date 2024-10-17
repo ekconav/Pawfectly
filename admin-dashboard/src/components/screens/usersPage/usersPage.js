@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
-import { db} from "../../../FirebaseConfig";
+import { db, storage } from "../../../FirebaseConfig";
 import {
   writeBatch,
   collection,
@@ -9,14 +9,22 @@ import {
   updateDoc,
   deleteDoc,
   getDocs,
+  addDoc,
   doc,
   query,
   where,
 } from "firebase/firestore";
-import Modal from "./usersModal";
+import {
+  deleteObject,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
+import Modals from "./usersModal";
 import Alerts from "./alert";
 import COLORS from "../../colors";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
+import { Col, Container, Row } from "react-bootstrap";
 
 // Number of items per page
 
@@ -119,14 +127,6 @@ const UsersPage = () => {
     setIsUpdateUserModalOpen(true);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setUpdateUser((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   // Function to handle user update
   const handleUpdateUser = async () => {
     if (
@@ -170,24 +170,12 @@ const UsersPage = () => {
         verified: updateUser.verified,
       }));
 
-      // Update the users array to reflect the changes
-      setUsers((prevUsers) => {
-        const updatedUsers = prevUsers.map((user) =>
-          user.id === selectedUser.id
-            ? { ...user, ...updateUser } // Update the user in the array
-            : user
-        );
-        return updatedUsers;
-      });
-      
       setIsUpdateUserModalOpen(false);
       setTimeout(() => {
         setLoading(false);
         setAlertMessage("Adopter has been successdully updated.");
-        setAlertType("success");  
+        setAlertType("success");
       }, 1000);
-      
-      
     } catch (error) {
       setLoading(false);
       setAlertMessage("Error updating user.");
@@ -281,22 +269,25 @@ const UsersPage = () => {
       // Reference to the "pets" collection
       const petsCollectionRef = collection(db, "pets");
       // Query to find documents where userID matches the given userId
-      const userPostsQuery = query(petsCollectionRef, where("userId", "==", userId));
+      const userPostsQuery = query(
+        petsCollectionRef,
+        where("userId", "==", userId)
+      );
       const userPostsSnapshot = await getDocs(userPostsQuery);
-  
+
       if (userPostsSnapshot.empty) {
         console.log("No user posts found");
         return;
       }
-  
+
       const batch = writeBatch(db);
-  
+
       // Delete each post document associated with the user
       userPostsSnapshot.forEach((postDoc) => {
         const postDocRef = postDoc.ref;
         batch.delete(postDocRef);
       });
-  
+
       await batch.commit();
       console.log("User posts deleted successfully");
     } catch (error) {
@@ -352,9 +343,8 @@ const UsersPage = () => {
       setTimeout(() => {
         setLoading(false);
         setAlertMessage("Adopter has been successfully deleted.");
-        setAlertType("success"); 
+        setAlertType("success");
       }, 1000);
-      
     } catch (error) {
       setLoading(false);
       setAlertMessage("Failed to delete user and associated data.");
@@ -366,7 +356,178 @@ const UsersPage = () => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
 
+  const [petInfo, setPetInfo] = useState({
+    adoptedBy: "",
+    age: "",
+    breed: "",
+    description: "",
+    gender: "",
+    location: "",
+    name: "",
+    petPosted: "",
+    petPrice: "",
+    type: "",
+    weight: "",
+    userId: "",
+    images: "",
+  });
+  const [imagePreview, setImagePreview] = useState({
+    image: "",
+    file: "",
+  });
+  const fileInputRef = useRef(null);
 
+
+  const [isAddPetModal,setAddPetModal] = useState(false);
+  const handleAddPetButton = (user) => {
+
+    setSelectedUser(user);
+    setPetInfo ({
+      adoptedBy: "",
+      age: "",
+      breed: "",
+      description: "",
+      gender: "",
+      location: "",
+      name: "",
+      petPosted: "",
+      petPrice: "",
+      type: "",
+      weight: "",
+      userId: "",
+      images: "",
+    })
+    setAddPetModal((s) => !s);
+  }
+  // Close offcanvas
+  const handleCloseAddPetOffCanvas = () => {
+    setPetInfo({
+      name: "",
+      breed: "",
+      age: "",
+      description: "",
+      gender: "",
+      type: "",
+      weight: "",
+      images: "",
+      petPrice: "",
+      adoptedBy: "",
+      location: "",
+      petPosted: "",
+      userId: ""
+    });
+    setImagePreview({
+      image: "",
+      file: "",
+    });
+    setAddPetModal(false); 
+  };
+
+  // Input change for forms
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPetInfo((prevPet) => ({
+      ...prevPet,
+      [name]: value,
+    }));
+  };
+
+   // Function to handle image selection
+   const handleImageChange = (e) => {
+    const MAX_SIZE_MB = 5;
+    const file = e.target.files[0];
+
+    if (file) {
+      // Check the file size
+      const fileSizeMB = file.size / (1024 * 1024);
+
+      if (fileSizeMB < MAX_SIZE_MB) {
+        setImagePreview({
+          image: URL.createObjectURL(file),
+          file: file,
+        });
+
+      } else {
+        setImagePreview({
+          image: "",
+          file: "",
+        });
+        
+        setAlertMessage(
+          "Image is too large. Please select an image under 2MB."
+        );
+        setAlertType("error");
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    }
+  };
+
+  const handleAddPetSubmit = async () => {
+
+    // Validation
+    if (
+      !petInfo.name ||
+      !petInfo.breed ||
+      !petInfo.age ||
+      !petInfo.description ||
+      !petInfo.gender ||
+      !petInfo.type ||
+      !petInfo.weight ||
+      !imagePreview.image
+    ) {
+      setAlertMessage("All fields are required, except for pet price.");
+      setAlertType("error");
+      return; // Stop submission if there are errors
+    }
+
+    // Check if weight is a positive number and not zero
+    if (isNaN(petInfo.weight) || petInfo.weight <= 0) {
+      setAlertMessage("Weight must be a positive number and cannot be zero.");
+      setAlertType("error");
+      return; // Stop submission if weight is invalid
+    }
+
+    // Check if fee is a number and not less than zero
+    if (petInfo.petPrice && (isNaN(petInfo.petPrice) || petInfo.petPrice < 0)) {
+      setAlertMessage("Fee must be a number and cannot be less than zero.");
+      setAlertType("error");
+      return; // Stop submission if fee is invalid
+    }
+    try{
+      setLoading(true);
+      const updatedData = { 
+        ...petInfo,
+        userId: selectedUser.id,
+        location: selectedUser.address
+      };
+      const timestamp = new Date().getTime();
+      const imageRef = ref(
+        storage,
+        `adopters/petsPosted/${updatedData.userId}/${timestamp}`
+      );
+      await uploadBytes(imageRef, imagePreview.file);
+      const url = await getDownloadURL(imageRef);
+      updatedData.images = url; // Update the URL in the data to be sent to Firestore
+    
+      const petsCollectionRef = collection(db, "pets");
+      await addDoc(petsCollectionRef, updatedData);
+
+      handleCloseAddPetOffCanvas();
+      setTimeout(() => {
+        setLoading(false);
+        setAlertMessage("Successfully Added Pet");
+        setAlertType("success");
+      }, 1000);
+    } catch (error) {
+      setLoading(false);
+      setAlertMessage("Error Adding Pet");
+      setAlertType("error");
+    }
+
+  }
   //Alert Message and Type
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
@@ -466,24 +627,48 @@ const UsersPage = () => {
         {/* User Information */}
         {selectedUser && (
           <div style={styles.userInfoContainer}>
-            <div style={styles.userInfoHeader}>
-              <h3 style={styles.userInfoTitle}>Adopter Information</h3>
-              <div style={styles.editButtonContainer}>
-                <ion-icon
-                  name="pencil"
-                  style={styles.editIcon} // Add styling as needed
-                  onClick={() => handleEditUser(selectedUser)}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.color = COLORS.hover;
-                    e.currentTarget.style.borderColor = COLORS.hover;
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.color = COLORS.prim;
-                    e.currentTarget.style.borderColor = COLORS.prim;
-                  }}
-                ></ion-icon>
-              </div>
-            </div>
+            {/* <div style={styles.userInfoHeader}> */}
+            <Container className="mt-2">
+              <Row>
+                <Col lg={2}></Col>
+                <Col>
+                  <h3 style={styles.userInfoTitle}>Adopter Information</h3>
+                </Col>
+                <Col lg={2} className="p-0 d-flex align-items-center">
+                  {/* <div style={styles.editButtonContainer}> */}
+                    <ion-icon
+                      style={{
+                        fontSize: "30px",
+                        cursor: "pointer",
+                        color: COLORS.prim,
+                      }}
+                      name="add-circle-outline"
+                      onClick={() => handleAddPetButton(selectedUser)} // Function for click
+                      onMouseOver={(e) => {
+                        e.target.style.color = COLORS.hover;
+                      }}
+                      onMouseOut={(e) => {
+                        e.target.style.color = COLORS.prim;
+                      }}
+                    ></ion-icon>
+                    <ion-icon
+                      name="pencil"
+                      style={styles.editIcon} // Add styling as needed
+                      onClick={() => handleEditUser(selectedUser)}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.color = COLORS.hover;
+                        e.currentTarget.style.borderColor = COLORS.hover;
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.color = COLORS.prim;
+                        e.currentTarget.style.borderColor = COLORS.prim;
+                      }}
+                    ></ion-icon>
+                  {/* </div> */}
+                </Col>
+              </Row>
+            </Container>
+            {/* </div> */}
             <img
               src={
                 selectedUser.accountPicture ||
@@ -515,6 +700,16 @@ const UsersPage = () => {
               <div style={styles.line}>
                 <p style={styles.userInfoTitleLabel}>
                   {selectedUser.mobileNumber}
+                </p>
+              </div>
+              <div style={styles.line}>
+                <p style={{ ...styles.userInfoTitleLabel, textAlign: "left" }}>
+                  Address:
+                </p>
+              </div>
+              <div style={styles.line}>
+                <p style={styles.userInfoTitleLabel}>
+                  {selectedUser.address}
                 </p>
               </div>
               <div style={styles.line}>
@@ -583,7 +778,7 @@ const UsersPage = () => {
 
       {/* Edit Button Modal */}
       {isUpdateUserModalOpen && (
-        <Modal.UpdateModal
+        <Modals.UpdateModal
           updateUser={updateUser}
           handleInputChange={(e) =>
             setUpdateUser({ ...updateUser, [e.target.name]: e.target.value })
@@ -597,22 +792,36 @@ const UsersPage = () => {
       )}
       {/* Delete Button Modal */}
       {isDeleteUserModalOpen && (
-        <Modal.DeleteModal
+        <Modals.DeleteModal
           onConfirm={handleDeleteUser}
           onClose={() => setDeleteUserModalOpen(false)}
         >
           <h3 style={styles.modalTitle}>
             Are you sure you want to delete {selectedUser.firstName}?
           </h3>
-        </Modal.DeleteModal>
+        </Modals.DeleteModal>
       )}
 
       {/* Image Zoom Modal */}
       {isImageModalOpen && (
-        <Modal.ImageModal
+        <Modals.ImageModal
           isOpen={isImageModalOpen}
           imageUrl={selectedImageUrl}
           onClose={() => setIsImageModalOpen(false)}
+        />
+      )}
+
+      {/* Off Canvas Form for Add Pet */}
+      {isAddPetModal && (
+        <Modals.AddPetModal
+          imagePreview={imagePreview}
+          petInfo={petInfo}
+          ref={fileInputRef}
+          show={isAddPetModal}
+          handleInputChange={handleInputChange}
+          onHide={handleCloseAddPetOffCanvas}
+          handleImageChange={handleImageChange}
+          handleAddPetSubmit={handleAddPetSubmit}
         />
       )}
 

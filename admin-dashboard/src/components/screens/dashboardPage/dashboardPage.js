@@ -14,6 +14,7 @@ import {
   updateDoc,
   deleteDoc,
   getDoc,
+  getDocs,
   doc,
 } from "firebase/firestore";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
@@ -28,31 +29,50 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, "shelters"),
-      async (sheltersSnapshot) => {
-        const statsPromises = sheltersSnapshot.docs.map(async (shelterDoc) => {
-          const statsRef = doc(
-            db,
-            `shelters/${shelterDoc.id}/statistics/${shelterDoc.id}`
-          );
-          const statsDoc = await getDoc(statsRef);
-          return {
-            shelterId: shelterDoc.id,
-            ...(statsDoc.exists()
-              ? statsDoc.data()
-              : { petsAdopted: 0, petsRescued: 0, petsForAdoption: 0 }),
-          };
+    // Array to hold unsubscribe functions for each shelter's statistics listener
+    const unsubscribeList = [];
+
+    const fetchShelterStats = async () => {
+      const sheltersSnapshot = await getDocs(collection(db, "shelters"));
+
+      const statsPromises = sheltersSnapshot.docs.map((shelterDoc) => {
+        const statsRef = doc(
+          db,
+          `shelters/${shelterDoc.id}/statistics/${shelterDoc.id}`
+        );
+
+        // Set up a listener for each statistics document
+        const unsubscribe = onSnapshot(statsRef, (statsDoc) => {
+          setShelterStats((prevStats) => {
+            const updatedStats = prevStats.filter(
+              (stat) => stat.shelterId !== shelterDoc.id
+            );
+            updatedStats.push({
+              shelterId: shelterDoc.id,
+              ...(statsDoc.exists()
+                ? statsDoc.data()
+                : { petsAdopted: 0, petsRescued: 0, petsForAdoption: 0 }),
+            });
+            return updatedStats;
+          });
+          setLoading(false); // Set loading to false after data is fetched
         });
 
-        const stats = await Promise.all(statsPromises);
-        setShelterStats(stats);
-        setLoading(false); // Set loading to false after fetching the data
-      }
-    );
+        // Push unsubscribe function to the list
+        unsubscribeList.push(unsubscribe);
+      });
 
-    return () => unsubscribe(); // Clean up the listener on unmount
-  }, [shelterStats]);
+      await Promise.all(statsPromises);
+    };
+
+    // Fetch shelter statistics with real-time listeners
+    fetchShelterStats();
+
+    // Clean up all listeners on unmount
+    return () => {
+      unsubscribeList.forEach((unsubscribe) => unsubscribe());
+    };
+  }, []);
 
   const [shelterSearch, setShelterSearch] = useState(""); // For input value
   const [allShelters, setAllShelters] = useState([]); // Store all shelters from Firestore
@@ -245,8 +265,25 @@ const DashboardPage = () => {
     try {
       setLoading(true);
       const petRef = doc(db, "pets", selectedPet.id);
+
+      const petDoc = await getDoc(petRef);
+      if (petDoc.exists()) {
+        const petData = petDoc.data();
+        const oldImageUrl = petData.images; // Assuming 'images' contains the URL or path of the image
+
+        // Delete the image from Firebase Storage
+        if (oldImageUrl) {
+          const oldImageRef = ref(storage, extractFileNameFromUrl(oldImageUrl)); // Extract the file name/path
+          await deleteObject(oldImageRef);
+        }
+
+        // Delete the pet document
+        await deleteDoc(petRef);
+
+      } else {
+        setAlertMessage("Error Deleting Pet Image");
+      }
       await deleteDoc(petRef); // delete the document
-      console.log(`Pet with ID ${selectedPet.id} deleted.`);
 
       // Close the modal and clear the selected pet
       setSelectedPet(null);
@@ -297,7 +334,7 @@ const DashboardPage = () => {
       type: pet.type || "",
       weight: pet.weight || "",
       images: pet.images,
-      userId: pet.userId
+      userId: pet.userId,
     });
     setImagePreview({
       image: pet.images,
@@ -319,7 +356,7 @@ const DashboardPage = () => {
 
   // Function to handle image selection
   const handleImageChange = (e) => {
-    const MAX_SIZE_MB = 2;
+    const MAX_SIZE_MB = 5;
     const file = e.target.files[0];
 
     if (file) {
@@ -327,7 +364,6 @@ const DashboardPage = () => {
       const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
 
       if (fileSizeMB < MAX_SIZE_MB) {
-        // Exit the function if the file is too large
         setImagePreview({
           image: URL.createObjectURL(file),
           file: file,
@@ -412,14 +448,17 @@ const DashboardPage = () => {
 
         const timestamp = new Date().getTime();
         let imagePath;
-      if (firstFolder === "shelters") {
-        imagePath = "shelters";
-      } else if (firstFolder === "adopters") {
-        imagePath = "adopters";
-      } else {
-        console.log("none of the above folder")
-      }
-        const imageRef = ref(storage, `${imagePath}/petsPosted/${updatedData.userId}/${timestamp}`);
+        if (firstFolder === "shelters") {
+          imagePath = "shelters";
+        } else if (firstFolder === "adopters") {
+          imagePath = "adopters";
+        } else {
+          console.log("none of the above folder");
+        }
+        const imageRef = ref(
+          storage,
+          `${imagePath}/petsPosted/${updatedData.userId}/${timestamp}`
+        );
         await uploadBytes(imageRef, imagePreview.file);
         const url = await getDownloadURL(imageRef);
         updatedData.images = url; // Update the URL in the data to be sent to Firestore
@@ -472,63 +511,11 @@ const DashboardPage = () => {
       <Header />
       <h1 style={styles.pageTitle}>Dashboard Page</h1>
       <div style={styles.container}>
-        <div style={styles.graphCard}>
-          <h3 style={styles.pageTitle}>Graphs and Statistics</h3>
-          <PieChart
-            series={[
-              {
-                data: [
-                  {
-                    id: "petsAdopted",
-                    label: "Pets Adopted",
-                    value: shelterStats.reduce(
-                      (acc, shelter) => acc + shelter.petsAdopted,
-                      0
-                    ),
-                  },
-                  {
-                    id: "petsRescued",
-                    label: "Pets Rescued",
-                    value: shelterStats.reduce(
-                      (acc, shelter) => acc + shelter.petsRescued,
-                      0
-                    ),
-                  },
-                  {
-                    id: "petsForAdoption",
-                    label: "Pets For Adoption",
-                    value: shelterStats.reduce(
-                      (acc, shelter) => acc + shelter.petsForAdoption,
-                      0
-                    ),
-                  },
-                ],
-                highlightScope: { fade: "global", highlight: "item" },
-                faded: {
-                  innerRadius: 30,
-                  additionalRadius: -30,
-                  color: "gray",
-                },
-                cx: 100,
-                cy: 100,
-                outerRadius: 100,
-                innerRadius: 30,
-                paddingAngle: 2,
-                cornerRadius: 8,
-              },
-            ]}
-            slotProps={{
-              legend: {
-                direction: "column",
-                position: { vertical: "middle", horizontal: "right" },
-              },
-            }}
-          />
-        </div>
+        
         <div style={styles.summaryCard}>
           <h3 style={styles.pageTitle}>Pet Filter</h3>
           <Container className="mt-3">
-            <Row>
+            <Row className="ps-3">
               <Col lg={8} className="p-0">
                 <InputGroup
                   style={{
@@ -603,8 +590,9 @@ const DashboardPage = () => {
                   }}
                 ></ion-icon>
               </Col>
+            </Row>
 
-              <Row>
+              <Row className="ps-3">
                 <Col className="p-0 mt-3">
                   <InputGroup
                     size="sm"
@@ -697,7 +685,10 @@ const DashboardPage = () => {
                           style={{ ...styles.line, cursor: "pointer" }}
                           onClick={() => handleViewSelectedPet(pet)}
                         >
-                          {pet.age}
+                          {pet.age.length > 15
+                            ? `${pet.age.slice(0, 15)}...`
+                            : pet.age}
+                          
                         </p>
                         <p
                           style={{ ...styles.line, cursor: "pointer" }}
@@ -743,8 +734,61 @@ const DashboardPage = () => {
                   )}
                 </div>
               </div>
-            </Row>
+ 
           </Container>
+        </div>
+        <div style={styles.graphCard}>
+          <h3 style={styles.pageTitle}>Graphs and Statistics</h3>
+          <PieChart
+            series={[
+              {
+                data: [
+                  {
+                    id: "petsAdopted",
+                    label: "Pets Adopted",
+                    value: shelterStats.reduce(
+                      (acc, shelter) => acc + shelter.petsAdopted,
+                      0
+                    ),
+                  },
+                  {
+                    id: "petsRescued",
+                    label: "Pets Rescued",
+                    value: shelterStats.reduce(
+                      (acc, shelter) => acc + shelter.petsRescued,
+                      0
+                    ),
+                  },
+                  {
+                    id: "petsForAdoption",
+                    label: "Pets For Adoption",
+                    value: shelterStats.reduce(
+                      (acc, shelter) => acc + shelter.petsForAdoption,
+                      0
+                    ),
+                  },
+                ],
+                highlightScope: { fade: "global", highlight: "item" },
+                faded: {
+                  innerRadius: 30,
+                  additionalRadius: -30,
+                  color: "gray",
+                },
+                cx: 100,
+                cy: 100,
+                outerRadius: 100,
+                innerRadius: 30,  
+                paddingAngle: 2,
+                cornerRadius: 8,
+              },
+            ]}
+            slotProps={{
+              legend: {
+                direction: "column",
+                position: { vertical: "middle", horizontal: "right" },
+              },
+            }}
+          />
         </div>
       </div>
 
