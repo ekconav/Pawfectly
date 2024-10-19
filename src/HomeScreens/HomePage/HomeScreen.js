@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ScrollView,
+  TextInput,
 } from "react-native";
 import {
   collection,
@@ -27,7 +28,14 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import FavoritesPage from "../Favorites/FavoritesPage";
 import { SettingOptions } from "../SettingsPage/SettingStack";
 import { Ionicons } from "@expo/vector-icons";
-import { signOut } from "firebase/auth";
+import {
+  signOut,
+  onAuthStateChanged,
+  sendEmailVerification,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  verifyBeforeUpdateEmail,
+} from "firebase/auth";
 import Modal from "react-native-modal";
 import SearchBar from "./SearchBar/SearchBar";
 import styles from "./styles";
@@ -73,8 +81,128 @@ const HomeScreen = () => {
 
   const navigation = useNavigation();
 
-  const userId = auth.currentUser.uid;
   const [counter, setCounter] = useState(0);
+
+  const [userId, setUserId] = useState(null);
+  const [modalForEmailVerification, setModalForEmailVerification] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [showEmailUpdateModal, setShowEmailUpdateModal] = useState(false);
+  const [newEmailLoading, setNewEmailLoading] = useState(false);
+  const [newEmailError, setNewEmailError] = useState("");
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUserId(user.uid);
+        checkIfUserVerified(user);
+      } else {
+        setUserId(null);
+        setEmailVerified(false);
+        clearInterval(intervalRef.current);
+      }
+    });
+    return () => {
+      unsubscribeAuth();
+    };
+  }, [auth]);
+
+  const checkIfUserVerified = async (user) => {
+    if (!user) return;
+
+    clearInterval(intervalRef.current);
+
+    if (user.emailVerified) {
+      setEmailVerified(true);
+      setModalMessage("Thank you for verifying your email address.");
+      return;
+    }
+
+    if (!emailVerified) {
+      try {
+        await sendEmailVerification(user);
+        setModalMessage(
+          "A verification email has been sent to your email address. Please check your inbox and follow the instructions to verify your account."
+        );
+        setModalForEmailVerification(true);
+      } catch (error) {
+        console.error("Error sending verification email: ", error);
+      }
+    }
+    intervalRef.current = setInterval(async () => {
+      try {
+        await user.reload();
+        if (user.emailVerified) {
+          clearInterval(intervalRef.current);
+          setModalMessage("Thank you for verifying your email address.");
+          setEmailVerified(true);
+        }
+      } catch (error) {
+        clearInterval(intervalRef.current);
+      }
+    }, 6000);
+  };
+
+  const checkEmailInFirestore = async (email) => {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+  };
+
+  const handleChangeEmail = async (newEmail, currentPassword) => {
+    const user = auth.currentUser;
+    if (!newEmail || !currentPassword) {
+      setNewEmailError("Please fill in all fields.");
+      return;
+    }
+
+    if (!newEmail.includes("@")) {
+      setNewEmailError("Please enter a valid email address.");
+      return;
+    }
+
+    setNewEmailLoading(true);
+    try {
+      const emailExistsInFirestore = await checkEmailInFirestore(newEmail);
+      if (emailExistsInFirestore) {
+        setNewEmailError("This email is already in use. Please choose another.");
+        console.log("Email already in use:", newEmail);
+        return;
+      } else {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, { email: newEmail });
+      }
+
+      if (user) {
+        await user.reload();
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+
+        await verifyBeforeUpdateEmail(user, newEmail);
+
+        setModalMessage(
+          "A verification email has been sent to your new email address. Please do note that after verifying your new email address, you will need to log in again."
+        );
+
+        setShowEmailUpdateModal(false);
+      }
+    } catch (error) {
+      let errorMessage =
+        "An error occurred while updating the email. Please try again.";
+      if (error.message.includes("auth/invalid-credential")) {
+        errorMessage = "The password you entered is incorrect. Please try again.";
+      } else if (error.message.includes("auth/email-already-in-use")) {
+        errorMessage = "This email is already in use. Please choose another.";
+      }
+      setNewEmailError(errorMessage);
+      setNewEmailLoading(false);
+    } finally {
+      setNewEmailLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (userId) {
@@ -441,6 +569,24 @@ const HomeScreen = () => {
 
   const toggleModal = () => {
     setNotifPressed(!notifPressed);
+  };
+
+  const handleButtonClick = async () => {
+    setModalForEmailVerification(false);
+  };
+
+  const handleCancelButton = () => {
+    setShowEmailUpdateModal(false);
+    setNewEmailError("");
+    setNewEmail("");
+    setCurrentPassword("");
+  };
+
+  const handleClickHere = () => {
+    setShowEmailUpdateModal(true);
+    setNewEmailError("");
+    setNewEmail("");
+    setCurrentPassword("");
   };
 
   if (loading) {
@@ -863,6 +1009,104 @@ const HomeScreen = () => {
                 renderItem={renderItem}
               />
             )}
+          </View>
+        </View>
+      </Modal>
+      <Modal isVisible={modalForEmailVerification}>
+        <View style={styles.alertModalContainer}>
+          <Text
+            style={
+              !emailVerified ? styles.alertModalText : styles.alertModalTextVerified
+            }
+          >
+            {modalMessage}
+          </Text>
+          {emailVerified ? (
+            <View style={styles.alertModalButtonContainer}>
+              <TouchableOpacity
+                onPress={handleButtonClick}
+                style={styles.alertModalButton}
+              >
+                <Text style={styles.alertModalButtonText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.alertModalButtonContainer}>
+              <Text
+                style={{
+                  fontFamily: "Poppins_400Regular",
+                  fontSize: 12,
+                  color: COLORS.title,
+                }}
+              >
+                If you want to change your email address
+              </Text>
+              <TouchableOpacity
+                onPress={handleClickHere}
+                style={styles.alertModalButton}
+              >
+                <Text style={styles.alertModalButtonText}>Click Here</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </Modal>
+      <Modal isVisible={showEmailUpdateModal}>
+        <View style={styles.emailUpdateModalContainer}>
+          <Text style={styles.emailUpdateTitle}>Enter your new email address:</Text>
+          <Text
+            style={{
+              fontFamily: "Poppins_400Regular",
+              fontSize: 10,
+              color: COLORS.title,
+              textAlign: "justify",
+            }}
+          >
+            Note: After successfully changing your email, you will be signed out and
+            will need to log in again with your new email.
+          </Text>
+          <TextInput
+            style={styles.emailUpdateInput}
+            placeholder="New email address"
+            value={newEmail}
+            onChangeText={(text) => setNewEmail(text)}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={styles.emailUpdateInput}
+            placeholder="Current password"
+            secureTextEntry
+            value={currentPassword}
+            onChangeText={(text) => setCurrentPassword(text)}
+          />
+          <Text
+            style={{
+              fontFamily: "Poppins_400Regular",
+              color: COLORS.delete,
+              fontSize: 10,
+              textAlign: "center",
+            }}
+          >
+            {newEmailError}
+          </Text>
+          <View style={styles.updateEmailButtonContainer}>
+            <TouchableOpacity
+              onPress={handleCancelButton}
+              style={styles.updateEmailCancelButton}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleChangeEmail(newEmail, currentPassword)}
+              style={styles.updateEmailButton}
+            >
+              {newEmailLoading ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <Text style={styles.buttonText}>Update Email</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

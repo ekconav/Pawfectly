@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   noNotifText: {
     fontFamily: "Poppins_400Regular",
     color: COLORS.title,
-    textAlign: "center"
+    textAlign: "center",
   },
   profile: {
     width: 40,
@@ -461,6 +461,82 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins_400Regular",
     color: COLORS.subtitle,
     fontSize: 7,
+  },
+
+  // Alert Modal
+  alertModalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+    borderRadius: 10,
+  },
+  alertModalButtonContainer: {
+    marginTop: 20,
+    alignItems: "flex-end",
+  },
+  alertModalText: {
+    color: COLORS.title,
+    fontFamily: "Poppins_500Medium",
+    textAlign: "justify",
+  },
+  alertModalTextVerified: {
+    color: COLORS.title,
+    fontFamily: "Poppins_400Regular",
+  },
+  alertModalButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  alertModalButtonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
+  },
+
+  emailUpdateModalContainer: {
+    backgroundColor: COLORS.white,
+    padding: 20,
+    borderRadius: 10,
+  },
+  emailUpdateTitle: {
+    fontFamily: "Poppins_500Medium",
+    color: COLORS.title,
+    fontSize: 16,
+  },
+  emailUpdateInput: {
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: COLORS.outline,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    paddingVertical: 5,
+    fontFamily: "Poppins_400Regular",
+  },
+  updateEmailButtonContainer: {
+    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+  },
+  updateEmailCancelButton: {
+    backgroundColor: COLORS.subtitle,
+    padding: 10,
+    borderRadius: 10,
+    width: 115,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  updateEmailButton: {
+    backgroundColor: COLORS.prim,
+    padding: 10,
+    borderRadius: 10,
+    width: 115,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontFamily: "Poppins_400Regular",
   },
 });
 
