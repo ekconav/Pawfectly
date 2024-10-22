@@ -24,6 +24,150 @@ const DeleteModal = ({ onConfirm, onClose, children }) => {
   );
 };
 
+// Add Modal Component
+const AddModal = forwardRef(
+  (
+    {
+      updateUser,
+      setUpdateUser,
+      handleInputChange,
+      handleAddUserSubmit,
+      handleCloseAddUserForm,
+      handleImageChange,
+      imagePreview,
+    },
+    ref
+  ) => {
+    return (
+      <div style={styles.modalOverlay}>
+        <div style={styles.modalContent}>
+          <h3 style={styles.modalTitle}>Add Adopter Information</h3>
+          {/* <div style={styles.modalForm}> */}
+          <Form>
+            {/* Select for order */}
+            <Form.Group className="mb-2">
+              <Form.Control
+                type="text"
+                name="firstName"
+                placeholder="First Name"
+                value={updateUser.firstName}
+                onChange={handleInputChange}
+                style={styles.inputField}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <Form.Control
+                type="text"
+                name="lastName"
+                placeholder="Last Name"
+                value={updateUser.lastName}
+                onChange={handleInputChange}
+                style={styles.inputField}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <Form.Control
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={updateUser.email}
+                onChange={handleInputChange}
+                style={styles.inputField}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <div style={styles.mobileNumberContainer}>
+                <span style={styles.countryCode}>+63</span>
+                <Form.Control
+                  type="text"
+                  name="mobileNumber"
+                  placeholder="Mobile Number"
+                  value={updateUser.mobileNumber}
+                  onChange={handleInputChange}
+                  style={{ ...styles.inputField, paddingLeft: "50px" }} // Adding padding to avoid overlap
+                  required
+                />
+              </div>
+            </Form.Group>
+            <Form.Group className="mb-2">
+              <Form.Control
+                type="text"
+                name="address"
+                placeholder="Address"
+                value={updateUser.address}
+                onChange={handleInputChange}
+                style={styles.inputField}
+                required
+              />
+            </Form.Group>
+
+            <div style={styles.SwitchLine}>
+              <label style={styles.title}>Birthdate:</label>
+              <DatePicker
+                showIcon
+                placeholderText="Birthdate"
+                selected={updateUser.birthdate} // Bind to the current birthdate in the state
+                onChange={(date) =>
+                  setUpdateUser({ ...updateUser, birthdate: date })
+                } // Directly set the date
+                dateFormat="yyyy-MM-dd"
+                className={styles.datePicker} // Use the defined style here
+                required
+              />
+            </div>
+            <Form.Group className="mb-2">
+              {imagePreview.image && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center", // Center horizontally
+                    alignItems: "center", // Center vertically
+                  }}
+                >
+                  <img
+                    src={
+                      imagePreview.image || require("../../../const/user.png")
+                    }
+                    alt="Government Id"
+                    style={{ 
+                      ...styles.infoPicture, 
+                      width: "10vw",
+                      height: "15vh",
+                    }} 
+                  />
+                </div>
+              )}
+              <Form.Control
+                ref={ref}
+                type="file"
+                accept="image/*" // Allow only image files
+                onChange={handleImageChange}
+              />
+            </Form.Group>
+          </Form>
+          <div style={styles.modalButtons}>
+            <button
+              onClick={handleCloseAddUserForm} 
+              style={styles.cancelButton}
+            >
+              Cancel
+            </button>
+            <button 
+            onClick={handleAddUserSubmit}
+            style={styles.confirmButton}>
+              Confirm
+            </button>
+          </div>
+        </div>
+        {/* </div> */}
+      </div>
+    );
+  }
+);
+
 // Update Modal Component
 const UpdateModal = forwardRef(
   (
@@ -171,7 +315,7 @@ const ImageModal = ({ isOpen, imageUrl, onClose }) => {
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
       <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <img src={imageUrl} alt="Full View" style={styles.fullImage} />
+        <img src={imageUrl || require("../../../const/user.png") } alt="Full View" style={styles.fullImage} />
         <button onClick={onClose} style={styles.closeButton}>
           Close
         </button>
@@ -409,6 +553,7 @@ const Modals = {
   UpdateModal,
   ImageModal,
   AddPetModal,
+  AddModal,
 };
 
 export default Modals;

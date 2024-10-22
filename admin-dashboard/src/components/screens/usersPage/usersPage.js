@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Header from "../../header/header";
 import styles from "./styles";
-import { db, storage } from "../../../FirebaseConfig";
+import { db, storage, auth } from "../../../FirebaseConfig";
 import {
   writeBatch,
   collection,
@@ -10,10 +10,11 @@ import {
   deleteDoc,
   getDocs,
   addDoc,
+  setDoc,
   doc,
   query,
   where,
-  Timestamp 
+  Timestamp,
 } from "firebase/firestore";
 import {
   deleteObject,
@@ -21,11 +22,12 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import Modals from "./usersModal";
 import Alerts from "./alert";
 import COLORS from "../../colors";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
-import { Col, Container, Row } from "react-bootstrap";
+import { Col, Container, Row, Button } from "react-bootstrap";
 
 // Number of items per page
 
@@ -138,7 +140,7 @@ const UsersPage = () => {
     setIsUpdateUserModalOpen(true);
   };
 
-  const handleCloseEditAdopter = () =>{
+  const handleCloseEditAdopter = () => {
     setUpdateUser({
       firstName: "",
       lastName: "",
@@ -153,8 +155,8 @@ const UsersPage = () => {
       file: "",
       flag: true,
     });
-    setIsUpdateUserModalOpen(false); 
-  }
+    setIsUpdateUserModalOpen(false);
+  };
 
   // Function to handle image selection
   const handleImageChangeAdopter = (e) => {
@@ -185,9 +187,14 @@ const UsersPage = () => {
           fileInputRef.current.value = "";
         }
       }
+    } else {
+      setImagePreview({
+        image: "",
+        file: "",
+        flag: true,
+      });
     }
   };
-
 
   // Function to handle user update
   const handleUpdateUser = async () => {
@@ -218,7 +225,7 @@ const UsersPage = () => {
       const formattedMobileNumber = `+63${updateUser.mobileNumber}`;
       const birthdateTimestamp = Timestamp.fromDate(updateUser.birthdate);
 
-       // Initialize updated data
+      // Initialize updated data
       const updatedData = {
         firstName: updateUser.firstName,
         lastName: updateUser.lastName,
@@ -230,7 +237,6 @@ const UsersPage = () => {
 
       // If a new image is selected, upload it and get the URL
       if (imagePreview.flag && imagePreview.file) {
-
         try {
           const imageRef = ref(
             storage,
@@ -246,7 +252,6 @@ const UsersPage = () => {
           setLoading(false);
           return;
         }
-  
       }
 
       await updateDoc(doc(db, "users", selectedUser.id), updatedData);
@@ -465,12 +470,10 @@ const UsersPage = () => {
   });
   const fileInputRef = useRef(null);
 
-
-  const [isAddPetModal,setAddPetModal] = useState(false);
+  const [isAddPetModal, setAddPetModal] = useState(false);
   const handleAddPetButton = (user) => {
-
     setSelectedUser(user);
-    setPetInfo ({
+    setPetInfo({
       adoptedBy: "",
       age: "",
       breed: "",
@@ -484,9 +487,9 @@ const UsersPage = () => {
       weight: "",
       userId: "",
       images: "",
-    })
+    });
     setAddPetModal((s) => !s);
-  }
+  };
   // Close offcanvas
   const handleCloseAddPetOffCanvas = () => {
     setPetInfo({
@@ -502,14 +505,14 @@ const UsersPage = () => {
       adoptedBy: "",
       location: "",
       petPosted: "",
-      userId: ""
+      userId: "",
     });
     setImagePreview({
       image: "",
       file: "",
       flag: true,
     });
-    setAddPetModal(false); 
+    setAddPetModal(false);
   };
 
   // Input change for forms
@@ -521,8 +524,8 @@ const UsersPage = () => {
     }));
   };
 
-   // Function to handle image selection
-   const handleImageChange = (e) => {
+  // Function to handle image selection
+  const handleImageChange = (e) => {
     const MAX_SIZE_MB = 5;
     const file = e.target.files[0];
 
@@ -535,13 +538,12 @@ const UsersPage = () => {
           image: URL.createObjectURL(file),
           file: file,
         });
-
       } else {
         setImagePreview({
           image: "",
           file: "",
         });
-        
+
         setAlertMessage(
           "Image is too large. Please select an image under 5MB."
         );
@@ -555,7 +557,6 @@ const UsersPage = () => {
   };
 
   const handleAddPetSubmit = async () => {
-
     // Validation
     if (
       !petInfo.name ||
@@ -585,12 +586,12 @@ const UsersPage = () => {
       setAlertType("error");
       return; // Stop submission if fee is invalid
     }
-    try{
+    try {
       setLoading(true);
-      const updatedData = { 
+      const updatedData = {
         ...petInfo,
         userId: selectedUser.id,
-        location: selectedUser.address
+        location: selectedUser.address,
       };
       const timestamp = new Date().getTime();
       const imageRef = ref(
@@ -600,7 +601,7 @@ const UsersPage = () => {
       await uploadBytes(imageRef, imagePreview.file);
       const url = await getDownloadURL(imageRef);
       updatedData.images = url; // Update the URL in the data to be sent to Firestore
-    
+
       const petsCollectionRef = collection(db, "pets");
       await addDoc(petsCollectionRef, updatedData);
 
@@ -615,8 +616,128 @@ const UsersPage = () => {
       setAlertMessage("Error Adding Pet");
       setAlertType("error");
     }
+  };
 
-  }
+  const [isAddUserModal, setAddUserModal] = useState(false);
+
+  const handleAddUserForm = () => {
+    setUpdateUser({
+      firstName: "",
+      lastName: "",
+      mobileNumber: "",
+      address: "",
+      birthdate: "",
+      verified: false,
+      governmentId: "",
+      email: "",
+    });
+    setAddUserModal(true);
+  };
+
+  const handleCloseAddUserForm = () => {
+    setUpdateUser({
+      firstName: "",
+      lastName: "",
+      mobileNumber: "",
+      address: "",
+      birthdate: "",
+      verified: false,
+      governmentId: "",
+      email: "",
+    });
+    setImagePreview({
+      image: "",
+      file: "",
+      flag: true,
+    });
+    setAddUserModal(false);
+  };
+
+  const handleAddUserSubmit = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Validation
+    if (
+      !updateUser.firstName ||
+      !updateUser.lastName ||
+      !updateUser.mobileNumber ||
+      !updateUser.email ||
+      !updateUser.address ||
+      !updateUser.birthdate
+    ) {
+      setAlertMessage("All fields are required.");
+      setAlertType("error");
+      return; // Stop submission if there are errors
+    }
+    // Validate mobile number length
+    if (
+      updateUser.mobileNumber.length !== 10 ||
+      !updateUser.mobileNumber.startsWith("9")
+    ) {
+      setAlertMessage("Improper mobile number according to the Country Code");
+      setAlertType("error");
+      return;
+    }
+
+    // Validate email format
+    if (!emailRegex.test(updateUser.email)) {
+      setAlertMessage("Please enter a valid email address.");
+      setAlertType("error");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const formattedMobileNumber = `+63${updateUser.mobileNumber}`;
+      const birthdateTimestamp = Timestamp.fromDate(updateUser.birthdate);
+      // Create a new user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        updateUser.email,
+        "user12345"
+      );
+      const user = userCredential.user;
+
+      // Add additional user information to Firestore
+      const userData = {
+        firstName: updateUser.firstName,
+        lastName: updateUser.lastName,
+        mobileNumber: formattedMobileNumber,
+        email: updateUser.email,
+        address: updateUser.address,
+        birthdate: birthdateTimestamp,
+        verified: false,
+      };
+
+      if (imagePreview.flag && imagePreview.file) {
+        try {
+          const imageRef = ref(storage, `adopters/governmentIds/${user.uid}`);
+          await uploadBytes(imageRef, imagePreview.file);
+          const url = await getDownloadURL(imageRef);
+          userData.governmentId = url; // Update the URL in the data to be sent to Firestore
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          setAlertMessage("Failed to upload the image.");
+          setAlertType("error");
+          setLoading(false);
+          return;
+        }
+      }
+
+      await setDoc(doc(db, "users", user.uid), userData);
+
+      // Reset form fields
+      handleCloseAddUserForm();
+      setLoading(false);
+      setAlertMessage("User added successfully.");
+      setAlertType("success");
+    } catch (error) {
+      setLoading(false);
+      console.error("Error adding user: ", error);
+      setAlertMessage("Failed to add user. Please try again.");
+      setAlertType("error");
+    }
+  };
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
@@ -648,7 +769,44 @@ const UsersPage = () => {
   return (
     <div>
       <Header />
-      <h1 style={styles.pageTitle}>Adopters Page</h1>
+      <Container>
+        <Row>
+          <Col
+            style={{
+              justifyContent: "flex-start",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <Button
+              style={{
+                paddingLeft: "10px",
+                paddingRight: "10px",
+                backgroundColor: COLORS.prim,
+                border: COLORS.prim,
+                color: COLORS.white,
+                transition: "background-color 0.3s ease, color 0.3s ease",
+              }}
+              size="sm"
+              onClick={() => handleAddUserForm()}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = COLORS.hover;
+                e.target.style.color = COLORS.white;
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = COLORS.prim;
+                e.target.style.color = COLORS.white;
+              }}
+            >
+              Add Adopter
+            </Button>
+          </Col>
+          <Col lg={7}>
+            <h1 style={styles.pageTitle}>Adopters Page</h1>
+          </Col>
+          <Col></Col>
+        </Row>
+      </Container>
       <div style={styles.container}>
         <div style={styles.userListContainer}>
           <div style={styles.userDetailsLabel}>
@@ -735,34 +893,34 @@ const UsersPage = () => {
                 </Col>
                 <Col lg={2} className="p-0 d-flex align-items-center">
                   {/* <div style={styles.editButtonContainer}> */}
-                    <ion-icon
-                      style={{
-                        fontSize: "30px",
-                        cursor: "pointer",
-                        color: COLORS.prim,
-                      }}
-                      name="add-circle-outline"
-                      onClick={() => handleAddPetButton(selectedUser)} // Function for click
-                      onMouseOver={(e) => {
-                        e.target.style.color = COLORS.hover;
-                      }}
-                      onMouseOut={(e) => {
-                        e.target.style.color = COLORS.prim;
-                      }}
-                    ></ion-icon>
-                    <ion-icon
-                      name="pencil"
-                      style={styles.editIcon} // Add styling as needed
-                      onClick={() => handleEditUser(selectedUser)}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.color = COLORS.hover;
-                        e.currentTarget.style.borderColor = COLORS.hover;
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.color = COLORS.prim;
-                        e.currentTarget.style.borderColor = COLORS.prim;
-                      }}
-                    ></ion-icon>
+                  <ion-icon
+                    style={{
+                      fontSize: "30px",
+                      cursor: "pointer",
+                      color: COLORS.prim,
+                    }}
+                    name="add-circle-outline"
+                    onClick={() => handleAddPetButton(selectedUser)} // Function for click
+                    onMouseOver={(e) => {
+                      e.target.style.color = COLORS.hover;
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.color = COLORS.prim;
+                    }}
+                  ></ion-icon>
+                  <ion-icon
+                    name="pencil"
+                    style={styles.editIcon} // Add styling as needed
+                    onClick={() => handleEditUser(selectedUser)}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.color = COLORS.hover;
+                      e.currentTarget.style.borderColor = COLORS.hover;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.color = COLORS.prim;
+                      e.currentTarget.style.borderColor = COLORS.prim;
+                    }}
+                  ></ion-icon>
                   {/* </div> */}
                 </Col>
               </Row>
@@ -808,7 +966,9 @@ const UsersPage = () => {
               </div>
               <div style={styles.line}>
                 <p style={styles.userInfoTitleLabel}>
-                  {selectedUser.birthdate ? formatDate(selectedUser.birthdate) : "N/A"}
+                  {selectedUser.birthdate
+                    ? formatDate(selectedUser.birthdate)
+                    : "N/A"}
                 </p>
               </div>
               <div style={styles.line}>
@@ -817,9 +977,7 @@ const UsersPage = () => {
                 </p>
               </div>
               <div style={styles.line}>
-                <p style={styles.userInfoTitleLabel}>
-                  {selectedUser.address}
-                </p>
+                <p style={styles.userInfoTitleLabel}>{selectedUser.address}</p>
               </div>
               <div style={styles.line}>
                 <p style={styles.userInfoTitleLabel}>Status:</p>
@@ -903,7 +1061,22 @@ const UsersPage = () => {
           imagePreview={imagePreview}
         />
       )}
-      {/* Delete Button Modal */} 
+      {/* Add Button Modal */}
+      {isAddUserModal && (
+        <Modals.AddModal
+          updateUser={updateUser}
+          setUpdateUser={setUpdateUser}
+          handleInputChange={(e) =>
+            setUpdateUser({ ...updateUser, [e.target.name]: e.target.value })
+          }
+          handleAddUserSubmit={handleAddUserSubmit}
+          handleImageChange={handleImageChangeAdopter}
+          handleCloseAddUserForm={handleCloseAddUserForm}
+          ref={fileInputRef}
+          imagePreview={imagePreview}
+        />
+      )}
+      {/* Delete Button Modal */}
       {isDeleteUserModalOpen && (
         <Modals.DeleteModal
           onConfirm={handleDeleteUser}
