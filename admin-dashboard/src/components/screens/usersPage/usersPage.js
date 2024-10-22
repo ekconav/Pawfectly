@@ -13,6 +13,7 @@ import {
   doc,
   query,
   where,
+  Timestamp 
 } from "firebase/firestore";
 import {
   deleteObject,
@@ -110,6 +111,10 @@ const UsersPage = () => {
     firstName: "",
     lastName: "",
     mobileNumber: "",
+    address: "",
+    birthdate: null,
+    verified: false,
+    governmentId: "",
   });
 
   const handleEditUser = (user) => {
@@ -122,17 +127,76 @@ const UsersPage = () => {
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       mobileNumber: mobileNumberWithoutCountryCode || "",
+      address: user.address || "",
+      birthdate: user.birthdate ? user.birthdate.toDate() : "",
       verified: user.verified || false,
+      governmentId: user.governmentId || "",
+    });
+    setImagePreview({
+      image: user.governmentId,
     });
     setIsUpdateUserModalOpen(true);
   };
+
+  const handleCloseEditAdopter = () =>{
+    setUpdateUser({
+      firstName: "",
+      lastName: "",
+      mobileNumber: "",
+      address: "",
+      birthdate: null,
+      verified: false,
+      governmentId: "",
+    });
+    setImagePreview({
+      image: "",
+      file: "",
+      flag: true,
+    });
+    setIsUpdateUserModalOpen(false); 
+  }
+
+  // Function to handle image selection
+  const handleImageChangeAdopter = (e) => {
+    const MAX_SIZE_MB = 5;
+    const file = e.target.files[0];
+
+    if (file) {
+      // Check the file size
+      const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
+
+      if (fileSizeMB < MAX_SIZE_MB) {
+        setImagePreview({
+          image: URL.createObjectURL(file),
+          file: file,
+          flag: true,
+        });
+      } else {
+        setImagePreview({
+          image: updateUser.governmentId,
+          flag: false,
+        });
+        setAlertMessage(
+          "Image is too large. Please select an image under 5MB."
+        );
+        setAlertType("error");
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    }
+  };
+
 
   // Function to handle user update
   const handleUpdateUser = async () => {
     if (
       !updateUser.firstName ||
       !updateUser.lastName ||
-      !updateUser.mobileNumber
+      !updateUser.mobileNumber ||
+      !updateUser.birthdate ||
+      !updateUser.address
     ) {
       setAlertMessage("All fields are required.");
       setAlertType("error");
@@ -152,22 +216,45 @@ const UsersPage = () => {
     try {
       setLoading(true);
       const formattedMobileNumber = `+63${updateUser.mobileNumber}`;
+      const birthdateTimestamp = Timestamp.fromDate(updateUser.birthdate);
 
-      const userDocRef = doc(db, "users", selectedUser.id);
-      await updateDoc(userDocRef, {
+       // Initialize updated data
+      const updatedData = {
         firstName: updateUser.firstName,
         lastName: updateUser.lastName,
         mobileNumber: formattedMobileNumber,
+        address: updateUser.address,
+        birthdate: birthdateTimestamp,
         verified: updateUser.verified,
-      });
+      };
+
+      // If a new image is selected, upload it and get the URL
+      if (imagePreview.flag && imagePreview.file) {
+
+        try {
+          const imageRef = ref(
+            storage,
+            `adopters/governmentIds/${selectedUser.id}`
+          );
+          await uploadBytes(imageRef, imagePreview.file);
+          const url = await getDownloadURL(imageRef);
+          updatedData.governmentId = url; // Update the URL in the data to be sent to Firestore
+        } catch (uploadError) {
+          console.error("Image upload failed:", uploadError);
+          setAlertMessage("Failed to upload the image.");
+          setAlertType("error");
+          setLoading(false);
+          return;
+        }
+  
+      }
+
+      await updateDoc(doc(db, "users", selectedUser.id), updatedData);
 
       // Update the selectedUser state with the new data
       setSelectedUser((prevUser) => ({
         ...prevUser,
-        firstName: updateUser.firstName,
-        lastName: updateUser.lastName,
-        mobileNumber: formattedMobileNumber,
-        verified: updateUser.verified,
+        ...updatedData,
       }));
 
       setIsUpdateUserModalOpen(false);
@@ -374,6 +461,7 @@ const UsersPage = () => {
   const [imagePreview, setImagePreview] = useState({
     image: "",
     file: "",
+    flag: true,
   });
   const fileInputRef = useRef(null);
 
@@ -419,6 +507,7 @@ const UsersPage = () => {
     setImagePreview({
       image: "",
       file: "",
+      flag: true,
     });
     setAddPetModal(false); 
   };
@@ -454,7 +543,7 @@ const UsersPage = () => {
         });
         
         setAlertMessage(
-          "Image is too large. Please select an image under 2MB."
+          "Image is too large. Please select an image under 5MB."
         );
         setAlertType("error");
 
@@ -528,6 +617,16 @@ const UsersPage = () => {
     }
 
   }
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "";
+    const date = timestamp.toDate(); // Convert Firestore Timestamp to JavaScript Date
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long", // Full month name
+      day: "2-digit",
+    });
+  };
   //Alert Message and Type
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("");
@@ -694,12 +793,22 @@ const UsersPage = () => {
               </div>
               <div style={styles.line}>
                 <p style={{ ...styles.userInfoTitleLabel, textAlign: "left" }}>
-                  Mobile Number:
+                  Mobile #:
                 </p>
               </div>
               <div style={styles.line}>
                 <p style={styles.userInfoTitleLabel}>
                   {selectedUser.mobileNumber}
+                </p>
+              </div>
+              <div style={styles.line}>
+                <p style={{ ...styles.userInfoTitleLabel, textAlign: "left" }}>
+                  Birthdate:
+                </p>
+              </div>
+              <div style={styles.line}>
+                <p style={styles.userInfoTitleLabel}>
+                  {selectedUser.birthdate ? formatDate(selectedUser.birthdate) : "N/A"}
                 </p>
               </div>
               <div style={styles.line}>
@@ -780,6 +889,7 @@ const UsersPage = () => {
       {isUpdateUserModalOpen && (
         <Modals.UpdateModal
           updateUser={updateUser}
+          setUpdateUser={setUpdateUser}
           handleInputChange={(e) =>
             setUpdateUser({ ...updateUser, [e.target.name]: e.target.value })
           }
@@ -787,10 +897,13 @@ const UsersPage = () => {
             setUpdateUser({ ...updateUser, verified: e.target.checked })
           }
           handleUpdateUser={handleUpdateUser}
-          handleCloseUpdateUserModal={() => setIsUpdateUserModalOpen(false)}
+          handleImageChange={handleImageChangeAdopter}
+          handleCloseUpdateUserModal={handleCloseEditAdopter}
+          ref={fileInputRef}
+          imagePreview={imagePreview}
         />
       )}
-      {/* Delete Button Modal */}
+      {/* Delete Button Modal */} 
       {isDeleteUserModalOpen && (
         <Modals.DeleteModal
           onConfirm={handleDeleteUser}

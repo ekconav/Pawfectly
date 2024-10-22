@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   userInfoDetails: {
     display: "grid",
     gridTemplateColumns: "7vw 22vw",
-    gridTemplateRows: "1fr 1fr 10vh 1fr 1fr 2fr",
+    gridTemplateRows: "1fr 1fr 1fr 1fr 1fr 1fr 2fr",
     gap: "3px",
   },
   userInfoTitleLabel: {
@@ -210,10 +210,10 @@ const styles = StyleSheet.create({
   inputField: {
     width: "100%",
     padding: 10,
-    border: "1px solid",
     borderColor: COLORS.outline,
-    borderRadius: 5,
     boxSizing: "border-box",
+    border: `2px solid ${COLORS.prim}`,
+    borderRadius: 8,
   },
   inputFieldOffcanvas: {
     border: `2px solid ${COLORS.prim}`,
@@ -238,6 +238,12 @@ const styles = StyleSheet.create({
     fontSize: "14px",
     fontWeight: "bold",
     color: "#5F5B5B",
+  },
+  datePicker: {
+    border: `2px solid red`, // Set border color
+    borderRadius: '4px', // Optional: Set border radius for rounded corners
+    padding: '8px', // Optional: Add some padding
+    width: '100%', // Optional: Set width to 100%
   },
   modalTitle: {
     fontWeight: 500,

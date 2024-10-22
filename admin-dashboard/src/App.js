@@ -12,6 +12,7 @@ import Reports from "./components/screens/reportsPage/reports";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoadingSpinner from "./components/screens/loadingPage/loadingSpinner";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import "react-datepicker/dist/react-datepicker.css";
 
 function App() {
   const [user, setUser] = useState(null);
