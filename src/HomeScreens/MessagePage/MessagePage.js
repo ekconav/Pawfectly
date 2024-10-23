@@ -23,6 +23,7 @@ import {
   updateDoc,
   where,
   getDocs,
+  increment,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
@@ -318,8 +319,8 @@ const MessagePage = ({ route }) => {
           (participant) => participant !== currentUser.uid
         );
 
-        const adoptedByRef = doc(db, "users", participantZero);
-        const adoptedBySnap = await getDoc(adoptedByRef);
+        const adoptedByDocRef = doc(db, "users", participantZero);
+        const adoptedBySnap = await getDoc(adoptedByDocRef);
 
         if (usersSnap.exists()) {
           const usersData = usersSnap.data();
@@ -358,6 +359,14 @@ const MessagePage = ({ route }) => {
           });
 
           const usersData = adoptedBySnap.data();
+          const currentDate = new Date();
+
+          if (usersData.adoption_limit < 3) {
+            await updateDoc(adoptedByDocRef, {
+              adoption_limit: increment(1),
+              last_adoption_date: currentDate,
+            });
+          }
           const adoptedByRef = doc(
             db,
             "users",

@@ -57,6 +57,8 @@ const DetailsPage = ({ route }) => {
   const [conversations, setConversations] = useState([]);
 
   const [readyForAdoption, setReadyForAdoption] = useState(false);
+  const [adoptionLimitExceed, setAdoptionLimitExceed] = useState(false);
+  const [checkLoading, setCheckLoading] = useState(false);
 
   const navigation = useNavigation();
 
@@ -312,15 +314,39 @@ const DetailsPage = ({ route }) => {
   }, [route.params]);
 
   useEffect(() => {
-    const checkUserVerification = () => {
+    const checkUserVerificationAndAdoptionLimit = () => {
       const user = auth.currentUser;
       if (user) {
         const usersRef = doc(db, "users", user.uid);
 
-        const unsubscribeDoc = onSnapshot(usersRef, (docSnap) => {
+        const unsubscribeDoc = onSnapshot(usersRef, async (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
+            const currentDate = new Date();
+            const lastAdoptionDate = data.last_adoption_date
+              ? data.last_adoption_date.toDate()
+              : null;
+
             setIsVerified(data.verified === true);
+            if (data.adoption_limit >= 3) {
+              if (
+                !lastAdoptionDate ||
+                lastAdoptionDate.getMonth() !== currentDate.getMonth()
+              ) {
+                try {
+                  await updateDoc(usersRef, {
+                    adoption_limit: 0,
+                  });
+                  setAdoptionLimitExceed(false);
+                } catch (error) {
+                  console.error("Error updating adoption limit: ", error);
+                }
+              } else {
+                setAdoptionLimitExceed(true);
+              }
+            } else {
+              setAdoptionLimitExceed(false);
+            }
           } else {
             console.log("User document not found.");
             setIsVerified(false);
@@ -331,7 +357,7 @@ const DetailsPage = ({ route }) => {
       }
     };
 
-    const unsubscribe = checkUserVerification();
+    const unsubscribe = checkUserVerificationAndAdoptionLimit();
 
     return () => {
       if (unsubscribe) unsubscribe();
@@ -423,6 +449,12 @@ const DetailsPage = ({ route }) => {
   };
 
   const handleAdoption = async () => {
+    if (adoptionLimitExceed) {
+      setModalMessage("Sorry, you can only do up to 3 adoptions per month.");
+      setAlertModal(true);
+      return;
+    }
+    setCheckLoading(true);
     try {
       const userId = auth.currentUser.uid;
       const shelterId = petDetails.userId;
@@ -434,7 +466,7 @@ const DetailsPage = ({ route }) => {
       const shelterSnap = await getDoc(shelterRef);
       const userRef = doc(db, "users", shelterId);
       const userSnap = await getDoc(userRef);
-      
+
       if (shelterSnap.exists()) {
         const notificationsRef = collection(
           db,
@@ -604,6 +636,9 @@ const DetailsPage = ({ route }) => {
       console.error("Error during adoption process: ", error);
       setModalMessage("There was an error trying to adopt the pet.");
       setAlertModal(true);
+      setCheckLoading(false);
+    } finally {
+      setCheckLoading(false);
     }
   };
 
@@ -872,19 +907,31 @@ const DetailsPage = ({ route }) => {
               onPress={handleAdoption}
               disabled={!readyForAdoption || messageSent || petAdopted || petDeleted}
             >
-              <Text style={styles.textButton}>
-                {youAdopted && petAdopted
-                  ? `Congratulations, you successfully adopted ${petDetails.name}.`
-                  : petAdopted && !youAdopted
-                  ? "Pet has been adopted"
-                  : petDeleted
-                  ? "Pet data has been deleted"
-                  : messageSent
-                  ? "Message Sent"
-                  : !readyForAdoption
-                  ? "Not ready for adoption"
-                  : "Adopt Me"}
-              </Text>
+              {checkLoading ? (
+                <View
+                  style={{
+                    paddingVertical: 2,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                </View>
+              ) : (
+                <Text style={styles.textButton}>
+                  {youAdopted && petAdopted
+                    ? `Congratulations, you successfully adopted ${petDetails.name}.`
+                    : petAdopted && !youAdopted
+                    ? "Pet has been adopted"
+                    : petDeleted
+                    ? "Pet data has been deleted"
+                    : messageSent
+                    ? "Message Sent"
+                    : !readyForAdoption
+                    ? "Not ready for adoption"
+                    : "Adopt Me"}
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
