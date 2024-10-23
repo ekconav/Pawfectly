@@ -24,6 +24,7 @@ import {
   where,
   getDocs,
   runTransaction,
+  increment,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation } from "@react-navigation/native";
@@ -375,6 +376,14 @@ const MessagePageShelter = ({ route }) => {
         });
 
         const userData = userSnap.data();
+        const currentDate = new Date();
+
+        if (userData.adoption_limit < 3) {
+          await updateDoc(usersRef, {
+            adoption_limit: increment(1),
+            last_adoption_date: currentDate,
+          });
+        }
         const adoptedByRef = doc(
           db,
           "shelters",
