@@ -298,7 +298,7 @@ const DisplayUser = ({ route }) => {
           const response = await fetch(screenshotImage);
           const blob = await response.blob();
           const timestamp = new Date().getTime();
-          const fileRef = ref(storage, `adopters/reports/${user.uid}/${timestamp}`);
+          const fileRef = ref(storage, `reports/${user.uid}/${timestamp}`);
           await uploadBytes(fileRef, blob);
           screenshotUrl = await getDownloadURL(fileRef);
         } catch (error) {

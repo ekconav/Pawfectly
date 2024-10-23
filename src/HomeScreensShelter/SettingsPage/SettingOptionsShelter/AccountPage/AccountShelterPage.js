@@ -79,7 +79,7 @@ const AccountPage = () => {
         try {
           const response = await fetch(uri);
           const blob = await response.blob();
-          const storageRef = ref(storage, `shelters/accountPictures/${shelter.uid}`);
+          const storageRef = ref(storage, `shelters/${shelter.uid}/accountPictures/${shelter.uid}`);
           await uploadBytes(storageRef, blob);
 
           const downloadURL = await getDownloadURL(storageRef);
