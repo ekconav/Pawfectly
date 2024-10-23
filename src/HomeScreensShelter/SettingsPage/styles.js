@@ -258,7 +258,7 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.title,
     fontFamily: "Poppins_400Regular",
-    textAlign: "right",
+    textAlign: "left",
   },
 
   // Map

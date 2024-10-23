@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.title,
     fontFamily: "Poppins_400Regular",
-    textAlign: "right",
+    textAlign: "left",
   },
 
   // Report Modal
@@ -308,6 +308,9 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: COLORS.white,
     fontFamily: "Poppins_400Regular",
+  },
+  required: {
+    color: COLORS.delete,
   },
 
   // Map

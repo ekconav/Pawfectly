@@ -261,7 +261,7 @@ const SettingsPage = () => {
         try {
           const response = await fetch(uri);
           const blob = await response.blob();
-          const storageRef = ref(storage, `adopters/coverPhoto/${user.uid}`);
+          const storageRef = ref(storage, `adopters/${user.uid}/coverPhoto/${user.uid}`);
           await uploadBytes(storageRef, blob);
 
           const downloadURL = await getDownloadURL(storageRef);

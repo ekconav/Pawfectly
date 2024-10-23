@@ -211,9 +211,9 @@ const SignupShelter = () => {
             const blobCertificate = await responseCertificate.blob();
             const blobECC = await responseECC.blob();
 
-            const governmentIdRef = ref(storage, `shelters/governmentIds/${user.uid}`);
-            const certificateRef = ref(storage, `shelters/certificates/${user.uid}`);
-            const ECCRef = ref(storage, `shelters/ECC/${user.uid}`);
+            const governmentIdRef = ref(storage, `shelters/${user.uid}/governmentIds/${user.uid}`);
+            const certificateRef = ref(storage, `shelters/${user.uid}/certificates/${user.uid}`);
+            const ECCRef = ref(storage, `shelters/${user.uid}/ECC/${user.uid}`);
 
             await uploadBytes(governmentIdRef, blobGovernmentId);
             await uploadBytes(certificateRef, blobCertificate);

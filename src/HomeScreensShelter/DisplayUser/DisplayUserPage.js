@@ -57,6 +57,8 @@ const DisplayUserPage = ({ route }) => {
   const [mapModalVisible, setMapModalVisible] = useState(false);
   const [getAddress, setGetAddress] = useState("");
 
+  const [required, setRequired] = useState(false);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -192,12 +194,14 @@ const DisplayUserPage = ({ route }) => {
       if (!subjectTitle || !reason) {
         setModalMessage("Please fill in all fields.");
         setAlertModal(true);
+        setRequired(true);
         return;
       }
 
       if (!screenshotImage) {
         setModalMessage("Please upload a screenshot for us to verify.");
         setAlertModal(true);
+        setRequired(true);
         return;
       }
 
@@ -210,7 +214,7 @@ const DisplayUserPage = ({ route }) => {
           const response = await fetch(screenshotImage);
           const blob = await response.blob();
 
-          const fileRef = ref(storage, `screenshots/${user.uid}`);
+          const fileRef = ref(storage, `reports/${user.uid}/${timestamp}`);
           await uploadBytes(fileRef, blob);
           screenshotUrl = await getDownloadURL(fileRef);
         } catch (error) {
@@ -265,8 +269,13 @@ const DisplayUserPage = ({ route }) => {
     setReason("");
     setFileName("");
     setScreenshotImage("");
+    setRequired(false);
 
     setOpenReportModal(false);
+  };
+
+  const toggleSetting = () => {
+    setIsSettingModalVisible(!isSettingModalVisible);
   };
 
   const toggleMapModal = () => {
@@ -401,13 +410,10 @@ const DisplayUserPage = ({ route }) => {
       <Modal
         visible={isSettingModalVisible}
         animationType="fade"
+        onBackdropPress={toggleSetting}
         onRequestClose={() => setIsSettingModalVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsSettingModalVisible(false)}
-        >
+        <View style={styles.modalOverlay}>
           <View style={styles.dropdownMenu}>
             {["Report Account"].map((option, index) => (
               <TouchableOpacity
@@ -419,7 +425,7 @@ const DisplayUserPage = ({ route }) => {
               </TouchableOpacity>
             ))}
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
       <Modal isVisible={alertModal}>
         <View style={styles.modalContainer}>
@@ -442,7 +448,14 @@ const DisplayUserPage = ({ route }) => {
           <Text style={styles.reportTitle}>Report Account</Text>
           <View style={styles.reportMainInputContainer}>
             <View style={styles.reportInputContainer}>
-              <Text style={styles.reportInputTitle}>Subject</Text>
+              <Text style={styles.reportInputTitle}>
+                Subject{" "}
+                <Text
+                  style={required && subjectTitle === "" ? styles.required : null}
+                >
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.reportInput}
                 value={subjectTitle}
@@ -450,7 +463,12 @@ const DisplayUserPage = ({ route }) => {
               />
             </View>
             <View style={styles.reportInputContainer}>
-              <Text style={styles.reportInputTitle}>Reason</Text>
+              <Text style={styles.reportInputTitle}>
+                Reason{" "}
+                <Text style={required && reason === "" ? styles.required : null}>
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.reportInputReason}
                 value={reason}
@@ -461,7 +479,10 @@ const DisplayUserPage = ({ route }) => {
             </View>
             <View style={styles.reportInputContainer}>
               <Text style={styles.reportInputTitle}>
-                Please attach a screenshot for proof
+                Please attach a screenshot for proof{" "}
+                <Text style={required && fileName === "" ? styles.required : null}>
+                  *
+                </Text>
               </Text>
               <TouchableOpacity
                 style={styles.reportUploadScreenshot}

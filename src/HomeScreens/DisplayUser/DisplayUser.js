@@ -63,6 +63,8 @@ const DisplayUser = ({ route }) => {
   const [mapModalVisible, setMapModalVisible] = useState(false);
   const [getAddress, setGetAddress] = useState("");
 
+  const [required, setRequired] = useState(false);
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -276,12 +278,14 @@ const DisplayUser = ({ route }) => {
       if (!subjectTitle || !reason) {
         setModalMessage("Please fill in all fields.");
         setAlertModal(true);
+        setRequired(true);
         return;
       }
 
       if (!screenshotImage) {
         setModalMessage("Please upload a screenshot for us to verify.");
         setAlertModal(true);
+        setRequired(true);
         return;
       }
 
@@ -294,7 +298,7 @@ const DisplayUser = ({ route }) => {
           const response = await fetch(screenshotImage);
           const blob = await response.blob();
           const timestamp = new Date().getTime();
-          const fileRef = ref(storage, `adopters/reports/${user.uid}/${timestamp}`);
+          const fileRef = ref(storage, `reports/${user.uid}/${timestamp}`);
           await uploadBytes(fileRef, blob);
           screenshotUrl = await getDownloadURL(fileRef);
         } catch (error) {
@@ -351,12 +355,21 @@ const DisplayUser = ({ route }) => {
     setReason("");
     setFileName("");
     setScreenshotImage("");
+    setRequired(false);
 
     setOpenReportModal(false);
   };
 
+  const toggleSetting = () => {
+    setIsSettingModalVisible(!isSettingModalVisible);
+  };
+
   const toggleMapModal = () => {
     setMapModalVisible(!mapModalVisible);
+  };
+
+  const toggleDonation = () => {
+    setDonationModal(!donationModal);
   };
 
   if (loading) {
@@ -513,13 +526,10 @@ const DisplayUser = ({ route }) => {
       <Modal
         visible={isSettingModalVisible}
         animationType="fade"
+        onBackdropPress={toggleSetting}
         onRequestClose={() => setIsSettingModalVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setIsSettingModalVisible(false)}
-        >
+        <View style={styles.modalOverlay}>
           <View
             style={!userToUser ? styles.dropdownMenu : styles.dropdownMenuUserToUser}
           >
@@ -535,7 +545,7 @@ const DisplayUser = ({ route }) => {
               )
             )}
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
       <Modal isVisible={alertModal}>
         <View style={styles.modalContainer}>
@@ -558,7 +568,14 @@ const DisplayUser = ({ route }) => {
           <Text style={styles.reportTitle}>Report Account</Text>
           <View style={styles.reportMainInputContainer}>
             <View style={styles.reportInputContainer}>
-              <Text style={styles.reportInputTitle}>Subject</Text>
+              <Text style={styles.reportInputTitle}>
+                Subject{" "}
+                <Text
+                  style={required && subjectTitle === "" ? styles.required : null}
+                >
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.reportInput}
                 value={subjectTitle}
@@ -566,7 +583,12 @@ const DisplayUser = ({ route }) => {
               />
             </View>
             <View style={styles.reportInputContainer}>
-              <Text style={styles.reportInputTitle}>Reason</Text>
+              <Text style={styles.reportInputTitle}>
+                Reason{" "}
+                <Text style={required && reason === "" ? styles.required : null}>
+                  *
+                </Text>
+              </Text>
               <TextInput
                 style={styles.reportInputReason}
                 value={reason}
@@ -577,7 +599,10 @@ const DisplayUser = ({ route }) => {
             </View>
             <View style={styles.reportInputContainer}>
               <Text style={styles.reportInputTitle}>
-                Please attach a screenshot for proof
+                Please attach a screenshot for proof{" "}
+                <Text style={required && fileName === "" ? styles.required : null}>
+                  *
+                </Text>
               </Text>
               <TouchableOpacity
                 style={styles.reportUploadScreenshot}
@@ -615,6 +640,7 @@ const DisplayUser = ({ route }) => {
       </Modal>
       <Modal
         isVisible={donationModal}
+        onBackdropPress={toggleDonation}
         onRequestClose={() => setDonationModal(false)}
       >
         <View style={styles.donationModalContainer}>
@@ -650,7 +676,11 @@ const DisplayUser = ({ route }) => {
       </Modal>
 
       {/* Modal map */}
-      <Modal isVisible={mapModalVisible} onBackdropPress={toggleMapModal}>
+      <Modal
+        isVisible={mapModalVisible}
+        onBackdropPress={toggleMapModal}
+        onRequestClose={() => setMapModalVisible(false)}
+      >
         <View style={styles.modalContent}>
           <WebView source={{ uri: googleMapsUrl }} style={{ flex: 1 }} />
         </View>
