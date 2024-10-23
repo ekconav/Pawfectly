@@ -14,6 +14,7 @@ import {
   doc,
   query,
   where,
+  serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
 import {
@@ -21,6 +22,8 @@ import {
   ref,
   uploadBytes,
   getDownloadURL,
+  listAll,
+  getStorage,
 } from "firebase/storage";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import Modals from "./usersModal";
@@ -240,7 +243,7 @@ const UsersPage = () => {
         try {
           const imageRef = ref(
             storage,
-            `adopters/governmentIds/${selectedUser.id}`
+            `adopters/${selectedUser.id}/governmentIds/${selectedUser.id}`
           );
           await uploadBytes(imageRef, imagePreview.file);
           const url = await getDownloadURL(imageRef);
@@ -387,26 +390,42 @@ const UsersPage = () => {
     }
   };
 
+  // Helper function to delete all contents of a folder in Firebase Storage
+  const deleteFolderContents = async (folderPath) => {
+    const folderRef = ref(storage, folderPath);
+    console.log(folderRef.fullPath);
+
+  
+    try {
+      const listResult = await listAll(folderRef); // List all files and subfolders
+      
+      // If there are files, loop through and delete them
+      for (const itemRef of listResult.items) {
+        await deleteObject(itemRef)
+      }
+  
+      // Handle potential subfolders
+      for (const prefix of listResult.prefixes) {
+        await deleteFolderContents(prefix.fullPath); // Recursive call to delete subfolders
+      }
+    } catch (error) {
+      console.error("Error listing or deleting folder contents:", error);
+      // Handle specific errors if needed
+      if (error.code === 'storage/object-not-found') {
+        console.log("Folder does not exist or is empty.");
+      } else {
+        throw error; // Re-throw to handle it in the calling function
+      }
+    }
+  };
+  
   // Main delete user function
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
     try {
       setLoading(true);
-      // Attempt to delete the user from Firebase Authentication via backend API first
-      const response = await fetch(
-        `http://localhost:5000/deleteUser/${selectedUser.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      // If the backend call fails, don't proceed with Firestore deletion
-      if (!response.ok) {
-        setAlertMessage("Failed to delete user from Firebase Authentication.");
-        setAlertType("error");
-        throw new Error("Failed to delete user from Firebase Authentication.");
-      }
+     
 
       // Now proceed with deleting the user's sub-collections from Firestore
       await deleteSubCollection(selectedUser.id, "conversations", "messages");
@@ -420,6 +439,16 @@ const UsersPage = () => {
       // Delete the user's posts in the "pets" collection
       await deleteUserPosts(selectedUser.id);
 
+      // Delete all nested folders under the user's storage
+      await deleteFolderContents(`adopters/${selectedUser.id}/messages`);
+      await deleteFolderContents(`adopters/${selectedUser.id}/governmentIds`);
+      await deleteFolderContents(`adopters/${selectedUser.id}/petsPosted`);
+      await deleteFolderContents(`adopters/${selectedUser.id}/coverPhoto`);
+      await deleteFolderContents(`adopters/${selectedUser.id}/currentPets`);
+      await deleteFolderContents(`adopters/${selectedUser.id}/accountPictures`);
+
+
+
       // Then delete the main user document
       const userDocRef = doc(db, "users", selectedUser.id);
       await deleteDoc(userDocRef);
@@ -428,6 +457,21 @@ const UsersPage = () => {
       setUsers((prevUsers) =>
         prevUsers.filter((user) => user.id !== selectedUser.id)
       );
+
+       // Attempt to delete the user from Firebase Authentication via backend API first
+       const response = await fetch(
+        `http://localhost:5000/deleteUser/${selectedUser.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      // If the backend call fails, don't proceed with Firestore deletion
+      if (!response.ok) {
+        setAlertMessage("Failed to delete user from Firebase Authentication.");
+        setAlertType("error");
+        throw new Error("Failed to delete user from Firebase Authentication.");
+      }
 
       // Close modal and reset selected user
       setSelectedUser(null);
@@ -590,13 +634,14 @@ const UsersPage = () => {
       setLoading(true);
       const updatedData = {
         ...petInfo,
+        petPosted: serverTimestamp(),
         userId: selectedUser.id,
         location: selectedUser.address,
       };
       const timestamp = new Date().getTime();
       const imageRef = ref(
         storage,
-        `adopters/petsPosted/${updatedData.userId}/${timestamp}`
+        `adopters/${updatedData.userId}/petsPosted/${timestamp}`
       );
       await uploadBytes(imageRef, imagePreview.file);
       const url = await getDownloadURL(imageRef);
@@ -707,11 +752,13 @@ const UsersPage = () => {
         address: updateUser.address,
         birthdate: birthdateTimestamp,
         verified: false,
+        termsAccepted: false,
+        adoption_limit: 0,
       };
 
       if (imagePreview.flag && imagePreview.file) {
         try {
-          const imageRef = ref(storage, `adopters/governmentIds/${user.uid}`);
+          const imageRef = ref(storage, `adopters/${user.uid}/governmentIds/${user.uid}`);
           await uploadBytes(imageRef, imagePreview.file);
           const url = await getDownloadURL(imageRef);
           userData.governmentId = url; // Update the URL in the data to be sent to Firestore

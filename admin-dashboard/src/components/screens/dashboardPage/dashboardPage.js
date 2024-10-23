@@ -457,7 +457,7 @@ const DashboardPage = () => {
         }
         const imageRef = ref(
           storage,
-          `${imagePath}/petsPosted/${updatedData.userId}/${timestamp}`
+          `${imagePath}/${updatedData.userId}/petsPosted//${timestamp}`
         );
         await uploadBytes(imageRef, imagePreview.file);
         const url = await getDownloadURL(imageRef);
