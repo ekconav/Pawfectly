@@ -206,7 +206,7 @@ const AddPet = () => {
         const response = await fetch(uri);
         const blob = await response.blob();
         const timestamp = new Date().getTime();
-        const storageRef = ref(storage, `shelters/petsPosted/${user.uid}/${timestamp}`);
+        const storageRef = ref(storage, `shelters/${user.uid}/petsPosted/${timestamp}`);
         await uploadBytes(storageRef, blob);
 
         const downloadURL = await getDownloadURL(storageRef);

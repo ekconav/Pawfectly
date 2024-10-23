@@ -275,7 +275,7 @@ const MessagePageShelter = ({ route }) => {
       const timestamp = new Date().getTime();
       const imageRef = ref(
         storage,
-        `shelters/messages/${currentUser.uid}/${currentUser.uid}_${userId}/${timestamp}`
+        `shelters/${currentUser.uid}/messages/${currentUser.uid}_${userId}/${timestamp}`
       );
       const img = await fetch(imageUri);
       const bytes = await img.blob();

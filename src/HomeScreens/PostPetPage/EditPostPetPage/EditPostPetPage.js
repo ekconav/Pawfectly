@@ -165,7 +165,7 @@ const EditPostPetPage = ({ route }) => {
         const response = await fetch(uri);
         const blob = await response.blob();
         const timestamp = new Date().getTime();
-        const storageRef = ref(storage, `pets/${user.uid}/${timestamp}`);
+        const storageRef = ref(storage, `adopters/${user.uid}/petsPosted/${timestamp}`);
         await uploadBytes(storageRef, blob);
 
         const downloadURL = await getDownloadURL(storageRef);

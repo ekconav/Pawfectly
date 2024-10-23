@@ -185,7 +185,7 @@ const SignupPage = () => {
             const response = await fetch(imageUri);
             const blob = await response.blob();
 
-            const fileRef = ref(storage, `adopters/governmentIds/${user.uid}`);
+            const fileRef = ref(storage, `adopters/${user.uid}/governmentIds/${user.uid}`);
             await uploadBytes(fileRef, blob);
             governmentIdUrl = await getDownloadURL(fileRef);
             console.log("Image uploaded and URL retrieved:", governmentIdUrl);
@@ -200,7 +200,7 @@ const SignupPage = () => {
             const response = await fetch(currentPetsImageUri);
             const blob = await response.blob();
 
-            const fileRef = ref(storage, `adopters/currentPets/${user.uid}`);
+            const fileRef = ref(storage, `adopters/${user.uid}/currentPets/${user.uid}`);
             await uploadBytes(fileRef, blob);
             currentPetsUrl = await getDownloadURL(fileRef);
             console.log("Image uploaded and URL retrieved:", currentPetsUrl);
