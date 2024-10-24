@@ -11,7 +11,6 @@ const styles = StyleSheet.create({
   },
   signUpPageTitle: {
     fontSize: 24,
-    marginBottom: 16,
     fontFamily: "Poppins_700Bold",
     color: COLORS.title,
   },

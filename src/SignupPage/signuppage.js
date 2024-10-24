@@ -21,6 +21,7 @@ import { auth, db, storage } from "../FirebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import styles from "./styles";
 import COLORS from "../const/colors";
@@ -37,6 +38,9 @@ const SignupPage = () => {
   const [lastName, setLastName] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [address, setAddress] = useState("");
+  const [birthdate, setBirthdate] = useState("");
+  const [openDatePickerModal, setOpenDatePickerModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -133,7 +137,8 @@ const SignupPage = () => {
       email &&
       password &&
       mobileNumber &&
-      confirmPassword
+      confirmPassword &&
+      selectedDate
     ) {
       if (!email.includes("@")) {
         setModalMessage("Please enter a valid email address.");
@@ -185,7 +190,10 @@ const SignupPage = () => {
             const response = await fetch(imageUri);
             const blob = await response.blob();
 
-            const fileRef = ref(storage, `adopters/${user.uid}/governmentIds/${user.uid}`);
+            const fileRef = ref(
+              storage,
+              `adopters/${user.uid}/governmentIds/${user.uid}`
+            );
             await uploadBytes(fileRef, blob);
             governmentIdUrl = await getDownloadURL(fileRef);
             console.log("Image uploaded and URL retrieved:", governmentIdUrl);
@@ -200,7 +208,10 @@ const SignupPage = () => {
             const response = await fetch(currentPetsImageUri);
             const blob = await response.blob();
 
-            const fileRef = ref(storage, `adopters/${user.uid}/currentPets/${user.uid}`);
+            const fileRef = ref(
+              storage,
+              `adopters/${user.uid}/currentPets/${user.uid}`
+            );
             await uploadBytes(fileRef, blob);
             currentPetsUrl = await getDownloadURL(fileRef);
             console.log("Image uploaded and URL retrieved:", currentPetsUrl);
@@ -212,6 +223,7 @@ const SignupPage = () => {
 
         await addUserToFirestore(user.uid, {
           adoption_limit: 0,
+          birthdate: selectedDate,
           firstName: firstName,
           lastName: lastName,
           mobileNumber: fullMobileNumber,
@@ -292,6 +304,14 @@ const SignupPage = () => {
     }
   };
 
+  const formatDate = (date) => {
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.signUpPageContainer}>
@@ -345,6 +365,39 @@ const SignupPage = () => {
               maxLength={10}
             />
           </View>
+        </View>
+        <View style={styles.signUpPageInputContainer}>
+          <Text style={styles.signUpPageLabel}>
+            Birthdate{" "}
+            <Text
+              style={triggerRequired && birthdate === "" ? styles.required : null}
+            >
+              *
+            </Text>
+          </Text>
+          <TouchableOpacity onPress={() => setOpenDatePickerModal(true)}>
+            <TextInput
+              style={styles.signUpPageinput}
+              editable={false}
+              value={birthdate}
+            />
+          </TouchableOpacity>
+          {openDatePickerModal && (
+            <View style={{ backgroundColor: "red", borderRadius: 10 }}>
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="default"
+                onChange={(event, date) => {
+                  setOpenDatePickerModal(false);
+                  if (event.type === "set" && date) {
+                    setSelectedDate(date);
+                    setBirthdate(formatDate(date));
+                  }
+                }}
+              />
+            </View>
+          )}
         </View>
         <View style={styles.signUpPageInputContainer}>
           <Text style={styles.signUpPageLabel}>
