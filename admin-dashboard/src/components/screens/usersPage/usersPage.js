@@ -23,14 +23,13 @@ import {
   uploadBytes,
   getDownloadURL,
   listAll,
-  getStorage,
 } from "firebase/storage";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import Modals from "./usersModal";
 import Alerts from "./alert";
 import COLORS from "../../colors";
 import LoadingSpinner from "../loadingPage/loadingSpinner";
-import { Col, Container, Row, Button } from "react-bootstrap";
+import { Col, Container, Row, Button,InputGroup,Form } from "react-bootstrap";
 
 // Number of items per page
 
@@ -68,13 +67,20 @@ const UsersPage = () => {
   // Display User List in Ascending Order
   useEffect(() => {
     if (users.length > 0) {
-      const sortedList = [...users].sort((a, b) => {
-        const lastNameA = a.lastName.toLowerCase();
-        const lastNameB = b.lastName.toLowerCase();
-        if (lastNameA < lastNameB) return -1;
-        if (lastNameA > lastNameB) return 1;
-        return 0;
-      });
+      const sortedList = [...users]
+        .sort((a, b) => {
+          // Sort by verified status first (false comes before true)
+          if (a.verified === b.verified) {
+            // If verified status is the same, sort by lastName
+            const lastNameA = a.lastName.toLowerCase();
+            const lastNameB = b.lastName.toLowerCase();
+            if (lastNameA < lastNameB) return -1;
+            if (lastNameA > lastNameB) return 1;
+            return 0;
+          }
+          // Sort verified: false before true
+          return a.verified ? 1 : -1;
+        });
       setSortedUsers(sortedList);
     }
   }, [users]);
@@ -395,15 +401,14 @@ const UsersPage = () => {
     const folderRef = ref(storage, folderPath);
     console.log(folderRef.fullPath);
 
-  
     try {
       const listResult = await listAll(folderRef); // List all files and subfolders
-      
+
       // If there are files, loop through and delete them
       for (const itemRef of listResult.items) {
-        await deleteObject(itemRef)
+        await deleteObject(itemRef);
       }
-  
+
       // Handle potential subfolders
       for (const prefix of listResult.prefixes) {
         await deleteFolderContents(prefix.fullPath); // Recursive call to delete subfolders
@@ -411,21 +416,20 @@ const UsersPage = () => {
     } catch (error) {
       console.error("Error listing or deleting folder contents:", error);
       // Handle specific errors if needed
-      if (error.code === 'storage/object-not-found') {
+      if (error.code === "storage/object-not-found") {
         console.log("Folder does not exist or is empty.");
       } else {
         throw error; // Re-throw to handle it in the calling function
       }
     }
   };
-  
+
   // Main delete user function
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
 
     try {
       setLoading(true);
-     
 
       // Now proceed with deleting the user's sub-collections from Firestore
       await deleteSubCollection(selectedUser.id, "conversations", "messages");
@@ -447,8 +451,6 @@ const UsersPage = () => {
       await deleteFolderContents(`adopters/${selectedUser.id}/currentPets`);
       await deleteFolderContents(`adopters/${selectedUser.id}/accountPictures`);
 
-
-
       // Then delete the main user document
       const userDocRef = doc(db, "users", selectedUser.id);
       await deleteDoc(userDocRef);
@@ -458,8 +460,8 @@ const UsersPage = () => {
         prevUsers.filter((user) => user.id !== selectedUser.id)
       );
 
-       // Attempt to delete the user from Firebase Authentication via backend API first
-       const response = await fetch(
+      // Attempt to delete the user from Firebase Authentication via backend API first
+      const response = await fetch(
         `http://localhost:5000/deleteUser/${selectedUser.id}`,
         {
           method: "DELETE",
@@ -758,7 +760,10 @@ const UsersPage = () => {
 
       if (imagePreview.flag && imagePreview.file) {
         try {
-          const imageRef = ref(storage, `adopters/${user.uid}/governmentIds/${user.uid}`);
+          const imageRef = ref(
+            storage,
+            `adopters/${user.uid}/governmentIds/${user.uid}`
+          );
           await uploadBytes(imageRef, imagePreview.file);
           const url = await getDownloadURL(imageRef);
           userData.governmentId = url; // Update the URL in the data to be sent to Firestore
@@ -785,6 +790,40 @@ const UsersPage = () => {
       setAlertType("error");
     }
   };
+
+  const [searchValue, setSearchValue] = useState("");
+
+  const handleSearch = () => {
+    if (searchValue.trim() === "") {
+      setSortedUsers(users); // Reset to the full list if search input is empty
+    } else {
+      const filteredUsers = users.filter((user) =>
+        user.lastName.toLowerCase().includes(searchValue.toLowerCase())
+      );
+      setSortedUsers(filteredUsers);
+    }
+    setCurrentPage(1); // Reset to the first page after filtering
+  };
+
+  useEffect(() => {
+    if (searchValue.trim() === "") {
+      const sortedList = [...users].sort((a, b) => {
+        // First, sort by verified status (unverified first)
+        if (a.verified === b.verified) {
+          // If verified status is the same, sort alphabetically by last name
+          const lastNameA = a.lastName.toLowerCase();
+          const lastNameB = b.lastName.toLowerCase();
+          if (lastNameA < lastNameB) return -1;
+          if (lastNameA > lastNameB) return 1;
+          return 0;
+        }
+        // Sort verified: false before true
+        return a.verified ? 1 : -1;
+      });
+  
+      setSortedUsers(sortedList);
+    }
+  }, [searchValue, users]);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
@@ -856,15 +895,53 @@ const UsersPage = () => {
       </Container>
       <div style={styles.container}>
         <div style={styles.userListContainer}>
+        <Container>
+          <Row className="mt-3">
+            <Col >
+              <InputGroup
+              size="sm"
+                style={{
+                  border: `1px solid ${COLORS.prim}`,
+                  borderRadius: "4px",
+                }}
+              >
+                <InputGroup.Text id="adopter">
+                  <ion-icon name="body-outline"></ion-icon>
+                </InputGroup.Text>
+                <Form.Control
+                  placeholder="Search Adopter"
+                  value={searchValue}
+  onChange={(e) => setSearchValue(e.target.value)}
+
+                />
+              </InputGroup>
+            </Col>
+            <Col lg={1} className="d-flex align-items-center justify-content-start">
+              <ion-icon
+                style={styles.searchIcon}
+                name="search-outline"
+                onClick={handleSearch}
+                onMouseOver={(e) => {
+                  e.target.style.color = COLORS.hover;
+                  e.target.style.borderColor = COLORS.hover;
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.color = COLORS.prim;
+                  e.target.style.borderColor = COLORS.prim;
+                }}
+              ></ion-icon>
+            </Col>
+          </Row>
+        </Container>
           <div style={styles.userDetailsLabel}>
             <div style={styles.line}>
-              <p style={styles.title}>Image</p>
+              <p style={{ ...styles.title, margin: "0" }}>Image</p>
             </div>
             <div style={styles.line}>
-              <p style={styles.title}>Name</p>
+              <p style={{ ...styles.title, margin: "0" }}>Name</p>
             </div>
             <div style={styles.line}>
-              <p style={styles.title}>Status</p>
+              <p style={{ ...styles.title, margin: "0" }}>Status</p>
             </div>
           </div>
           <div style={styles.userDetails}>

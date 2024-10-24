@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   userDetailsLabel: {
     display: "grid",
     gridTemplateColumns: "7vw 25vw 10vw 10vw",
-    height: "10vh",
+    height: "7vh",
     gap: "10px",
   },
   line: {
@@ -256,6 +256,15 @@ const styles = StyleSheet.create({
     height: "20vh",
     borderRadius: 15,
     margin: 10,
+  },
+  searchIcon: {
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    border: `2px solid ${COLORS.prim}`,
+    borderRadius: "6px",
+    color: COLORS.prim,
+    fontSize: "25px",
+    fontWeight: 100,
   },
 });
 
